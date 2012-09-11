@@ -15,5 +15,6 @@ built for:
 2.	cd .. ; $virtualenv --no-site-packages env
 3.	source env/bin/activate
 4.	cd ai ; pip install -r requirements.txt
-5.	python manage.py syncdb
-6.	python manage.py runserver
+5.	Setup mysql db if not already
+6.	python manage.py syncdb
+7.	python manage.py runserver
