@@ -6,16 +6,17 @@ class state(models.Model):
     def __unicode__(self):
         return self.name
 
+class article_state(models.Model):
+    article = models.ForeignKey('article', related_name='owning_article')
+    state = models.ForeignKey('state')
+
 class article(models.Model):
     doi = models.CharField(max_length=50)
-    article_state = models.ForeignKey(article_state)
+    article_state = models.OneToOneField('article_state', related_name='current_state')
 
     def __unicode__(self):
         return self.doi
-    
-class article_state(models.Model):
-    article = models.ForeignKey(article)
-    state = models.ForeignKey(state)
+
     
     
 
