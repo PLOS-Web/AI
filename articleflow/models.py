@@ -22,7 +22,7 @@ class ArticleState(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'%s: $s' % (self.article, self.state)
+        return u'%s: %s' % (self.article, self.state)
 
 class Article(models.Model):
     '''
@@ -34,10 +34,18 @@ class Article(models.Model):
 
     def __unicode__(self):
         return self.doi
-
+    
+    # Return most recent associated state
     def current_articlestate(self):
         return self.article_states.latest('created')
+    
+    # Return the possible transitions that this object can do based on its current state
+    def possible_transitions(self):
+        return self.current_articlestate().state.possible_transitions
 
+    def execute_transition(self, statetrans, instigator):
+        statetrans.execute_transition(self, instigator)
+            
 class StateTransition(models.Model):
     '''
     Defines the possible transitions between states
@@ -49,8 +57,28 @@ class StateTransition(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
     
     def __unicode__(self):
-        return u'%s: %s to $s' % (self.name, self.from_state, self.to_state)
-
+        return u'%s: %s to %s' % (self.name, self.from_state, self.to_state)
+    
+    def execute_transition(self, art, instigator):
+        '''
+        moves article to a new state.  Creates new ArticleState and a Transition
+        to describe what happened
+        '''
+        if (art.current_articlestate().id == from_state):
+            print "StateTransition says legal transition\n"
+            # create new state
+            s = Article.article_states.create(state=self.to_state)
+            
+            # create transition entry
+            t = transition(article = art.pk,
+                           statetransition=self.pk,
+                           from_articlestate = art.current_articlestate.pk,
+                           to_articlestate = s.pk)
+            t.save()
+            print "Transition successful\n"
+        else:
+            print "Illegal Transition\n"
+            
 class Transition(models.Model):
     '''
     Holds histories of transtitions for each article
@@ -59,11 +87,12 @@ class Transition(models.Model):
     article = models.ForeignKey('Article', related_name='transitions')
     statetransition = models.ForeignKey('StateTransition', related_name='transitions')
     user = models.ForeignKey(User)
+    from_articlestate = models.ForeignKey('ArticleState', related_name='transitioned_to')
+    to_articlestate = models.ForeignKey('ArticleState', related_name='transitioned_from')
+
     created = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True) 
+    last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return u'%s: %s' % (self.article.doi, self.statetransition.name)
-    
-    
 
