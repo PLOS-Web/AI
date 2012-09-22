@@ -64,7 +64,7 @@ class StateTransition(models.Model):
         moves article to a new state.  Creates new ArticleState and a Transition
         to describe what happened
         '''
-        if (art.current_articlestate().id == from_state):
+        if (art.current_articlestate().state == self.from_state):
             print "StateTransition says legal transition\n"
             # create new state
             s = Article.article_states.create(state=self.to_state)
