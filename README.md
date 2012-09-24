@@ -17,11 +17,11 @@ built for:
 4.	`cd ai ; pip install -r requirements.txt`
 5.	Setup mysql db if not already
 6.	`python manage.py syncdb`
-7.	(optional) `python manage.py loaddata < seed.json'
+7.	(optional) `python manage.py loaddata < seed.json`
 8.	`python manage.py runserver`
 
 
-## testing
+## Testing
 
 Run a bunch of tests with django's awesome unit testing framework:
 
