@@ -65,19 +65,20 @@ class Transition(models.Model):
         to describe what happened
         '''
         if (art.current_articlestate().state == self.from_state):
-            print "Transition says legal transition\n"
+            # find current state
+            c_as = art.current_articlestate()
             # create new state
-            s = Article.article_states.create(state=self.to_state)
-            
+            s = art.article_states.create(state=self.to_state)
             # create transition entry
-            t = ArticleTransition(article = art.pk,
-                                  statetransition=self.pk,
-                                  from_articlestate = art.current_articlestate.pk,
-                                  to_articlestate = s.pk)
+            t = ArticleTransition(article = art,
+                                  transition=self,
+                                  user=instigator,
+                                  from_articlestate = c_as,
+                                  to_articlestate = s)
             t.save()
-            print "Transition successful\n"
+            return t
         else:
-            print "Illegal Transition\n"
+            return 1
             
 class ArticleTransition(models.Model):
     '''
