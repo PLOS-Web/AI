@@ -46,7 +46,7 @@ class Article(models.Model):
     def execute_transition(self, statetrans, instigator):
         statetrans.execute_transition(self, instigator)
             
-class StateTransition(models.Model):
+class Transition(models.Model):
     '''
     Defines the possible transitions between states
     @TODO add permissions
@@ -65,27 +65,27 @@ class StateTransition(models.Model):
         to describe what happened
         '''
         if (art.current_articlestate().state == self.from_state):
-            print "StateTransition says legal transition\n"
+            print "Transition says legal transition\n"
             # create new state
             s = Article.article_states.create(state=self.to_state)
             
             # create transition entry
-            t = transition(article = art.pk,
-                           statetransition=self.pk,
-                           from_articlestate = art.current_articlestate.pk,
-                           to_articlestate = s.pk)
+            t = ArticleTransition(article = art.pk,
+                                  statetransition=self.pk,
+                                  from_articlestate = art.current_articlestate.pk,
+                                  to_articlestate = s.pk)
             t.save()
             print "Transition successful\n"
         else:
             print "Illegal Transition\n"
             
-class Transition(models.Model):
+class ArticleTransition(models.Model):
     '''
     Holds histories of transtitions for each article
     @TODO set uneditable
     '''
-    article = models.ForeignKey('Article', related_name='transitions')
-    statetransition = models.ForeignKey('StateTransition', related_name='transitions')
+    article = models.ForeignKey('Article', related_name='articletransitions')
+    transition = models.ForeignKey('Transition', related_name='articletransitions')
     user = models.ForeignKey(User)
     from_articlestate = models.ForeignKey('ArticleState', related_name='transitioned_to')
     to_articlestate = models.ForeignKey('ArticleState', related_name='transitioned_from')
