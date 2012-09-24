@@ -1,2 +1,0 @@
-DROP DATABASE ai_dev;
-CREATE DATABASE ai_dev;
