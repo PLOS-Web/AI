@@ -1,0 +1,13 @@
+<h3>This is my slightly ghetto table</h3>
+
+<table>
+  <tr>
+    <th>DOI</th>
+  </tr> 
+  {% for article in articles %}
+  <tr>
+    <td><a href="/detail/{{article.doi}}">{{ article.doi }}</a></td>
+    <td>Some other stuff</td>
+  </tr>
+  {% endfor %}
+</table>
