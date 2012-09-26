@@ -1,16 +1,23 @@
 {% extends "base.html" %}    
 
 {% block content %}
-<h3>This is my slightly ghetto table</h3>
+<h2>This is my slightly ghetto table</h2>
 
 <table>
   <tr>
+    <th>Date</th>
     <th>DOI</th>
+    <th>Journal</th>
+    <th>Issues</th>
+    <th>Notes</th>
   </tr> 
   {% for article in articles %}
   <tr>
+    <td>1969-12-31</td>
     <td><a href="/detail/{{article.doi}}">{{ article.doi }}</a></td>
-    <td>Some other stuff</td>
+    <td>PONE</td>
+    <td>iss_1, iss_2, iss_3</td>
+    <td>note_1, note_2, note_3</td>
   </tr>
   {% endfor %}
 </table>
