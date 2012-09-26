@@ -7,3 +7,7 @@ def grid(request):
     ctx = {'articles': articles}
     return render_to_response('articleflow/grid.html', ctx)
 
+def detail(request, doi=None):
+    article = Article.objects.get(doi=doi)
+    ctx = {'article': article}
+    return render_to_response('articleflow/detail.html',ctx)
