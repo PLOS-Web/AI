@@ -3,7 +3,7 @@ from django.shortcuts import render_to_response
 from articleflow.models import Article, ArticleState, State
 
 def grid(request):
-    articles = Article.objects.all().order_by('created')
+    articles = Article.objects.all().select_related().order_by('pubdate')
     ctx = {'articles': articles}
     return render_to_response('articleflow/grid.html', ctx)
 
