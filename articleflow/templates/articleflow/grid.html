@@ -5,7 +5,7 @@
 
 <table>
   <tr>
-    <th>Date</th>
+    <th>PubDate</th>
     <th>DOI</th>
     <th>Journal</th>
     <th>Issues</th>
@@ -13,11 +13,11 @@
   </tr> 
   {% for article in articles %}
   <tr>
-    <td>1969-12-31</td>
+    <td>{{ article.pubdate }}</td>
     <td><a href="/detail/{{article.doi}}">{{ article.doi }}</a></td>
-    <td>PONE</td>
-    <td>iss_1, iss_2, iss_3</td>
-    <td>note_1, note_2, note_3</td>
+    <td>{{ article.journal.short_name }}</td>
+    <td>fake_1, fake_2, fake_3</td>
+    <td>fake_1, fake_2, fake_3</td>
   </tr>
   {% endfor %}
 </table>
