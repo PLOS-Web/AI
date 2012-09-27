@@ -24,11 +24,21 @@ class ArticleState(models.Model):
     def __unicode__(self):
         return u'%s: %s' % (self.article, self.state)
 
+class Journal(models.Model):
+    full_name = models.CharField(max_length=200)
+    short_name = models.CharField(max_length=200)
+    last_modified = models.DateTimeField(auto_now=True)    
+
+    def __unicode__(self):
+        return self.full_name
+
 class Article(models.Model):
     '''
     Holds information about each article
     '''
     doi = models.CharField(max_length=50)
+    pubdate = models.DateField()
+    journal = models.ForeignKey('Journal')
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
 
