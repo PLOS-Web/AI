@@ -8,10 +8,7 @@ class ArticleGrid(ListView):
     template_name = 'articleflow/grid.html'
 
     def get_queryset(self):
-        articles = Article.objects.all().select_related()
-        for art in articles:
-            art['current_articlestate'] = art.current_articlestate()
-        return articles
+        return Article.objects.all().select_related('journal__name', 'articlestate__state__name')
 
 class ArticleDetail(DetailView):
 
