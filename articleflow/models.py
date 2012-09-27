@@ -23,6 +23,14 @@ class ArticleState(models.Model):
 
     def __unicode__(self):
         return u'%s: %s' % (self.article, self.state)
+    
+    def save(self):
+        ret = super(ArticleState, self).save()
+        art = self.article
+        if art:
+            art.current_articlestate = self
+            art.save()
+        return ret
 
 class Journal(models.Model):
     full_name = models.CharField(max_length=200)
@@ -39,19 +47,16 @@ class Article(models.Model):
     doi = models.CharField(max_length=50)
     pubdate = models.DateField()
     journal = models.ForeignKey('Journal')
+    current_articlestate = models.ForeignKey('ArticleState', related_name='current_article', null=True, blank=True, default=None)
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return self.doi
     
-    # Return most recent associated state
-    def current_articlestate(self):
-        return self.article_states.latest('created')
-    
     # Return the possible transitions that this object can do based on its current state
     def possible_transitions(self):
-        return self.current_articlestate().state.possible_transitions
+        return self.current_articlestate.state.possible_transitions
 
     def execute_transition(self, statetrans, instigator):
         statetrans.execute_transition(self, instigator)
@@ -74,9 +79,9 @@ class Transition(models.Model):
         moves article to a new state.  Creates new ArticleState and a Transition
         to describe what happened
         '''
-        if (art.current_articlestate().state == self.from_state):
+        if (art.current_articlestate.state == self.from_state):
             # find current state
-            c_as = art.current_articlestate()
+            c_as = art.current_articlestate
             # create new state
             s = art.article_states.create(state=self.to_state)
             # create transition entry

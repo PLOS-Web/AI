@@ -1,5 +1,7 @@
 {% extends "base.html" %}    
 
+{% block sub_title %} - grid{% endblock %}
+
 {% block content %}
 <h2>This is my slightly ghetto table</h2>
 
@@ -10,14 +12,16 @@
     <th>Journal</th>
     <th>Issues</th>
     <th>Notes</th>
+    <th>State</th>
   </tr> 
-  {% for article in articles %}
+  {% for article in article_list %}
   <tr>
     <td>{{ article.pubdate }}</td>
     <td><a href="/detail/{{article.doi}}">{{ article.doi }}</a></td>
     <td>{{ article.journal.short_name }}</td>
     <td>fake_1, fake_2, fake_3</td>
     <td>fake_1, fake_2, fake_3</td>
+    <td>{{ article.current_articlestate.state.name }}</td>
   </tr>
   {% endfor %}
 </table>
