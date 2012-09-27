@@ -13,7 +13,7 @@
     <th>Issues</th>
     <th>Notes</th>
   </tr> 
-  {% for article in articles %}
+  {% for article in article_list %}
   <tr>
     <td>{{ article.pubdate }}</td>
     <td><a href="/detail/{{article.doi}}">{{ article.doi }}</a></td>
