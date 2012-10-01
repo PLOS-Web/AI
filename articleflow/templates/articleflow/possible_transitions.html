@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block sub_title %} - {{ article.doi }} - Tranisitions{% endblock %}
+
+{% block content %}
+<h2>{{ article.doi }}</h2>
+<h3>Current state</h3>
+{{ article.current_articlestate.state.name }}
+<h3>Possible state transitions</h3>
+
+<ul>
+{% for transition in transitions %}
+  <li>
+    {{ transition.name }}
+    <form action="" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="article" value="{{ article.pk }}">
+      <input type="hidden" name="transition" value="{{ transition.pk }}">
+      <input type="submit" value="Make Transition">
+    </form>
+  </li>
+{% endfor %}
+</ul>
+{% endblock %}

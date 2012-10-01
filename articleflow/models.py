@@ -2,9 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class State(models.Model):
-    '''
+    """
     Defines the possible states that articles can be in
-    '''
+    """
     name = models.CharField(max_length=100)
     last_modified = models.DateTimeField(auto_now=True)
 
@@ -12,20 +12,22 @@ class State(models.Model):
         return self.name
 
 class ArticleState(models.Model):
-    '''
+    """
     Holds histories of states for each article
     @TODO set uneditable
-    '''
+    """
     article = models.ForeignKey('Article', related_name='article_states')
     state = models.ForeignKey('State')
+    from_transition = models.ForeignKey('Transition', related_name='articlestates_created' , null=True, blank=True, default=None)
+    from_transition_user = models.ForeignKey(User, related_name='articlestates_created',null=True, blank=True, default=None)
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return u'%s: %s' % (self.article, self.state)
     
-    def save(self):
-        ret = super(ArticleState, self).save()
+    def save(self, *args, **kwargs):
+        ret = super(ArticleState, self).save(*args, **kwargs)
         art = self.article
         if art:
             art.current_articlestate = self
@@ -41,9 +43,9 @@ class Journal(models.Model):
         return self.full_name
 
 class Article(models.Model):
-    '''
+    """
     Holds information about each article
-    '''
+    """
     doi = models.CharField(max_length=50)
     pubdate = models.DateField()
     journal = models.ForeignKey('Journal')
@@ -58,14 +60,14 @@ class Article(models.Model):
     def possible_transitions(self):
         return self.current_articlestate.state.possible_transitions
 
-    def execute_transition(self, statetrans, instigator):
-        statetrans.execute_transition(self, instigator)
+    def execute_transition(self, transition, user):
+        transition.execute_transition(self, user)
             
 class Transition(models.Model):
-    '''
+    """
     Defines the possible transitions between states
     @TODO add permissions
-    '''
+    """
     name = models.CharField(max_length=200)
     from_state = models.ForeignKey('State', related_name='possible_transitions')
     to_state = models.ForeignKey('State', related_name='possible_last_transitions')
@@ -74,41 +76,18 @@ class Transition(models.Model):
     def __unicode__(self):
         return u'%s: %s to %s' % (self.name, self.from_state, self.to_state)
     
-    def execute_transition(self, art, instigator):
-        '''
+    def execute_transition(self, art, user):
+        """
         moves article to a new state.  Creates new ArticleState and a Transition
         to describe what happened
-        '''
+        """
         if (art.current_articlestate.state == self.from_state):
-            # find current state
-            c_as = art.current_articlestate
             # create new state
-            s = art.article_states.create(state=self.to_state)
-            # create transition entry
-            t = ArticleTransition(article = art,
-                                  transition=self,
-                                  user=instigator,
-                                  from_articlestate = c_as,
-                                  to_articlestate = s)
-            t.save()
-            return t
+            s = art.article_states.create(state=self.to_state,
+                                          from_transition=self,
+                                          from_transition_user=user)
+            return s
         else:
-            return 1
-            
-class ArticleTransition(models.Model):
-    '''
-    Holds histories of transtitions for each article
-    @TODO set uneditable
-    '''
-    article = models.ForeignKey('Article', related_name='articletransitions')
-    transition = models.ForeignKey('Transition', related_name='articletransitions')
-    user = models.ForeignKey(User)
-    from_articlestate = models.ForeignKey('ArticleState', related_name='transitioned_to')
-    to_articlestate = models.ForeignKey('ArticleState', related_name='transitioned_from')
+            return False
 
-    created = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
-
-    def __unicode__(self):
-        return u'%s: %s' % (self.article.doi, self.statetransition.name)
 
