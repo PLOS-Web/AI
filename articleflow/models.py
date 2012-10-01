@@ -24,8 +24,8 @@ class ArticleState(models.Model):
     def __unicode__(self):
         return u'%s: %s' % (self.article, self.state)
     
-    def save(self):
-        ret = super(ArticleState, self).save()
+    def save(self, *args, **kwargs):
+        ret = super(ArticleState, self).save(*args, **kwargs)
         art = self.article
         if art:
             art.current_articlestate = self
