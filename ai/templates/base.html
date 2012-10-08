@@ -1,6 +1,8 @@
 <html>
   <head>
     <title>AI{% block sub_title %}: Gettin' stuff done{% endblock %}</title>
+    <!-- Bootstrap -->
+    <link href="{{ STATIC_URL }}css/bootstrap.min.css" rel="stylesheet">
   </head>  
   <body>
     <div class="header">
@@ -20,4 +22,6 @@
     {% block content %}
     <p>There probably ought to be something more interesting here.</p>
     {% endblock %}
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
   </body>
