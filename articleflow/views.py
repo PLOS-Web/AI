@@ -14,6 +14,21 @@ class ArticleGrid(ListView):
     def get_queryset(self):
         return Article.objects.all().select_related('journal__name', 'articlestate__state__name')
 
+class ArticleDetailMain(View):
+    
+    template_name = 'articleflow/article_detail_main.html'
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(kwargs)
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
+    def get_context_data(self, kwargs):
+        article = Article.objects.get(doi=kwargs['doi'])
+        context = ({
+                'article': article,
+            })
+        return context
+
 class ArticleDetailTransition(View):
 
     template_name = 'articleflow/possible_transitions.html'
