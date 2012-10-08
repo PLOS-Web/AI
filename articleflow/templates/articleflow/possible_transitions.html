@@ -1,12 +1,13 @@
-{% extends "base.html" %}
+{% extends "articleflow/article_detail_base.html" %}
 
-{% block sub_title %} - {{ article.doi }} - Tranisitions{% endblock %}
+{% block sub_title %} - {{ article.doi }} - Transitions{% endblock %}
 
-{% block content %}
-<h2>{{ article.doi }}</h2>
-<h3>Current state</h3>
-{{ article.current_articlestate.state.name }}
-<h3>Possible state transitions</h3>
+{% block sub_header %}Transitions{% endblock %}
+
+{% block article_detail_content %}
+<h4>Current state</h4>
+<p>{{ article.current_articlestate.state.name }}</p>
+<h4>Possible state transitions</h4>
 
 <ul>
 {% for transition in transitions %}
