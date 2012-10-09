@@ -6,7 +6,6 @@ from django.views.generic.base import View
 from django.template import RequestContext
 from django.contrib.auth.models import User
 
-
 class ArticleGrid(ListView):
 
     template_name = 'articleflow/grid.html'

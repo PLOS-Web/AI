@@ -1,0 +1,8 @@
+<ul class="nav nav-tabs">
+  <li class="{% if active_tab == 'detail_main' %} active{% endif %}"><a href="{% url detail_main doi=article.doi %}">Main</a></li>
+  <li class="{% if active_tab == 'detail_transitions' %} active{% endif %}"><a href="{% url detail_transition doi=article.doi %}">Transitions</a></li>
+  <li class=""><a href="#">Errors</a></li>
+  <li class=""><a href="#">History</a></li>
+  <li class=""><a href="#">Whatever</a></li>
+</ul>
+

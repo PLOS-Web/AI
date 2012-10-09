@@ -5,23 +5,23 @@
     <link href="{{ STATIC_URL }}css/bootstrap.min.css" rel="stylesheet">
   </head>  
   <body>
-    <div class="header">
-      <h1><a href="{% url home %}">AI</a></h1>
-      <ul>
-	<li>
-	  <a href="{% url grid %}">Grid</a>
-	</li>
-	<li>
-	  Dashboard
-	</li>
-	<li>
-	  <a href="/admin">Admin</a>
-	</li>
-      </ul>
+    <div class="navbar navbar-inverse">
+      <div class="navbar-inner">
+	<div class="container">
+	  <a class="brand" href="{% url home %}">[article intelligence]</a>
+	  <div class="nav-collapse">
+	    {% block main_nav %}
+	    {% include "includes/main_nav.html" with active_tab='' %}
+	    {% endblock main_nav %}
+	  </div>
+	</div>
+      </div>
     </div>
-    {% block content %}
-    <p>There probably ought to be something more interesting here.</p>
-    {% endblock %}
+    <div class="container">
+      {% block content %}
+      <p>There probably ought to be something more interesting here.</p>
+      {% endblock %}
+    </div>
     <script src="http://code.jquery.com/jquery-latest.js"></script>
     <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
   </body>

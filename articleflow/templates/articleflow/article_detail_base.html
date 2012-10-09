@@ -4,11 +4,10 @@
 
 {% block content %}
 <h2>{{ article.doi }}</h2>
-<ul>
-  <li><a href="{% url detail_main doi=article.doi %}">Main</a></li>
-  <li><a href="{% url detail_transition doi=article.doi %}">Transitions</a></li>
-  <li>. . .</li>
-</ul>
+
+{% block detail_nav %}
+{% include "articleflow/includes/detail_nav.html" with active_tab='' %}
+{% endblock %}
 
 <h3>{% block sub_header %}sub_header{% endblock %}</h3>
 
