@@ -1,0 +1,37 @@
+{% extends "base.html" %}    
+
+{% block main_nav %}
+{% include "includes/main_nav.html" with active_tab="grid" %}
+{% endblock %}
+
+{% block sub_title %} - grid{% endblock %}
+
+{% block content %}
+<h2>Article Grid</h2>
+
+<table class='table table-hover'>
+  <thead>
+    <tr>
+      <th>PubDate</th>
+      <th>DOI</th>
+      <th>Journal</th>
+      <th>Issues</th>
+      <th>Notes</th>
+      <th>State</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for article in article_list %}
+    <tr>
+      <td>{{ article.pubdate }}</td>
+      <td><a href="/detail/{{article.doi}}">{{ article.doi }}</a></td>
+      <td>{{ article.journal.short_name }}</td>
+      <td>fake_1, fake_2, fake_3</td>
+      <td>fake_1, fake_2, fake_3</td>
+      <td>{{ article.current_articlestate.state.name }}</td>
+    </tr>
+  </tbody>
+  {% endfor %}
+</table>
+
+{% endblock %}

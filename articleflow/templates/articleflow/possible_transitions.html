@@ -1,0 +1,28 @@
+{% extends "articleflow/article_detail_base.html" %}
+
+{% block detail_nav %}
+{% include "articleflow/includes/detail_nav.html" with active_tab='detail_transitions' %}
+{% endblock %}
+
+{% block sub_title %} - {{ article.doi }} - Transitions{% endblock %}
+
+{% block sub_header %}Transitions{% endblock %}
+
+{% block article_detail_content %}
+<h4>Current state</h4>
+<p>{{ article.current_articlestate.state.name }}</p>
+<h4>Possible state transitions</h4>
+
+<ul>
+{% for transition in transitions %}
+  <li>
+    <form action="" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="article" value="{{ article.pk }}">
+      <input type="hidden" name="transition" value="{{ transition.pk }}">
+      <input class="btn btn-success" type="submit" name="something" value="{{ transition.name }}">
+    </form>
+  </li>
+{% endfor %}
+</ul>
+{% endblock %}

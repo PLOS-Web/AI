@@ -1,0 +1,13 @@
+{% extends "articleflow/article_detail_base.html" %}
+
+{% block detail_nav %}
+{% include "articleflow/includes/detail_nav.html" with active_tab='detail_main' %}
+{% endblock %}
+
+{% block sub_title %} - {{ article.doi }}{% endblock %}
+
+{% block sub_header %}Main{% endblock %}
+
+{% block article_detail_content %}
+<p>stuff that should go on the main detail view.</p>
+{% endblock %}

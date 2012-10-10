@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block sub_title %} - {{ article.doi }}{% endblock %}
+
+{% block content %}
+<h2>{{ article.doi }}</h2>
+
+{% block detail_nav %}
+{% include "articleflow/includes/detail_nav.html" with active_tab='' %}
+{% endblock %}
+
+<h3>{% block sub_header %}sub_header{% endblock %}</h3>
+
+{% block article_detail_content %}
+<p>There really oughta be some content here.</p>
+{% endblock %}
+
+{% endblock %}

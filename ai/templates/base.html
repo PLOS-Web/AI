@@ -1,0 +1,28 @@
+<html>
+  <head>
+    <title>AI{% block sub_title %}: Gettin' stuff done{% endblock %}</title>
+    <!-- Bootstrap -->
+    <link href="{{ STATIC_URL }}css/bootstrap.min.css" rel="stylesheet">
+  </head>  
+  <body>
+    <div class="navbar navbar-inverse">
+      <div class="navbar-inner">
+	<div class="container">
+	  <a class="brand" href="{% url home %}">[article intelligence]</a>
+	  <div class="nav-collapse">
+	    {% block main_nav %}
+	    {% include "includes/main_nav.html" with active_tab='' %}
+	    {% endblock main_nav %}
+	  </div>
+	</div>
+      </div>
+    </div>
+    <div class="container">
+      {% block content %}
+      <p>There probably ought to be something more interesting here.</p>
+      {% endblock %}
+    </div>
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
+  </body>
+</html>
