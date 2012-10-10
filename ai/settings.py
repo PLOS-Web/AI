@@ -134,6 +134,7 @@ INSTALLED_APPS = (
     'debug_toolbar',
     'bootstrap',
     'articleflow',
+    'issues'
 )
 
 # A sample logging configuration. The only tangible logging
