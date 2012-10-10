@@ -1,0 +1,26 @@
+{% extends "articleflow/article_detail_base.html" %}
+
+{% block detail_nav %}
+{% include "articleflow/includes/detail_nav.html" with active_tab='detail_issues' %}
+{% endblock %}
+
+{% block sub_title %} - {{ article.doi }} - Issues{% endblock %}
+
+{% block sub_header %}Issues{% endblock %}
+
+{% block article_detail_content %}
+{% for issue in issues %}
+<div class="issue well">
+  <div class="issue-description">
+    <p>{{ issue.category }}: {{ issue.description }}<p>
+  </div>
+  <div class="issue-comments">
+    {% for comment in issue.comments.all %}
+    <div class="issue-comment well well-small">
+      <p>{{ comment.comment }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
