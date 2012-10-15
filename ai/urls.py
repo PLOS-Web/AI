@@ -9,5 +9,7 @@ urlpatterns = patterns('',
             "template": "homepage.html",
             }, name="home"),
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^', include('articleflow.urls'))
+    url(r'^', include('articleflow.urls')),
+    url(r'^login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}, name="auth_login"),
+    url(r'^logout/$', 'django.contrib.auth.views.logout', {'template_name': 'logout.html'}, name="auth_logout"),
 )
