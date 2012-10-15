@@ -6,7 +6,7 @@ from django.template import RequestContext
 from django.contrib.auth.models import User
 
 from articleflow.models import Article, ArticleState, State, Transition
-from issues.models import Issue, Comment, Category
+from issues.models import Issue, Category
 
 class ArticleGrid(ListView):
 

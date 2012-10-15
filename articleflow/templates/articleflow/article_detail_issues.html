@@ -1,5 +1,7 @@
 {% extends "articleflow/article_detail_base.html" %}
 
+{% load comments %}
+
 {% block detail_nav %}
 {% include "articleflow/includes/detail_nav.html" with active_tab='detail_issues' %}
 {% endblock %}
@@ -15,11 +17,21 @@
     <p>{{ issue.category }}: {{ issue.description }}<p>
   </div>
   <div class="issue-comments">
-    {% for comment in issue.comments.all %}
-    <div class="issue-comment well well-small">
-      <p>{{ comment.comment }}</p>
-    </div>
-    {% endfor %}
+    {% render_comment_list for issue %}
+    {% if user.is_authenticated %}
+      {% get_comment_form for issue as comment_form %}
+      <form action="{% comment_form_target %}" method="POST">
+	{% csrf_token %}
+	<div>{{ comment_form.comment }}</div>
+	{{ comment_form.content_type }}
+	{{ comment_form.object_pk }}
+	{{ comment_form.timestamp }}
+	{{ comment_form.security_hash }}
+	<div><input type="submit" value="Add comment" id="id_submit" /></div>
+      </form>
+    {% else %}
+      <p>Please <a href="#">log in</a> to leave a comment.</p>
+    {% endif %}
   </div>
 </div>
 {% endfor %}
