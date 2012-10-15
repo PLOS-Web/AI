@@ -27,22 +27,6 @@ class Issue(models.Model):
     def __unicode__(self):
         return self.description
 
-class Comment(models.Model):
-    """
-    Comments on issues
-    """
-    issue = models.ForeignKey('Issue', related_name='comments')
-    comment = models.TextField()
-    submitter = models.ForeignKey(User, related_name='comments_submitted', null=True, blank=True, default=None)
-    created = models.DateTimeField(auto_now_add=True)
-    last_modified = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        ordering = ['created']
-
-    def __unicode__(self):
-        return self.comment
-
 class Category(models.Model):
     """
     Table of available issue categories
