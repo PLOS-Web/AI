@@ -1,0 +1,41 @@
+{% load comments %}
+  <div class="issue-comment-list">
+    {% render_comment_list for issue %}
+  </div>
+  {% if user.is_authenticated %}
+  <div class="issue-comment-response">
+  </div>
+  {% get_comment_form for issue as comment_form %}
+  <form action="{% comment_form_target %}" method="POST">
+    {% csrf_token %}
+    <div>
+      <textarea id="id_comment" name="comment" cols="600" rows="2"></textarea>
+    </div>
+    {{ comment_form.content_type }}
+    {{ comment_form.object_pk }}
+    {{ comment_form.timestamp }}
+    {{ comment_form.security_hash }}
+    <div><input type="submit" value="Add comment" id="id_submit" /></div>
+  </form>
+
+  <script type="text/javascript">
+    var options_issue_{{ issue.pk }} = {
+      success: function(response_text, status_text, xhr, form_elem) {
+        // reload comments
+        $('#issue-{{ issue.pk }}').load("{% url render_issue_comment_block issue.pk %}" , function(responseText, textStatus, XMLHttpRequest) {
+          // fill span with response
+          $('#issue-{{ issue.pk }} .issue-comment-response').html(response_text);
+          // rebind form
+          $('#issue-{{ issue.pk }} form').ajaxForm(options_issue_{{ issue.pk }});
+        });
+      }
+    };
+
+    $(function() {
+      $('#issue-{{ issue.pk }} form').ajaxForm(options_issue_{{ issue.pk }});
+    });
+  </script>
+
+  {% else %}
+  <p>Please <a href="{% url auth_login %}">log in</a> to leave a comment.</p>
+  {% endif %}

@@ -3,6 +3,11 @@
     <title>AI{% block sub_title %}: Gettin' stuff done{% endblock %}</title>
     <!-- Bootstrap -->
     <link href="{{ STATIC_URL }}css/bootstrap.min.css" rel="stylesheet">
+    <script src="{{ STATIC_URL }}js/jquery-1.8.2.min.js"></script>
+    <!--<script src="http://code.jquery.com/jquery-latest.js"></script>-->
+    <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
+    {% block head %}
+    {% endblock %}
   </head>  
   <body>
     <div class="navbar navbar-inverse">
@@ -34,7 +39,5 @@
       <p>There probably ought to be something more interesting here.</p>
       {% endblock %}
     </div>
-    <script src="http://code.jquery.com/jquery-latest.js"></script>
-    <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
   </body>
 </html>
