@@ -1,0 +1,27 @@
+{% extends "articleflow/article_detail_base.html" %}
+
+{% load comments %}
+{% load ajax_comments %}
+
+{% block head %}
+<script src="{{ STATIC_URL }}issues/js/jquery.form.js"></script>
+{% endblock %}
+
+{% block detail_nav %}
+{% include "articleflow/includes/detail_nav.html" with active_tab='detail_issues' %}
+{% endblock %}
+
+{% block sub_title %} - {{ article.doi }} - Issues{% endblock %}
+
+{% block sub_header %}Issues{% endblock %}
+
+{% block article_detail_content %}
+{% for issue in issues %}
+<div class="issue well">
+  <div class="issue-description">
+    <p>{{ issue.category }}: {{ issue.description }}<p>
+  </div>
+  {% render_comment_block issue %}
+</div>
+{% endfor %}
+{% endblock %}
