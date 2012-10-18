@@ -24,7 +24,7 @@
         // reload comments
         $('#issue-{{ issue.pk }}').load("{% url render_issue_comment_block issue.pk %}" , function(responseText, textStatus, XMLHttpRequest) {
           // fill span with response
-          $('#issue-{{ issue.pk }} .issue-comment-response').html(response_text);
+          //$('#issue-{{ issue.pk }} .issue-comment-response').html(response_text);
           // rebind form
           $('#issue-{{ issue.pk }} form').ajaxForm(options_issue_{{ issue.pk }});
         });
