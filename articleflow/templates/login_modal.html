@@ -1,0 +1,13 @@
+<div class="modal hide fade" id="login-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel">Login</h3>
+  </div>
+  <div class="modal-body">
+    <form action="{% url auth_login %}" method="POST">{% csrf_token %}
+      <input id="username-field" name="username" type="text" />
+      <input id="password-field" name="password" type="password" />
+      <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+      <button class="btn btn-primary" type="submit">Login</button>
+    </form>
+</div>

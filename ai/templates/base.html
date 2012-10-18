@@ -1,8 +1,12 @@
+{% load modal_login %}
+
 <html>
   <head>
     <title>AI{% block sub_title %}: Gettin' stuff done{% endblock %}</title>
     <!-- Bootstrap -->
     <link href="{{ STATIC_URL }}css/bootstrap.min.css" rel="stylesheet">
+    <script src="http://code.jquery.com/jquery-latest.js"></script>
+    <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
   </head>  
   <body>
     <div class="navbar navbar-inverse">
@@ -14,18 +18,7 @@
 	    {% include "includes/main_nav.html" with active_tab='' %}
 	    {% endblock main_nav %}
 	  </div>
-	  {% if not user.is_authenticated %}
-	  <form action="{% url auth_login %}" method="POST">{% csrf_token %}
-            <input id="username-field" name="username" type="text" />
-            <input id="password-field" name="password" type="password" />
-	    <input type="hidden" name="next" value="{{ request.get_full_path }}" />
-            <button type="submit">Login</button>
-	  </form>
-{% else %}
-	  <span>Hello {{ user.first_name }} {{ user.last_name }}!</span>
-	  <span><a href="{% url auth_logout %}">logout</a></span>
-{% endif %}
-
+	  {% render_login_trigger user %}
 	</div>
       </div>
     </div>
@@ -34,7 +27,6 @@
       <p>There probably ought to be something more interesting here.</p>
       {% endblock %}
     </div>
-    <script src="http://code.jquery.com/jquery-latest.js"></script>
-    <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
+    {% render_login_modal %}
   </body>
 </html>
