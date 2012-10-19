@@ -1,0 +1,42 @@
+{% if form.errors %}
+<p>Your username and password didn't match. Please try again.</p>
+{% endif %}
+
+<form action="{% url auth_login_ajax %}" method="POST">{% csrf_token %}
+  {% csrf_token %}
+  <table>
+    <tr>
+      <td>{{ form.username.label_tag }}</td>
+      <td>{{ form.username }}</td>
+    </tr>
+    <tr>
+      <td>{{ form.password.label_tag }}</td>
+      <td>{{ form.password }}</td>
+    </tr>
+  </table>
+  <input type="submit" value="login" />
+</form>
+
+<script type="text/javascript">
+    var options_login_form = {
+      success: function(response_text, status_text, xhr, form_elem) {
+        // reload comments
+        alert('success');
+        //window.location.reload();
+      },
+
+      error: function(response_text, status_text, xhr, form_elem) {
+        // reload comments
+        $('#login-form .login-form-wrapper').load("{% url auth_login_ajax %}" , function(responseText, textStatus, XMLHttpRequest) {
+          // fill span with response
+          $('#login-form .login-response').html(response_text);
+          // rebind form
+          $('#login-form form').ajaxForm(options_login_form);
+        });
+      }
+    };
+
+    $(function() {
+      $('#login-form .login-form-wrapper form').ajaxForm(options_login_form);
+    });
+</script>

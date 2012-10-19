@@ -3,10 +3,6 @@
 {% load comments %}
 {% load ajax_comments %}
 
-{% block head %}
-<script src="{{ STATIC_URL }}issues/js/jquery.form.js"></script>
-{% endblock %}
-
 {% block detail_nav %}
 {% include "articleflow/includes/detail_nav.html" with active_tab='detail_issues' %}
 {% endblock %}

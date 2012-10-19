@@ -1,4 +1,4 @@
-{% load modal_login %}
+{% load fancyauth %}
 
 <html>
   <head>
@@ -8,6 +8,7 @@
     <script src="{{ STATIC_URL }}js/jquery-1.8.2.min.js"></script>
     <!--<script src="http://code.jquery.com/jquery-latest.js"></script>-->
     <script src="{{ STATIC_URL }}js/bootstrap.min.js"></script>
+    <script src="{{ STATIC_URL }}issues/js/jquery.form.js"></script>
     {% block head %}
     {% endblock %}
   </head>  
@@ -20,8 +21,8 @@
 	    {% block main_nav %}
 	    {% include "includes/main_nav.html" with active_tab='' %}
 	    {% endblock main_nav %}
+	    {% render_login_trigger user %}
 	  </div>
-	  {% render_login_trigger user %}
 	</div>
       </div>
     </div>
@@ -30,6 +31,6 @@
       <p>There probably ought to be something more interesting here.</p>
       {% endblock %}
     </div>
-    {% render_login_modal %}
+    {% render_login_modal request %}
   </body>
 </html>

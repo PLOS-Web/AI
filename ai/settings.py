@@ -135,7 +135,8 @@ INSTALLED_APPS = (
     'debug_toolbar',
     'bootstrap',
     'articleflow',
-    'issues'
+    'issues',
+    'fancyauth'
 )
 
 # A sample logging configuration. The only tangible logging
