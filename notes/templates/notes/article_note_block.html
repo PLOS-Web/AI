@@ -1,4 +1,6 @@
 {% load comments %}
+{% load fancyauth %}
+
 <div class="article-note-list">
   {% render_comment_list for article %}
 </div>
@@ -35,5 +37,5 @@
 </script>
 
 {% else %}
-<p>Please <a href="#">log in</a> to leave a note.</p>
+<p>Please {% render_login_modal_link "log in" %} to leave a comment.</p>
 {% endif %}
