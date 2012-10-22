@@ -136,7 +136,8 @@ INSTALLED_APPS = (
     'bootstrap',
     'articleflow',
     'issues',
-    'fancyauth'
+    'fancyauth',
+    'notes'
 )
 
 # A sample logging configuration. The only tangible logging

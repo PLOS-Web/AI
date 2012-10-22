@@ -14,4 +14,6 @@ urlpatterns = patterns('',
     url(r'^logout/$', 'django.contrib.auth.views.logout', {'template_name': 'logout.html'}, name="auth_logout"),
     url(r'^comments/', include('django.contrib.comments.urls')),
     url(r'^issues/', include('issues.urls')),
+    url(r'^notes/', include('notes.urls')),
+
 )

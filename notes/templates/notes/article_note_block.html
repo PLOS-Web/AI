@@ -1,0 +1,39 @@
+{% load comments %}
+<div class="article-note-list">
+  {% render_comment_list for article %}
+</div>
+{% if user.is_authenticated %}
+<div class="article-note-response">
+</div>
+{% get_comment_form for article as note_form %}
+<form action="{% comment_form_target %}" method="POST">
+  {% csrf_token %}
+  <div>
+    <textarea id="id_comment" name="comment" cols="600" rows="2"></textarea>
+  </div>
+  {{ note_form.content_type }}
+  {{ note_form.object_pk }}
+  {{ note_form.timestamp }}
+  {{ note_form.security_hash }}
+  <div><input type="submit" value="Add comment" id="id_submit" /></div>
+</form>
+
+<script type="text/javascript">
+  var options_article_note_{{ article.pk }} = {
+      success: function(response_text, status_text, xhr, form_elem) {
+          // reload comments
+          $('#article-note-{{ article.pk }}').load("{% url render_article_note_block article.pk %}" , function(responseText, textStatus, XMLHttpRequest) {
+          // rebind form
+          $('#article-note-{{ article.pk }} form').ajaxForm(options_article_note_{{ article.pk }});
+          });
+      }
+  };
+
+  $(function() {
+      $('#article-note-{{ article.pk }} form').ajaxForm(options_article_note_{{ article.pk }});
+  });
+</script>
+
+{% else %}
+<p>Please <a href="#">log in</a> to leave a note.</p>
+{% endif %}
