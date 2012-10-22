@@ -2,6 +2,7 @@
 
 {% load comments %}
 {% load ajax_comments %}
+{% load ajax_issues %}
 
 {% block detail_nav %}
 {% include "articleflow/includes/detail_nav.html" with active_tab='detail_issues' %}
@@ -12,12 +13,5 @@
 {% block sub_header %}Issues{% endblock %}
 
 {% block article_detail_content %}
-{% for issue in issues %}
-<div class="issue well">
-  <div class="issue-description">
-    <p>{{ issue.category }}: {{ issue.description }}<p>
-  </div>
-  {% render_comment_block issue %}
-</div>
-{% endfor %}
+{% render_issue_block article user %}
 {% endblock %}

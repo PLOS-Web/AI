@@ -1,0 +1,11 @@
+{% load ajax_comments %}
+
+{% for issue in issues %}
+<div class="issue well">
+  <div class="issue-description">
+    <span><img src="{{ STATIC_URL }}issues/img/unresolved.svg" height="17" width="17"></span>
+    <span>{{ issue.category }}: {{ issue.description }}</span>
+  </div>
+  {% render_comment_block issue %}
+</div>
+{% endfor %}
