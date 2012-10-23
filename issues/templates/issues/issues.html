@@ -1,0 +1,6 @@
+{% load ajax_issues %}
+
+{% for issue in issues %}
+{% render_issue_block article %}
+{% endfor %}
+{% render_issue_form article %}

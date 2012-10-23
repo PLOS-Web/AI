@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.template import Template, RequestContext
 from django.shortcuts import render_to_response
 from issues.models import Issue
+from issues.forms import IssueForm
 
 def comment_list(request, id):
     """
@@ -30,3 +31,27 @@ def comment_block(request, pk):
     
     return render_to_response('issues/comment_block_wrapper.html', context)
 
+
+def post_issue(request):
+    if request.method == "POST":
+        if not request.user.is_authenticated():
+            return HttpResponse("You need to log in dummy")
+        form = IssueForm(data=request.POST)
+        if request.is_ajax():
+            if form.is_valid():
+                return HttpResponse("async, valid")
+        else:
+            if form.is_valid():
+                return HttpResponse("sync, valid")
+    else:
+        return render_to_response(
+            'issues/issue_form.html',
+            {
+                "form": form
+                },
+            context_instance=RequestContext(request)
+            )
+            
+    
+
+        

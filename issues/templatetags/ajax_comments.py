@@ -10,7 +10,5 @@ register = template.Library()
 
 @register.inclusion_tag('issues/comment_block_wrapper.html', takes_context=True)
 def render_comment_block(context, issue):
-    return {'issue': issue,
-            'user': context['user']}
-    
-    
+    context.update({'issue': issue})
+    return context

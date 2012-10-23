@@ -1,0 +1,4 @@
+<form action="{% url post_issue_ajax}" method="post">
+{% form.as_p %}
+<input type="submit" value="Submit" />
+</form>
