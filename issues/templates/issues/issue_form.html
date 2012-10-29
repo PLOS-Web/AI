@@ -3,3 +3,16 @@
   {{ form.as_p }}
   <input type="submit" value="Submit" />
 </form>
+
+<script type="text/javascript">
+  var options_issue_form = {
+    success: function(response_text, status_text, xhr, form_elem) {
+      // insert new comment comments
+      $('#issues').append(response_text);
+    }
+  };
+
+  $(function() {
+    $('#issue-block form').ajaxForm(options_issue_form);
+  });
+</script>

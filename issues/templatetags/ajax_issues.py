@@ -17,8 +17,8 @@ def render_issues(context, article):
     return context
 
 @register.inclusion_tag('issues/issue_form.html', takes_context=True)
-def render_issue_form(context, article):
-    form = IssueForm({'article_pk': article.pk})
+def render_issue_form(context, article, user):
+    form = IssueForm(initial={'article': article, 'submitter': user})
     context.update({'form': form})
     
     return context

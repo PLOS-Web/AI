@@ -31,6 +31,14 @@ def comment_block(request, pk):
     
     return render_to_response('issues/comment_block_wrapper.html', context)
 
+def issue_block(request, pk):
+    issue = Issue.objects.get(pk=pk)
+    context = RequestContext(request)
+
+    context.update({'issue': issue})
+    
+    return render_to_response('issues/issue_block.html', context)
+
 
 def post_issue(request):
     if request.method == "POST":
@@ -39,18 +47,21 @@ def post_issue(request):
         form = IssueForm(data=request.POST)
         if request.is_ajax():
             if form.is_valid():
-                return HttpResponse("async, valid")
+                issue = form.save()
+                return issue_block(request, issue.pk)
         else:
             if form.is_valid():
-                return HttpResponse("sync, valid")
+                form.save()
+                return HttpResponse("Thank you for your comment, but please turn on javascript.")
     else:
-        return render_to_response(
-            'issues/issue_form.html',
-            {
-                "form": form
-                },
-            context_instance=RequestContext(request)
-            )
+        form = IssueForm()
+    return render_to_response(
+        'issues/issue_form.html',
+        {
+            "form": form
+            },
+        context_instance=RequestContext(request)
+        )
             
     
 
