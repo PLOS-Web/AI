@@ -8,11 +8,16 @@
   var options_issue_form = {
     success: function(response_text, status_text, xhr, form_elem) {
       // insert new comment comments
-      $('#issues').append(response_text);
+      if (response_text.form_html){
+         $('#issue-form-wrapper').html(response_text.form_html);
+      }
+      if (response_text.issue_html){
+          $('#issues').append(response_text.issue_html);
+      }
     }
   };
 
   $(function() {
-    $('#issue-block form').ajaxForm(options_issue_form);
+    $('#issue-form-wrapper form').ajaxForm(options_issue_form);
   });
 </script>
