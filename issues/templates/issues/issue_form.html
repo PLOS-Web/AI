@@ -1,0 +1,23 @@
+<form action="{% url post_issue_ajax %}" method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <input type="submit" value="Submit" />
+</form>
+
+<script type="text/javascript">
+  var options_issue_form = {
+    success: function(response_text, status_text, xhr, form_elem) {
+      // insert new comment comments
+      if (response_text.form_html){
+         $('#issue-form-wrapper').html(response_text.form_html);
+      }
+      if (response_text.issue_html){
+          $('#issues').append(response_text.issue_html);
+      }
+    }
+  };
+
+  $(function() {
+    $('#issue-form-wrapper form').ajaxForm(options_issue_form);
+  });
+</script>

@@ -1,0 +1,12 @@
+{% load ajax_issues %}
+
+<div id='issue-block'>
+  <div id='issues'>
+    {% for issue in issues %}
+    {% render_issue_block article %}
+    {% endfor %}
+  </div>
+<div id='issue-form-wrapper'>
+  {% render_issue_form article user %}
+</div>
+</div>
