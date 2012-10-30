@@ -11,4 +11,12 @@ urlpatterns = patterns(
         'comment_block',
         name='render_issue_comment_block'
     ),
+    url(
+        r'^issueblock/(?P<pk>\d+)$',
+        'issue_block',
+        name='render_issue_block'),
+    url(
+        r'^post_issue/$',
+        'post_issue',
+        name='post_issue_ajax'),
 )

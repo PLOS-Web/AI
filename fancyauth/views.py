@@ -8,8 +8,8 @@ from django.core.urlresolvers import reverse
 def loginajax(request):
     if request.method == "POST":
         form = AuthenticationForm(data=request.POST)
-        if request.is_ajax:
-            if request.is_ajax:
+        if request.is_ajax():
+            if form.is_valid():
                 user = authenticate(username = request.POST['username'],password = request.POST['password'])
                 if user is not None:
                     login(request, user)

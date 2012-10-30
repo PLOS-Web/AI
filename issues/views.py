@@ -3,6 +3,8 @@ from django.http import HttpResponse
 from django.template import Template, RequestContext
 from django.shortcuts import render_to_response
 from issues.models import Issue
+from issues.forms import IssueForm
+import simplejson
 
 def comment_list(request, id):
     """
@@ -30,3 +32,73 @@ def comment_block(request, pk):
     
     return render_to_response('issues/comment_block_wrapper.html', context)
 
+def issue_block(request, pk):
+    issue = Issue.objects.get(pk=pk)
+    context = RequestContext(request)
+
+    context.update({'issue': issue})
+    
+    return render_to_response('issues/issue_block.html', context)
+
+
+def post_issue(request):
+    if request.method == "POST":
+        if not request.user.is_authenticated():
+            return HttpResponse("You need to log in dummy")
+        form = IssueForm(data=request.POST)
+        if request.is_ajax():
+            # ajax and valid
+            if form.is_valid():
+                issue = form.save()
+                issue_html = issue_block(request, issue.pk)
+                form = IssueForm(initial={'article': request.POST['article'], 'submitter': request.user})
+                print form
+                form_html = render_to_response(
+                    'issues/issue_form.html',
+                    {
+                        "form": form
+                        },
+                    context_instance=RequestContext(request)
+                    )
+                print form_html.content
+                to_json = {
+                    'issue_html': issue_html.content,
+                    'form_html': form_html.content,
+                    }
+                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+            # ajax and not valid
+            else:
+                form_html = render_to_response(
+                    'issues/issue_form.html',
+                    {
+                        "form": form
+                        },
+                    context_instance=RequestContext(request)
+                    )
+                to_json = {
+                    'form_html': form_html.content,
+                    }
+                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+        else:
+            # not ajax but valid
+            if form.is_valid():
+                form.save()
+                return HttpResponse("Thank you for your comment, but you'll have a lot more fun if javascript was working.")
+            # not ajax and not valid
+            else:
+                return render_to_response(
+                    'issues/issue_form.html',
+                    {
+                        "form": form
+                        },
+                    context_instance=RequestContext(request)
+                    )
+    else:
+        form = IssueForm()
+    return render_to_response(
+        'issues/issue_form.html',
+        {
+            "form": form
+            },
+        context_instance=RequestContext(request)
+        )
