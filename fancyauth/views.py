@@ -12,17 +12,23 @@ def loginajax(request):
             if form.is_valid():
                 user = authenticate(username = request.POST['username'],password = request.POST['password'])
                 if user is not None:
+                    print "ajax true"
                     login(request, user)
                     return HttpResponse('True')
                 else:
+                    print "ajax false"
                     return HttpResponse('False')      
             else:
-                return HttpResponse(form.errors)
+                return HttpResponse('False')
         else:
             if form.is_valid():
+                print "reg true"
                 user = authenticate(username = request.POST['username'],password = request.POST['password'])
                 if user is not None:
                     login(request,user)
+            else:
+                print "reg false"
+            
 
     else:
         form = AuthenticationForm(request)
