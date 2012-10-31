@@ -1,5 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.template import Template, RequestContext
 from django.shortcuts import render_to_response
 from issues.models import Issue
@@ -102,3 +102,10 @@ def post_issue(request):
             },
         context_instance=RequestContext(request)
         )
+
+def toggle_issue_status(request):
+    if request.method != "POST" or not request.is_ajax():
+        raise Http4014
+
+    return HttpResponse("YAYYYY")
+    

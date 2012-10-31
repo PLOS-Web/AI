@@ -2,8 +2,27 @@
 
 <div class="issue well">
   <div class="issue-description">
-    <span><img src="{{ STATIC_URL }}issues/img/unresolved.svg" height="17" width="17"></span>
+    <span id="issue-status-icon-{{ issue.pk }}" class="issue-status-{{ issue.status }} lalala">It's 2012 for god's sake, turn on Javascript.</span>
     <span>{{ issue.category }}: {{ issue.description }}</span>
+    <script type="text/javascript">
+      //  should this be on document ready?
+      //$(document).ready(function(){
+      //  $('#issue-status-icon-{{ issue.pk }}').html('lalala');
+      //});
+      var icon{{ issue.pk }} = $('#issue-status-icon-{{ issue.pk }}');
+      icon{{ issue.pk }}.html('O');
+      icon{{ issue.pk }}.live("click", function(){
+        // unresolved case
+        if (icon{{ issue.pk }}.hasClass('issue-status-1')){
+          icon{{ issue.pk }}.removeClass('issue-status-1').addClass('issue-status-0');
+      // resolved case
+        }else if(icon{{ issue.pk }}.hasClass('issue-status-0')){
+          icon{{ issue.pk }}.removeClass('issue-status-0').addClass('issue-status-1');
+        }
+      });
+        
+    </script>
+      
   </div>
   {% render_comment_block issue %}
 </div>
