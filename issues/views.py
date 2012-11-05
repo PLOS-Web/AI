@@ -1,5 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.template import Template, RequestContext
 from django.shortcuts import render_to_response
 from issues.models import Issue
@@ -102,3 +102,27 @@ def post_issue(request):
             },
         context_instance=RequestContext(request)
         )
+
+def toggle_issue_status(request):
+    if request.method != "POST" or not request.is_ajax():
+        raise Http404
+    if not request.user.is_authenticated():
+        return HttpResponse("You need to log in dummy")
+
+    issue = Issue.objects.get(pk=request.POST['issue_pk'])
+    print ("Was issue %s, but want to change to %s. " % (issue.status, request.POST['status']))
+    requested_status = int(request.POST['status'])
+
+    if requested_status == 0:
+        print ("Changing to 0. ")
+        issue.status = 0
+        issue.save()
+    elif requested_status == 1:
+        print ("Changing to 1. ")
+        issue.status = 1
+        issue.save()
+
+    print ("Now issue %s\n" % issue.status)    
+    to_json = {'status': issue.status}
+    return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+    

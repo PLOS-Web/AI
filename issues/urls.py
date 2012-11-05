@@ -19,4 +19,8 @@ urlpatterns = patterns(
         r'^post_issue/$',
         'post_issue',
         name='post_issue_ajax'),
+    url(
+        r'^issue_status/$',
+        'toggle_issue_status',
+        name='toggle_issue_status'),
 )
