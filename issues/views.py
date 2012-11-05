@@ -105,7 +105,24 @@ def post_issue(request):
 
 def toggle_issue_status(request):
     if request.method != "POST" or not request.is_ajax():
-        raise Http4014
+        raise Http404
+    if not request.user.is_authenticated():
+        return HttpResponse("You need to log in dummy")
 
-    return HttpResponse("YAYYYY")
+    issue = Issue.objects.get(pk=request.POST['issue_pk'])
+    print ("Was issue %s, but want to change to %s. " % (issue.status, request.POST['status']))
+    requested_status = int(request.POST['status'])
+
+    if requested_status == 0:
+        print ("Changing to 0. ")
+        issue.status = 0
+        issue.save()
+    elif requested_status == 1:
+        print ("Changing to 1. ")
+        issue.status = 1
+        issue.save()
+
+    print ("Now issue %s\n" % issue.status)    
+    to_json = {'status': issue.status}
+    return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
     

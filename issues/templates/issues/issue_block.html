@@ -14,10 +14,38 @@
       icon{{ issue.pk }}.live("click", function(){
         // unresolved case
         if (icon{{ issue.pk }}.hasClass('issue-status-1')){
-          icon{{ issue.pk }}.removeClass('issue-status-1').addClass('issue-status-0');
+          var postData = {
+            'issue_pk': {{ issue.pk }},
+            'status': 0
+          };
+          $.ajax({
+            url: "{% url toggle_issue_status %}",
+            type: 'POST',
+            datatype: "application/json; charset=utf-8",
+            data: postData
+          }).done(function (returnedData){
+            icon{{ issue.pk }}.removeClass('issue-status-1').addClass('issue-status-' + returnedData.status);
+            console.log(returnedData.status);
+          }).error(function (errorMsg) {
+            console.log(errorMsg);
+          });
       // resolved case
         }else if(icon{{ issue.pk }}.hasClass('issue-status-0')){
-          icon{{ issue.pk }}.removeClass('issue-status-0').addClass('issue-status-1');
+          var postData = {
+            'issue_pk': {{ issue.pk }},
+            'status': 1
+          };
+          $.ajax({
+            url: "{% url toggle_issue_status %}",
+            type: 'POST',
+            datatype: "application/json; charset=utf-8",
+            data: postData
+          }).done(function (returnedData){
+            icon{{ issue.pk }}.removeClass('issue-status-0').addClass('issue-status-' + returnedData.status);
+            console.log(returnedData.status);
+          }).error(function (errorMsg) {
+            console.log("errorMsg");
+          });
         }
       });
         
