@@ -24,7 +24,12 @@
             datatype: "application/json; charset=utf-8",
             data: postData
           }).done(function (returnedData){
-            icon{{ issue.pk }}.removeClass('issue-status-1').addClass('issue-status-' + returnedData.status);
+            var valid_statuses = [0,1];
+            console.log(valid_statuses.indexOf(returnedData['status']));
+            if (valid_statuses.indexOf(returnedData['status']) >= 0){
+              console.log("valid status");
+              icon{{ issue.pk }}.removeClass('issue-status-1').addClass('issue-status-' + returnedData.status);
+            }
             console.log(returnedData.status);
           }).error(function (errorMsg) {
             console.log(errorMsg);
@@ -41,9 +46,15 @@
             datatype: "application/json; charset=utf-8",
             data: postData
           }).done(function (returnedData){
-            icon{{ issue.pk }}.removeClass('issue-status-0').addClass('issue-status-' + returnedData.status);
+            var valid_statuses = [0,1];
+            console.log(valid_statuses.indexOf(returnedData['status']));
+            if (valid_statuses.indexOf(returnedData['status']) >= 0){
+              console.log("valid status");
+              icon{{ issue.pk }}.removeClass('issue-status-0').addClass('issue-status-' + returnedData.status);
+            }
             console.log(returnedData.status);
           }).error(function (errorMsg) {
+            console.log("error!");
             console.log("errorMsg");
           });
         }
