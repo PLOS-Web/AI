@@ -137,7 +137,8 @@ INSTALLED_APPS = (
     'articleflow',
     'issues',
     'fancyauth',
-    'notes'
+    'notes',
+    'errors'
 )
 
 # A sample logging configuration. The only tangible logging

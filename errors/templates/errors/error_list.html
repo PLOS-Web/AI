@@ -1,0 +1,33 @@
+{% extends "base.html" %}    
+
+{% block main_nav %}
+{% include "includes/main_nav.html" with active_tab="grid" %}
+{% endblock %}
+
+{% block sub_title %} - grid{% endblock %}
+
+{% block content %}
+<h2>Article Errors</h2>
+
+{% for errorset in errorset_list %}
+<p>Output from {{ errorset.source }} on {{ errorset.created }}</p>
+<table class='table table-hover'>
+  <thead>
+    <tr>
+      <th>level</th>
+      <th>Message</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for error in errorset.errors.all %}
+    <tr>
+      <td>{{ error.get_level_display }}</td>
+      <td>{{ error.message }}</td>
+    </tr>
+  </tbody>
+  {% endfor %}
+</table>
+
+{% endfor %}
+
+{% endblock %}
