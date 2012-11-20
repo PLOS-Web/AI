@@ -2,7 +2,7 @@
 
 <div class="issue well">
   <div class="issue-description">
-    <span id="issue-status-icon-{{ issue.pk }}" class="issue-status-{{ issue.status }} lalala">It's 2012 for god's sake, turn on Javascript.</span>
+    <span id="issue-status-icon-{{ issue.pk }}" class="issue-status-{{ issue.current_status.status }} lalala">It's 2012 for god's sake, turn on Javascript.</span>
     <span>{{ issue.category }}: {{ issue.description }}</span>
     <script type="text/javascript">
       //  should this be on document ready?

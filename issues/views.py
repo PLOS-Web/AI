@@ -2,7 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponse, Http404
 from django.template import Template, RequestContext
 from django.shortcuts import render_to_response
-from issues.models import Issue
+from issues.models import Issue, STATUS_CODES
 from issues.forms import IssueForm
 import simplejson
 
@@ -39,7 +39,6 @@ def issue_block(request, pk):
     context.update({'issue': issue})
     
     return render_to_response('issues/issue_block.html', context)
-
 
 def post_issue(request):
     if request.method == "POST":
@@ -113,16 +112,12 @@ def toggle_issue_status(request):
     print ("Was issue %s, but want to change to %s. " % (issue.status, request.POST['status']))
     requested_status = int(request.POST['status'])
 
-    if requested_status == 0:
-        print ("Changing to 0. ")
-        issue.status = 0
-        issue.save()
-    elif requested_status == 1:
-        print ("Changing to 1. ")
-        issue.status = 1
-        issue.save()
+    if requested_status in map((lambda x: x[0]), STATUS_CODES):
+        print "in status codes"
+        i = IssueStatus(status=requested_status,issue=issue)
+        i.save()
 
     print ("Now issue %s\n" % issue.status)    
-    to_json = {'status': issue.status}
+    to_json = {'status': issue.current_status.status}
     return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
     
