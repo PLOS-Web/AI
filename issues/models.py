@@ -33,13 +33,18 @@ class Issue(models.Model):
     def save(self, *args, **kwargs):
         insert = not self.pk
         ret = super(Issue, self).save(*args, **kwargs)
-        
+
         # Add a new 'open' status entry for new issues
         if insert: 
-            status = IssueStatus(state=1, error=self)
+            status = IssueStatus(status=1, issue=self)
             status.save()
 
+            self.current_status = status
+            ret = super(Issue, self).save(*args, **kwargs)
+
         return ret
+
+
 
 class IssueStatus(models.Model):
     status = models.IntegerField(choices=STATUS_CODES)
@@ -52,11 +57,13 @@ class IssueStatus(models.Model):
     def __unicode__(self):
         return self.get_status_display()
 
-    def __save__(self):
+    def save(self, *args, **kwargs):
+        print "Save IssueStatus"
         ret = super(IssueStatus, self).save(*args, **kwargs)
 
         i = self.issue
         i.current_status = self
+        print "New issue.current_status: %s" % i.current_status.pk
         i.save()
 
         return ret

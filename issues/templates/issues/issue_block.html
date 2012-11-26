@@ -1,22 +1,23 @@
 {% load ajax_comments %}
 
 <div class="issue well">
+  <div class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-{{ issue.pk }}" href=
   <div class="issue-description">
-    <span id="issue-status-icon-{{ issue.pk }}" class="issue-status-{{ issue.current_status.status }} lalala">It's 2012 for god's sake, turn on Javascript.</span>
+    <span id="issue-status-icon-{{ issue.pk }}" class="issue-status-{{ issue.current_status.status }}">It's 2012 for god's sake, turn on Javascript.</span>
     <span>{{ issue.category }}: {{ issue.description }}</span>
-    <script type="text/javascript">
+  c  <script type="text/javascript">
       //  should this be on document ready?
       //$(document).ready(function(){
       //  $('#issue-status-icon-{{ issue.pk }}').html('lalala');
       //});
       var icon{{ issue.pk }} = $('#issue-status-icon-{{ issue.pk }}');
       icon{{ issue.pk }}.html('O');
-      icon{{ issue.pk }}.live("click", function(){
+      icon{{ issue.pk }}.on("click", function(){
         // unresolved case
         if (icon{{ issue.pk }}.hasClass('issue-status-1')){
           var postData = {
             'issue_pk': {{ issue.pk }},
-            'status': 0
+            'status': 2
           };
           $.ajax({
             url: "{% url toggle_issue_status %}",
@@ -24,7 +25,7 @@
             datatype: "application/json; charset=utf-8",
             data: postData
           }).done(function (returnedData){
-            var valid_statuses = [0,1];
+            var valid_statuses = [1,2,3];
             console.log(valid_statuses.indexOf(returnedData['status']));
             if (valid_statuses.indexOf(returnedData['status']) >= 0){
               console.log("valid status");
@@ -35,7 +36,7 @@
             console.log(errorMsg);
           });
       // resolved case
-        }else if(icon{{ issue.pk }}.hasClass('issue-status-0')){
+        }else if(icon{{ issue.pk }}.hasClass('issue-status-2')){
           var postData = {
             'issue_pk': {{ issue.pk }},
             'status': 1
@@ -46,11 +47,11 @@
             datatype: "application/json; charset=utf-8",
             data: postData
           }).done(function (returnedData){
-            var valid_statuses = [0,1];
+            var valid_statuses = [1,2,3];
             console.log(valid_statuses.indexOf(returnedData['status']));
             if (valid_statuses.indexOf(returnedData['status']) >= 0){
               console.log("valid status");
-              icon{{ issue.pk }}.removeClass('issue-status-0').addClass('issue-status-' + returnedData.status);
+              icon{{ issue.pk }}.removeClass('issue-status-2').addClass('issue-status-' + returnedData.status);
             }
             console.log(returnedData.status);
           }).error(function (errorMsg) {
@@ -63,6 +64,8 @@
     </script>
       
   </div>
-  {% render_comment_block issue %}
+  <div class="accordion-inner">
+    {% render_comment_block issue %}
+  </div>
 </div>
 

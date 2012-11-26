@@ -133,7 +133,6 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     # Project Apps
     'debug_toolbar',
-    'bootstrap',
     'articleflow',
     'issues',
     'fancyauth',

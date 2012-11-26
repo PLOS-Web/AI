@@ -2,7 +2,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponse, Http404
 from django.template import Template, RequestContext
 from django.shortcuts import render_to_response
-from issues.models import Issue, STATUS_CODES
+from issues.models import Issue, IssueStatus, STATUS_CODES
 from issues.forms import IssueForm
 import simplejson
 
@@ -109,15 +109,18 @@ def toggle_issue_status(request):
         return HttpResponse("You need to log in dummy")
 
     issue = Issue.objects.get(pk=request.POST['issue_pk'])
-    print ("Was issue %s, but want to change to %s. " % (issue.status, request.POST['status']))
     requested_status = int(request.POST['status'])
+    
+    print requested_status
 
     if requested_status in map((lambda x: x[0]), STATUS_CODES):
         print "in status codes"
         i = IssueStatus(status=requested_status,issue=issue)
+        print "entering IssueStatus save"
         i.save()
+        print "exited IssueStatus save"
 
-    print ("Now issue %s\n" % issue.status)    
+    print issue.current_status.pk
     to_json = {'status': issue.current_status.status}
     return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
     

@@ -1,6 +1,9 @@
-.issue-status-0 {
+.issue-status-1 {
     color: red;
 }
-.issue-status-1 {
+.issue-status-2 {
     color: green;
+}
+.issue-status-3 {
+    color: purple;
 }
