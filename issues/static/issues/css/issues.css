@@ -1,9 +1,48 @@
 .issue-status-1 {
     color: red;
 }
+
 .issue-status-2 {
     color: green;
 }
+
 .issue-status-3 {
     color: purple;
+}
+
+.issue {
+    padding: 10px 0px 0px 0px;
+    margin: 0px 0px 5px 0px;
+    //background-color: pink;
+}
+
+.accordion-toggle {
+    //background-color: green;
+}
+
+.greyed {
+    color: #858585;
+}
+
+.center {
+    text-align: center;
+}
+
+.bar-side {
+    padding-left: 10px;
+    border-left: 3px solid;
+    margin-left: 11px;
+
+    margin-top: 5px;
+    padding-top: 0px;
+    margin-bottom: 5px;
+}
+
+#comments{
+    //background-color: pink;
+    margin: 0px;
+}
+
+.monospace{
+    font-family: monospace;
 }

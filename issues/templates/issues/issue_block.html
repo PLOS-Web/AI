@@ -1,11 +1,13 @@
 {% load ajax_comments %}
+{% load comments %}
 
-<div class="issue well">
-  <div class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-{{ issue.pk }}" href=
+{% get_comment_count for issue as comment_count %}
+
+<div class="issue">
   <div class="issue-description">
-    <span id="issue-status-icon-{{ issue.pk }}" class="issue-status-{{ issue.current_status.status }}">It's 2012 for god's sake, turn on Javascript.</span>
-    <span>{{ issue.category }}: {{ issue.description }}</span>
-  c  <script type="text/javascript">
+      <span id="issue-status-icon-{{ issue.pk }}" class="issue-status-{{ issue.current_status.status }}">It's 2012 for god's sake, turn on Javascript.</span>
+      <span>{{ issue.category }}: {{ issue.description }}</span>
+    <script type="text/javascript">
       //  should this be on document ready?
       //$(document).ready(function(){
       //  $('#issue-status-icon-{{ issue.pk }}').html('lalala');
@@ -64,7 +66,8 @@
     </script>
       
   </div>
-  <div class="accordion-inner">
+  <div class="accordion-toggle" data-toggle="collapse" data-parent="#issue-accordion-{{ issue.pk }}" href="#issue-collapse-{{ issue.pk }}"><a id="issue-collapse-toggle-{{ issue.pk}}" class="center monospace">[+]</a><span id="comment-count-{{ issue.pk }}" class="greyed"> {{ comment_count }} comments</span></div>
+  <div id="issue-collapse-{{ issue.pk }}" class="collapse bar-side">
     {% render_comment_block issue %}
   </div>
 </div>

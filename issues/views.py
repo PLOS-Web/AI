@@ -2,9 +2,17 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponse, Http404
 from django.template import Template, RequestContext
 from django.shortcuts import render_to_response
+import simplejson
+
+from django.db.models import Count
+
+from django.contrib.comments.models import Comment
+from django.contrib.contenttypes.models import ContentType
+
+from django.conf import settings
 from issues.models import Issue, IssueStatus, STATUS_CODES
 from issues.forms import IssueForm
-import simplejson
+
 
 def comment_list(request, id):
     """
@@ -22,6 +30,7 @@ def comment_list(request, id):
     context = RequestContext(request)
     context.update({'object': obj})
     result = t.render(context)
+    
     return HttpResponse(result)
 
 def comment_block(request, pk):
@@ -30,14 +39,27 @@ def comment_block(request, pk):
     context = RequestContext(request)
     context.update({'issue': issue})
     
-    return render_to_response('issues/comment_block_wrapper.html', context)
+    comments_block = render_to_response('issues/comment_block_wrapper.html', context)
+
+    comment_count = Comment.objects.filter(
+        content_type = ContentType.objects.get_for_model(Issue),
+        object_pk = pk,
+        site__pk = settings.SITE_ID
+        ).count()
+
+    to_json = {
+        'comments': comments_block.content,
+        'comment_count': comment_count}
+
+    return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+    
 
 def issue_block(request, pk):
     issue = Issue.objects.get(pk=pk)
     context = RequestContext(request)
 
     context.update({'issue': issue})
-    
+
     return render_to_response('issues/issue_block.html', context)
 
 def post_issue(request):
@@ -124,3 +146,15 @@ def toggle_issue_status(request):
     to_json = {'status': issue.current_status.status}
     return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
     
+def get_issue_comment_count(request, pk):
+    #if request.method != "POST" or not request.is_ajax():
+    #    raise Http404
+
+    comments = Comment.objects.filter(
+        content_type = ContentType.objects.get_for_model(Issue),
+        object_pk = pk,
+        site__pk = settings.SITE_ID
+        ).count()
+    to_json = {'count': comments}
+
+    return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
