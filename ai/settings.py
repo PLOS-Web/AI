@@ -133,6 +133,7 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     # Project Apps
     'debug_toolbar',
+    'crispy_forms',
     'articleflow',
     'issues',
     'fancyauth',
@@ -170,3 +171,5 @@ LOGGING = {
 
 # App stuff
 INTERNAL_IPS = ('127.0.0.1',)
+
+CRISPY_TEMPLATE_PACK = 'bootstrap'

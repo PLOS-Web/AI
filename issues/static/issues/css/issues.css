@@ -6,7 +6,7 @@
     color: red;
     height: 20px;
     width: 20px;
-    display: inline-block;
+    float: left;
     vertical-align: top;
 }
 
@@ -18,7 +18,7 @@
     color: red;
     height: 20px;
     width: 20px;
-    display: inline-block;
+    float: left;
     vertical-align: top;
 }
 
@@ -30,12 +30,12 @@
     color: red;
     height: 20px;
     width: 20px;
-    display: inline-block;
+    float: left;
     vertical-align: top;
 }
 
 .issue-text {
-    display: inline-block;
+    float: left;
 }
 
 .issue {
@@ -43,6 +43,7 @@
     margin: 0px 0px 0px 0px;
     //background-color: pink;
     margin-bottom: 0px;
+    clear: left;
 }
 
 .accordion-toggle {
@@ -87,5 +88,15 @@
 
 .issue-description-spaced {
     padding-left: 7px;
-    //display: inline-block;
+    //float: left;
+}
+
+.issue-description {
+    max-width: 500px;
+    //padding-left: 50px;
+}
+
+#issue-form-wrapper {
+    clear: left;
+    padding-left: 10px;
 }

@@ -1,12 +1,13 @@
 {% load comments %}
 {% load fancyauth %}
+
   <div class="issue-comment-list">
     {% render_comment_list for issue %}
   </div>
   {% if user.is_authenticated %}
   <div class="issue-comment-response">
   </div>
-  {% get_comment_form for issue as comment_form %}
+  {% get_comment_form for issue as comment_form_uncrispy %}
   <form action="{% comment_form_target %}" method="POST">
     {% csrf_token %}
     <div>
