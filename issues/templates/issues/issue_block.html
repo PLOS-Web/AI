@@ -4,23 +4,26 @@
 {% get_comment_count for issue as comment_count %}
 
 <div class="issue">
+  <div id="issue-status-icon-{{ issue.pk }}" class="issue-status-{{ issue.current_status.status }}" href="javascript:void(0)">It's 2012 for god's sake, turn on Javascript.</div>
+  <div class="issue-text">
   <div class="issue-description">
-      <span id="issue-status-icon-{{ issue.pk }}" class="issue-status-{{ issue.current_status.status }}">It's 2012 for god's sake, turn on Javascript.</span>
-      <span>{{ issue.category }}: {{ issue.description }}</span>
+    <span class="label label-important">{{ issue.category }}</span><span class="issue-description-spaced">{{ issue.description }}</span>
     <script type="text/javascript">
       //  should this be on document ready?
       //$(document).ready(function(){
       //  $('#issue-status-icon-{{ issue.pk }}').html('lalala');
       //});
       var icon{{ issue.pk }} = $('#issue-status-icon-{{ issue.pk }}');
-      icon{{ issue.pk }}.html('O');
+      icon{{ issue.pk }}.html('');
       icon{{ issue.pk }}.on("click", function(){
+        console.log('firing');
         // unresolved case
         if (icon{{ issue.pk }}.hasClass('issue-status-1')){
           var postData = {
             'issue_pk': {{ issue.pk }},
             'status': 2
           };
+          console.log(postData);
           $.ajax({
             url: "{% url toggle_issue_status %}",
             type: 'POST',
@@ -28,20 +31,66 @@
             data: postData
           }).done(function (returnedData){
             var valid_statuses = [1,2,3];
-            console.log(valid_statuses.indexOf(returnedData['status']));
             if (valid_statuses.indexOf(returnedData['status']) >= 0){
-              console.log("valid status");
-              icon{{ issue.pk }}.removeClass('issue-status-1').addClass('issue-status-' + returnedData.status);
+              console.log("valid status: " + returnedData['status']);
+              for (i in valid_statuses){
+                console.log('issue-status-' + i);
+                icon{{ issue.pk }}.removeClass('issue-status-' + valid_statuses[i]);
+              }
+              icon{{ issue.pk }}.addClass('issue-status-' + returnedData.status);
+              $('#issue-status-wont-fix-{{ issue.pk }}').removeClass('bolded');
             }
-            console.log(returnedData.status);
           }).error(function (errorMsg) {
             console.log(errorMsg);
           });
       // resolved case
-        }else if(icon{{ issue.pk }}.hasClass('issue-status-2')){
+        }else if(icon{{ issue.pk }}.hasClass('issue-status-2') || icon{{ issue.pk }}.hasClass('issue-status-3')){
           var postData = {
             'issue_pk': {{ issue.pk }},
             'status': 1
+          };
+          console.log(postData);
+          $.ajax({
+            url: "{% url toggle_issue_status %}",
+            type: 'POST',
+            datatype: "application/json; charset=utf-8",
+            data: postData
+          }).done(function (returnedData){
+            var valid_statuses = [1,2,3];
+            if (valid_statuses.indexOf(returnedData['status']) >= 0){
+              console.log("valid status: " + returnedData['status']);
+              for (i in valid_statuses){
+                console.log('issue-status-' + i);
+                icon{{ issue.pk }}.removeClass('issue-status-' + valid_statuses[i]);
+              }
+              icon{{ issue.pk }}.addClass('issue-status-' + returnedData.status);
+              $('#issue-status-wont-fix-{{ issue.pk }}').removeClass('bolded');
+            }
+          }).error(function (errorMsg) {
+            console.log("error!");
+            console.log("errorMsg");
+          });
+        }
+      }); 
+    </script>
+  </div>
+  <div>
+    <span class="accordion-toggle" data-toggle="collapse" data-parent="#issue-accordion-{{ issue.pk }}" href="#issue-collapse-{{ issue.pk }}"> 
+      <a id="issue-collapse-toggle-{{ issue.pk}}" class="center monospace">[+]</a>
+      <span id="comment-count-{{ issue.pk }}" class="greyed"> {{ comment_count }} comments</span>
+    </span>
+    <a id="issue-status-wont-fix-{{ issue.pk }}" class="greyed horizontal-list-spaced{% if issue.current_status.status == 3 %} bolded{% endif %}" href="javascript:void(0)">won't fix</a>
+  </div>
+  <div id="issue-collapse-{{ issue.pk }}" class="collapse bar-side">
+    {% render_comment_block issue %}
+  </div>
+
+  <script type="text/javascript">
+      $('#issue-status-wont-fix-{{ issue.pk }}').on('click', function(){
+        if (icon{{ issue.pk }}.hasClass('issue-status-3')){
+          var postData = {
+            issue_pk: {{ issue.pk }},
+            status: 1
           };
           $.ajax({
             url: "{% url toggle_issue_status %}",
@@ -53,22 +102,46 @@
             console.log(valid_statuses.indexOf(returnedData['status']));
             if (valid_statuses.indexOf(returnedData['status']) >= 0){
               console.log("valid status");
-              icon{{ issue.pk }}.removeClass('issue-status-2').addClass('issue-status-' + returnedData.status);
+              for (i in valid_statuses){
+                console.log('issue-status-' + valid_statuses[i]);
+                icon{{ issue.pk }}.removeClass('issue-status-' + valid_statuses[i]);
+              }
+              icon{{ issue.pk }}.addClass('issue-status-' + returnedData.status);
+              $('#issue-status-wont-fix-{{ issue.pk }}').removeClass('bolded');
             }
-            console.log(returnedData.status);
+          }).error(function (errorMsg) {
+            console.log("error!");
+            console.log("errorMsg");
+          });
+        } else {
+          var postData = {
+            issue_pk: {{ issue.pk }},
+            status: 3
+          };
+          $.ajax({
+            url: "{% url toggle_issue_status %}",
+            type: 'POST',
+            datatype: "application/json; charset=utf-8",
+            data: postData
+          }).done(function (returnedData){
+            var valid_statuses = [1,2,3];
+            console.log(valid_statuses.indexOf(returnedData['status']));
+            if (valid_statuses.indexOf(returnedData['status']) >= 0){
+              console.log("valid status");
+              for (i in valid_statuses){
+                console.log('issue-status-' + valid_statuses[i]);
+                icon{{ issue.pk }}.removeClass('issue-status-' + valid_statuses[i]);
+              }
+              icon{{ issue.pk }}.addClass('issue-status-' + returnedData.status);
+              $('#issue-status-wont-fix-{{ issue.pk }}').addClass('bolded');
+            }
           }).error(function (errorMsg) {
             console.log("error!");
             console.log("errorMsg");
           });
         }
       });
-        
-    </script>
-      
-  </div>
-  <div class="accordion-toggle" data-toggle="collapse" data-parent="#issue-accordion-{{ issue.pk }}" href="#issue-collapse-{{ issue.pk }}"><a id="issue-collapse-toggle-{{ issue.pk}}" class="center monospace">[+]</a><span id="comment-count-{{ issue.pk }}" class="greyed"> {{ comment_count }} comments</span></div>
-  <div id="issue-collapse-{{ issue.pk }}" class="collapse bar-side">
-    {% render_comment_block issue %}
+  </script>
   </div>
 </div>
 

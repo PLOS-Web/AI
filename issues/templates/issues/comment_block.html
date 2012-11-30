@@ -31,9 +31,8 @@
              $('#issue-{{ issue.pk }}').html(msg.comments);
              comment_str = " " + msg.comment_count + " comments";
              console.log(comment_str);
-             $('#comment-count-{{ issue.pk }}').html(comment_str);
-             
-         }
+             $('#comment-count-{{ issue.pk }}').html(comment_str);    
+          }
         });
         //$('#issue-{{ issue.pk }}').load("{% url render_issue_comment_block issue.pk %}" , function(response_text, textStatus, XMLHttpRequest) {
           // fill span with response

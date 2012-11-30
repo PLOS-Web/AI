@@ -1,19 +1,48 @@
 .issue-status-1 {
+    background-image:url('/static/issues/img/open_issue.png');
+    background-size: 20px 20px;
+    background-repeat:no-repeat;
+    //background-color: pink;
     color: red;
+    height: 20px;
+    width: 20px;
+    display: inline-block;
+    vertical-align: top;
 }
 
 .issue-status-2 {
-    color: green;
+    background-image:url('/static/issues/img/closed_issue.png');
+    background-size: 20px 20px;
+    background-repeat:no-repeat;
+    //background-color: pink;
+    color: red;
+    height: 20px;
+    width: 20px;
+    display: inline-block;
+    vertical-align: top;
 }
 
 .issue-status-3 {
-    color: purple;
+    background-image:url('/static/issues/img/wont_fix_issue.png');
+    background-size: 20px 20px;
+    background-repeat:no-repeat;
+    //background-color: pink;
+    color: red;
+    height: 20px;
+    width: 20px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.issue-text {
+    display: inline-block;
 }
 
 .issue {
-    padding: 10px 0px 0px 0px;
-    margin: 0px 0px 5px 0px;
+    padding: 0px 0px 0px 0px;
+    margin: 0px 0px 0px 0px;
     //background-color: pink;
+    margin-bottom: 0px;
 }
 
 .accordion-toggle {
@@ -22,6 +51,11 @@
 
 .greyed {
     color: #858585;
+    font-weight: bold;
+}
+
+.bolded {
+    color: #000;
 }
 
 .center {
@@ -45,4 +79,13 @@
 
 .monospace{
     font-family: monospace;
+}
+
+.horizontal-list-spaced{
+    padding-left: 10px;
+}
+
+.issue-description-spaced {
+    padding-left: 7px;
+    //display: inline-block;
 }
