@@ -17,12 +17,12 @@ class IssueForm(ModelForm):
         super(IssueForm, self).__init__(*args, **kwargs)
         self.fields['category'].widget.attrs['class'] = 'btn dropdown-toggle'
         
-
     class Meta:
         model = Issue
         exclude = ('error','status','submitter', 'current_status')
         widgets = {
             'article' : forms.HiddenInput(),
+            'description': forms.Textarea(),
             }
         
     
