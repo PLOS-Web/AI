@@ -1,13 +1,17 @@
-<form action="{% url post_issue_ajax %}" method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <input type="submit" value="Submit" />
+{% load crispy_forms_tags %}
+{% load fancyauth %}
+
+{% if user.is_authenticated %}
+
+<form action="{% url post_issue_ajax %}" method="post" class="form-horizontal-compact">
+  {% crispy form %}
 </form>
 
 <script type="text/javascript">
   var options_issue_form = {
     success: function(response_text, status_text, xhr, form_elem) {
       // insert new comment comments
+      console.log(response_text);
       if (response_text.form_html){
          $('#issue-form-wrapper').html(response_text.form_html);
       }
@@ -22,3 +26,7 @@
   });
   
 </script>
+
+{% else %}
+<p>Please {% render_login_modal_link "log in" %} to create an issue.</p>
+{% endif %}

@@ -1,6 +1,10 @@
 from django import forms
 from django.forms import ModelForm
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Field, Submit
+from crispy_forms.bootstrap import FormActions
+
 from issues.models import Category, Issue, STATUS_CODES
 from articleflow.models import Article
 
@@ -14,8 +18,21 @@ from articleflow.models import Article
 class IssueForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        self.form_class = 'tesssssst'
+        self.helper.layout = Layout(
+            Field('article'),
+            Field('category', css_class='btn dropdown-toggle span2'),
+            Field('description', rows="1", css_class='span5'),
+            Submit('submit', 'Add Issue', css_class='btn-primary'),
+            )
+        
         super(IssueForm, self).__init__(*args, **kwargs)
-        self.fields['category'].widget.attrs['class'] = 'btn dropdown-toggle'
+        #self.fields['category'].widget.attrs['class'] = 'btn dropdown-toggle issue-category'
+        #self.fields['description'].widget.attrs['rows'] = '2'
+        #self.fields['description'].widget.attrs['class'] = 'issue-textarea'
+        
+        
         
     class Meta:
         model = Issue
@@ -24,5 +41,3 @@ class IssueForm(ModelForm):
             'article' : forms.HiddenInput(),
             'description': forms.Textarea(),
             }
-        
-    

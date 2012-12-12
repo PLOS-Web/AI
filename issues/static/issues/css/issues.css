@@ -100,3 +100,24 @@
     clear: left;
     padding-left: 10px;
 }
+
+select.issue-category {
+    width: 30%;
+}
+
+textarea.issue-textarea {
+    width: 70%;
+}
+
+.form-horizontal-compact .control-group {
+    //float: left;
+    //padding-left: 10px;
+}
+
+.form-horizontal-compact input {
+    //float: right;
+}
+
+.asteriskField {
+    display: none;
+}

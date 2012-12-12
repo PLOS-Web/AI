@@ -97,6 +97,7 @@ def post_issue(request):
                     context_instance=RequestContext(request)
                     )
                 to_json = {
+                    'error': 'Invalid submission',
                     'form_html': form_html.content,
                     }
                 return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
