@@ -1,3 +1,4 @@
+{% load crispy_forms_tags %}
 {% load comments %}
 {% load fancyauth %}
 
@@ -7,17 +8,10 @@
   {% if user.is_authenticated %}
   <div class="issue-comment-response">
   </div>
-  {% get_comment_form for issue as comment_form_uncrispy %}
+  {% get_comment_form for issue as comment_form %}
   <form action="{% comment_form_target %}" method="POST">
     {% csrf_token %}
-    <div>
-      <textarea id="id_comment" name="comment" cols="600" rows="2"></textarea>
-    </div>
-    {{ comment_form.content_type }}
-    {{ comment_form.object_pk }}
-    {{ comment_form.timestamp }}
-    {{ comment_form.security_hash }}
-    <div><input type="submit" value="Add comment" id="id_submit" /></div>
+    {% crispy comment_form %}
   </form>
 
   <script type="text/javascript">

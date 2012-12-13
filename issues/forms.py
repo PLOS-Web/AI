@@ -1,5 +1,7 @@
 from django import forms
 from django.forms import ModelForm
+from django.contrib.comments.forms import CommentForm
+from django.contrib.comments.models import Comment
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Submit
@@ -28,11 +30,6 @@ class IssueForm(ModelForm):
             )
         
         super(IssueForm, self).__init__(*args, **kwargs)
-        #self.fields['category'].widget.attrs['class'] = 'btn dropdown-toggle issue-category'
-        #self.fields['description'].widget.attrs['rows'] = '2'
-        #self.fields['description'].widget.attrs['class'] = 'issue-textarea'
-        
-        
         
     class Meta:
         model = Issue
@@ -41,3 +38,6 @@ class IssueForm(ModelForm):
             'article' : forms.HiddenInput(),
             'description': forms.Textarea(),
             }
+
+
+    
