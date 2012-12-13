@@ -1,3 +1,4 @@
+{% load crispy_forms_tags %}
 {% load comments %}
 {% load fancyauth %}
 
@@ -10,14 +11,7 @@
 {% get_comment_form for article as note_form %}
 <form action="{% comment_form_target %}" method="POST">
   {% csrf_token %}
-  <div>
-    <textarea id="id_comment" name="comment" cols="600" rows="2"></textarea>
-  </div>
-  {{ note_form.content_type }}
-  {{ note_form.object_pk }}
-  {{ note_form.timestamp }}
-  {{ note_form.security_hash }}
-  <div><input type="submit" value="Add comment" id="id_submit" /></div>
+  {% crispy note_form %}
 </form>
 
 <script type="text/javascript">
