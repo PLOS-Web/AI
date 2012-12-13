@@ -30,11 +30,6 @@ class IssueForm(ModelForm):
             )
         
         super(IssueForm, self).__init__(*args, **kwargs)
-        #self.fields['category'].widget.attrs['class'] = 'btn dropdown-toggle issue-category'
-        #self.fields['description'].widget.attrs['rows'] = '2'
-        #self.fields['description'].widget.attrs['class'] = 'issue-textarea'
-        
-        
         
     class Meta:
         model = Issue
