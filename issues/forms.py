@@ -1,5 +1,7 @@
 from django import forms
 from django.forms import ModelForm
+from django.contrib.comments.forms import CommentForm
+from django.contrib.comments.models import Comment
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Submit
@@ -41,3 +43,6 @@ class IssueForm(ModelForm):
             'article' : forms.HiddenInput(),
             'description': forms.Textarea(),
             }
+
+
+    
