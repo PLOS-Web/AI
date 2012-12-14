@@ -2,9 +2,17 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponse, Http404
 from django.template import Template, RequestContext
 from django.shortcuts import render_to_response
-from issues.models import Issue
-from issues.forms import IssueForm
 import simplejson
+
+from django.db.models import Count
+
+from django.contrib.comments.models import Comment
+from django.contrib.contenttypes.models import ContentType
+
+from django.conf import settings
+from issues.models import Issue, IssueStatus, STATUS_CODES
+from issues.forms import IssueForm
+
 
 def comment_list(request, id):
     """
@@ -22,6 +30,7 @@ def comment_list(request, id):
     context = RequestContext(request)
     context.update({'object': obj})
     result = t.render(context)
+    
     return HttpResponse(result)
 
 def comment_block(request, pk):
@@ -30,16 +39,28 @@ def comment_block(request, pk):
     context = RequestContext(request)
     context.update({'issue': issue})
     
-    return render_to_response('issues/comment_block_wrapper.html', context)
+    comments_block = render_to_response('issues/comment_block_wrapper.html', context)
+
+    comment_count = Comment.objects.filter(
+        content_type = ContentType.objects.get_for_model(Issue),
+        object_pk = pk,
+        site__pk = settings.SITE_ID
+        ).count()
+
+    to_json = {
+        'comments': comments_block.content,
+        'comment_count': comment_count}
+
+    return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+    
 
 def issue_block(request, pk):
     issue = Issue.objects.get(pk=pk)
     context = RequestContext(request)
 
     context.update({'issue': issue})
-    
-    return render_to_response('issues/issue_block.html', context)
 
+    return render_to_response('issues/issue_block.html', context)
 
 def post_issue(request):
     if request.method == "POST":
@@ -76,6 +97,7 @@ def post_issue(request):
                     context_instance=RequestContext(request)
                     )
                 to_json = {
+                    'error': 'Invalid submission',
                     'form_html': form_html.content,
                     }
                 return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
@@ -110,19 +132,30 @@ def toggle_issue_status(request):
         return HttpResponse("You need to log in dummy")
 
     issue = Issue.objects.get(pk=request.POST['issue_pk'])
-    print ("Was issue %s, but want to change to %s. " % (issue.status, request.POST['status']))
     requested_status = int(request.POST['status'])
+    
+    print requested_status
 
-    if requested_status == 0:
-        print ("Changing to 0. ")
-        issue.status = 0
-        issue.save()
-    elif requested_status == 1:
-        print ("Changing to 1. ")
-        issue.status = 1
-        issue.save()
+    if requested_status in map((lambda x: x[0]), STATUS_CODES):
+        print "in status codes"
+        i = IssueStatus(status=requested_status,issue=issue)
+        print "entering IssueStatus save"
+        i.save()
+        print "exited IssueStatus save"
 
-    print ("Now issue %s\n" % issue.status)    
-    to_json = {'status': issue.status}
+    print issue.current_status.pk
+    to_json = {'status': issue.current_status.status}
     return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
     
+def get_issue_comment_count(request, pk):
+    #if request.method != "POST" or not request.is_ajax():
+    #    raise Http404
+
+    comments = Comment.objects.filter(
+        content_type = ContentType.objects.get_for_model(Issue),
+        object_pk = pk,
+        site__pk = settings.SITE_ID
+        ).count()
+    to_json = {'count': comments}
+
+    return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')

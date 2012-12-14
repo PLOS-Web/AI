@@ -133,13 +133,17 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
     # Project Apps
     'debug_toolbar',
-    'bootstrap',
+    'crispy_forms',
     'articleflow',
     'issues',
     'fancyauth',
     'notes',
+    'crispycomments',
     'errors'
 )
+
+# Customizing contrib comments
+COMMENTS_APP = 'crispycomments'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -172,3 +176,5 @@ LOGGING = {
 
 # App stuff
 INTERNAL_IPS = ('127.0.0.1',)
+
+CRISPY_TEMPLATE_PACK = 'bootstrap'

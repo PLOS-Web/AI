@@ -23,4 +23,8 @@ urlpatterns = patterns(
         r'^issue_status/$',
         'toggle_issue_status',
         name='toggle_issue_status'),
+    url(
+        '^issue_comment_count/(?P<pk>\d+)$',
+        'get_issue_comment_count',
+        name='issue_comment_count'),
 )

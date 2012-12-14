@@ -1,4 +1,6 @@
+{% load crispy_forms_tags %}
+
 <form action="{% url post_issue_ajax}" method="post">
-{% form.as_p %}
+{% form|crispy %}
 <input type="submit" value="Submit" />
 </form>
