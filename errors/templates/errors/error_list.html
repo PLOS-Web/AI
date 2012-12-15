@@ -1,4 +1,5 @@
 {% extends "articleflow/article_detail_base.html" %}
+{% load errors %}
 
 {% block detail_nav %}
 {% include "articleflow/includes/detail_nav.html" with active_tab='detail_errors' %}
@@ -11,24 +12,7 @@
 {% block article_detail_content %}
 
 {% for errorset in errorset_list %}
-<p>Output from {{ errorset.source }} on {{ errorset.created }}</p>
-<table class='table table-hover'>
-  <thead>
-    <tr>
-      <th>level</th>
-      <th>Message</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for error in errorset.errors.all %}
-    <tr>
-      <td>{{ error.get_level_display }}</td>
-      <td>{{ error.message }}</td>
-    </tr>
-  </tbody>
-  {% endfor %}
-</table>
-
+  {% render_errorset_block errorset %}
 {% endfor %}
 
 {% endblock %}

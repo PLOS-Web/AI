@@ -73,8 +73,3 @@ class ArticleDetailIssues(View):
                 'article': article
                 }) 
         return context
-        
-
-
-
-
