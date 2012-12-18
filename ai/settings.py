@@ -139,6 +139,7 @@ INSTALLED_APPS = (
     'fancyauth',
     'notes',
     'crispycomments',
+    'errors'
 )
 
 # Customizing contrib comments

@@ -1,0 +1,18 @@
+{% extends "articleflow/article_detail_base.html" %}
+{% load errors %}
+
+{% block detail_nav %}
+{% include "articleflow/includes/detail_nav.html" with active_tab='detail_errors' %}
+{% endblock %}
+
+{% block sub_title %} - {{ article.doi }} - Errors{% endblock %}
+
+{% block sub_header %}Errors{% endblock %}
+
+{% block article_detail_content %}
+
+{% for errorset in errorset_list %}
+  {% render_errorset_block errorset %}
+{% endfor %}
+
+{% endblock %}

@@ -1,0 +1,8 @@
+{% load errors %}
+
+<p>Output from {{ errorset.source }} on {{ errorset.created }}</p>
+<table class='table table-hover'>
+  {% for error in errorset.errors.all %}
+    {% render_error_block error %}
+  {% endfor %}
+</table>

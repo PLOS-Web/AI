@@ -2,7 +2,7 @@
   <li class="{% if active_tab == 'detail_main' %} active{% endif %}"><a href="{% url detail_main doi=article.doi %}">Main</a></li>
   <li class="{% if active_tab == 'detail_transitions' %} active{% endif %}"><a href="{% url detail_transition doi=article.doi %}">Transitions</a></li>
   <li class="{% if active_tab == 'detail_issues' %} active{% endif %}"><a href="{% url detail_issues doi=article.doi %}">Issues</a></li>
-  <li class=""><a href="#">Errors</a></li>
+  <li class="{% if active_tab == 'detail_errors' %} active{% endif %}"><a href="{% url detail_errors doi=article.doi %}">Errors</a></li>
   <li class=""><a href="#">History</a></li>
   <li class=""><a href="#">Whatever</a></li>
 </ul>
