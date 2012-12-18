@@ -24,8 +24,19 @@ class IssueCommentForm(CommentForm):
         print isinstance(args[0], Issue)
         self.helper = FormHelper()
         self.helper.layout = Layout(
+            Field('content_type'),
+            Field('object_pk'),
+            Field('timestamp'),
+            Field('security_hash'),
             Field('comment', rows=2),
             Submit('submit', submit_label, css_class='btn-primary'),
             )
         super(CommentForm, self).__init__(*args, **kwargs)
         
+    class Meta:
+        widgets = {
+            'content_type': forms.HiddenInput(),
+            'object_pk': forms.HiddenInput(),
+            'timestamp': forms.HiddenInput(),
+            'security_hash': forms.HiddenInput()
+            }

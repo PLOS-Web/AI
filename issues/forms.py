@@ -38,6 +38,3 @@ class IssueForm(ModelForm):
             'article' : forms.HiddenInput(),
             'description': forms.Textarea(),
             }
-
-
-    
