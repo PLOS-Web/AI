@@ -1,0 +1,121 @@
+{% load ajax_comments %}
+{% load comments %}
+
+<div class="error">
+  <div id="error-status-icon-{{ error.pk }}" class="issue-status-{{ error.current_status.state }}" href="javascript:void(0)">It's 2012 for god's sake, turn on Javascript.</div>
+  <div class="issue-text">
+  <div class="issue-description">
+    <span class="label label-important">{{ error.get_level_display }}</span><span class="issue-description-spaced">{{ error.message }}</span>
+    <script type="text/javascript">
+      //  should this be on document ready?
+      //$(document).ready(function(){
+      //  $('#error-status-icon-{{ error.pk }}').html('lalala');
+      //});
+      var icon{{ error.pk }} = $('#error-status-icon-{{ error.pk }}');
+      icon{{ error.pk }}.html('');
+      icon{{ error.pk }}.on("click", function(){
+        console.log('firing');
+        // unresolved case
+        if (icon{{ error.pk }}.hasClass('issue-status-1')){
+          //do nothing!
+        }else if(icon{{ error.pk }}.hasClass('issue-status-3')){
+          var postData = {
+            'error_pk': {{ error.pk }},
+            'status': 1
+          };
+          console.log(postData);
+          $.ajax({
+            url: "{% url toggle_error_status %}",
+            type: 'POST',
+            datatype: "application/json; charset=utf-8",
+            data: postData
+          }).done(function (returnedData){
+            var valid_statuses = [1,3];
+            if (valid_statuses.indexOf(returnedData['status']) >= 0){
+              console.log("valid status: " + returnedData['status']);
+              for (i in valid_statuses){
+                console.log('error-status-' + i);
+                icon{{ error.pk }}.removeClass('issue-status-' + valid_statuses[i]);
+              }
+              icon{{ error.pk }}.addClass('issue-status-' + returnedData.status);
+              $('#error-status-wont-fix-{{ error.pk }}').removeClass('bolded');
+            }
+          }).error(function (errorMsg) {
+            console.log("error!");
+            console.log("errorMsg");
+          });
+        }
+      }); 
+    </script>
+  </div>
+  <div>
+    <span class="accordion-toggle" data-toggle="collapse" data-parent="#error-accordion-{{ error.pk }}" href="#error-collapse-{{ error.pk }}"> 
+      <a id="error-collapse-toggle-{{ error.pk}}" class="center monospace">[+]</a>
+      <span id="comment-count-{{ error.pk }}" class="greyed"> {{ comment_count }} comments</span>
+    </span>
+    <a id="error-status-wont-fix-{{ error.pk }}" class="greyed horizontal-list-spaced{% if error.current_status.status == 3 %} bolded{% endif %}" href="javascript:void(0)">won't fix</a>
+  </div>
+  <div id="error-collapse-{{ error.pk }}" class="collapse bar-side">
+    {% render_comment_block error %}
+  </div>
+
+  <script type="text/javascript">
+      $('#error-status-wont-fix-{{ error.pk }}').on('click', function(){
+        if (icon{{ error.pk }}.hasClass('issue-status-3')){
+          var postData = {
+            error_pk: {{ error.pk }},
+            status: 1
+          };
+          $.ajax({
+            url: "{% url toggle_error_status %}",
+            type: 'POST',
+            datatype: "application/json; charset=utf-8",
+            data: postData
+          }).done(function (returnedData){
+            var valid_statuses = [1,3];
+            console.log(valid_statuses.indexOf(returnedData['status']));
+            if (valid_statuses.indexOf(returnedData['status']) >= 0){
+              console.log("valid status");
+              for (i in valid_statuses){
+                console.log('error-status-' + valid_statuses[i]);
+                icon{{ error.pk }}.removeClass('issue-status-' + valid_statuses[i]);
+              }
+              icon{{ error.pk }}.addClass('issue-status-' + returnedData.status);
+              $('#error-status-wont-fix-{{ error.pk }}').removeClass('bolded');
+            }
+          }).error(function (errorMsg) {
+            console.log("error!");
+            console.log("errorMsg");
+          });
+        } else {
+          var postData = {
+            error_pk: {{ error.pk }},
+            status: 3
+          };
+          $.ajax({
+            url: "{% url toggle_error_status %}",
+            type: 'POST',
+            datatype: "application/json; charset=utf-8",
+            data: postData
+          }).done(function (returnedData){
+            var valid_statuses = [1,3];
+            console.log(valid_statuses.indexOf(returnedData['status']));
+            if (valid_statuses.indexOf(returnedData['status']) >= 0){
+              console.log("valid status");
+              for (i in valid_statuses){
+                console.log('error-status-' + valid_statuses[i]);
+                icon{{ error.pk }}.removeClass('issue-status-' + valid_statuses[i]);
+              }
+              icon{{ error.pk }}.addClass('issue-status-' + returnedData.status);
+              $('#error-status-wont-fix-{{ error.pk }}').addClass('bolded');
+            }
+          }).error(function (errorMsg) {
+            console.log("error!");
+            console.log("errorMsg");
+          });
+        }
+      });
+  </script>
+  </div>
+</div>
+
