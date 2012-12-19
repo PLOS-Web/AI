@@ -1,12 +1,15 @@
 {% load ajax_issues %}
 
 <div id='issue-block'>
-  <div id='issues'>
+  <div id='issues' class="rounded-box-list">
+    <div class="rounded-box-header-inner">      
+      <h4 class="rounded-box-header">Issues</h4>
+    </div>
     {% for issue in issues %}
     {% render_issue_block article %}
     {% endfor %}
   </div>
-<div id='issue-form-wrapper'>
-  {% render_issue_form article user %}
-</div>
+  <div id='issue-form-wrapper'>
+    {% render_issue_form article user %}
+  </div>
 </div>

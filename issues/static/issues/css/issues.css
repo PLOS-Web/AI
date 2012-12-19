@@ -1,49 +1,42 @@
-.issue-status-1 {
-    background-image:url('/static/issues/img/open_issue.png');
-    background-size: 20px 20px;
+.issue-status-icon {
+    background-size: 60px 60px;
     background-repeat:no-repeat;
     //background-color: pink;
     color: red;
-    height: 20px;
-    width: 20px;
-    float: left;
+    height: 60px;
+    width: 60px;
+    //float: left:
+    display: inline;
     vertical-align: top;
+}
+
+.issue-status-1 {
+    background-image:url('/static/issues/img/open_issue.png');
 }
 
 .issue-status-2 {
     background-image:url('/static/issues/img/closed_issue.png');
-    background-size: 20px 20px;
-    background-repeat:no-repeat;
-    //background-color: pink;
-    color: red;
-    height: 20px;
-    width: 20px;
-    float: left;
-    vertical-align: top;
 }
 
 .issue-status-3 {
     background-image:url('/static/issues/img/wont_fix_issue.png');
-    background-size: 20px 20px;
-    background-repeat:no-repeat;
-    //background-color: pink;
-    color: red;
-    height: 20px;
-    width: 20px;
-    float: left;
-    vertical-align: top;
 }
 
 .issue-text {
-    float: left;
+    //float: left;
+    display: inline;
 }
 
 .issue {
     padding: 0px 0px 0px 0px;
     margin: 0px 0px 0px 0px;
-    //background-color: pink;
+    background-color: white;
     margin-bottom: 0px;
-    clear: left;
+    clear: both;
+    border-top: 1px solid rgba(0, 0, 0, .1);
+    border-bottom: 1px solid rgba(0, 0, 0, .1);
+    webkit-background-clip: padding-box;
+    background-clip: padding-box;
 }
 
 .accordion-toggle {
@@ -103,6 +96,7 @@
 
 select.issue-category {
     width: 30%;
+    display: inline;
 }
 
 textarea.issue-textarea {
@@ -120,4 +114,24 @@ textarea.issue-textarea {
 
 .asteriskField {
     display: none;
+}
+
+.rounded-box-list {
+    border: 1px solid rgba(0, 0, 0, .1);
+    border-radius: 6px;
+    webkit-border-radius: 6px;
+    moz-border-radius: 6px;
+}
+
+.rounded-box-header-inner {
+    padding: 10px;
+}
+
+.rounded-box-header {
+    padding: 0px;
+    margin: 0px;
+}
+
+.rounded-box-card-inner {
+    padding: 4px 10px 4px 10px;
 }

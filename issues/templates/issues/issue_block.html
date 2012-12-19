@@ -3,13 +3,13 @@
 
 {% get_comment_count for issue as comment_count %}
 
-<div class="issue">
-  <div id="issue-status-icon-{{ issue.pk }}" class="issue-status-{{ issue.current_status.status }}" href="javascript:void(0)">It's 2012 for god's sake, turn on Javascript.</div>
+<div class="issue rounded-box-card-inner">
+  <div id="issue-status-icon-{{ issue.pk }}" class="issue-status-{{ issue.current_status.status }} issue-status-icon" href="javascript:void(0)">It's 2012 for god's sake, turn on Javascript.</div>
   <div class="issue-text">
   <div class="issue-description">
     <span class="label label-important">{{ issue.category }}</span><span class="issue-description-spaced">{{ issue.description }}</span>
     <script type="text/javascript">
-      //  should this be on document ready?
+      //  should this be on do cument ready?
       //$(document).ready(function(){
       //  $('#issue-status-icon-{{ issue.pk }}').html('lalala');
       //});

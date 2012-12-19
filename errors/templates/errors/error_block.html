@@ -1,7 +1,7 @@
 {% load ajax_comments %}
 {% load comments %}
 
-<div class="error">
+<div class="issue rounded-box-card-inner">
   <div id="error-status-icon-{{ error.pk }}" class="issue-status-{{ error.current_status.state }}" href="javascript:void(0)">It's 2012 for god's sake, turn on Javascript.</div>
   <div class="issue-text">
   <div class="issue-description">
@@ -53,7 +53,8 @@
       <a id="error-collapse-toggle-{{ error.pk}}" class="center monospace">[+]</a>
       <span id="comment-count-{{ error.pk }}" class="greyed"> {{ comment_count }} comments</span>
     </span>
-    <a id="error-status-wont-fix-{{ error.pk }}" class="greyed horizontal-list-spaced{% if error.current_status.status == 3 %} bolded{% endif %}" href="javascript:void(0)">won't fix</a>
+    <button id="error-status-wont-fix-{{ error.pk }}" class="greyed horizontal-list-spaced{% if error.current_status.status == 3 %} bolded{% endif %}" href="javascript:void(0)">won't fix</button>
+    <button class="btn-primary">Close</button> 
   </div>
   <div id="error-collapse-{{ error.pk }}" class="collapse bar-side">
     {% render_comment_block error %}

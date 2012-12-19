@@ -10,4 +10,13 @@ urlpatterns = patterns('errors.views',
         r'^error_status/$',
         'toggle_error_status',
         name='toggle_error_status'),
+                       url(
+        r'^comments/(?P<id>\d+)$',
+        'comment_list',
+        name='render_error_comment_list'),
+                       url(
+        r'^commentblock/(?P<pk>\d+)$',
+        'comment_block',
+        name='render_error_comment_block'
+        ),
                        )

@@ -12,4 +12,7 @@ def render_error_block(context, error):
     context.update({'error': error})
     return context
     
-    
+@register.inclusion_tag('errors/comment_block_wrapper.html', takes_context=True)
+def render_comment_block(context, error):
+    context.update({'error': error})
+    return context
