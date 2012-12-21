@@ -4,10 +4,12 @@
 {% get_comment_count for issue as comment_count %}
 
 <div class="issue rounded-box-card-inner">
-  <div id="issue-status-icon-{{ issue.pk }}" class="issue-status-{{ issue.current_status.status }} issue-status-icon" href="javascript:void(0)">It's 2012 for god's sake, turn on Javascript.</div>
-  <div class="issue-text">
+  <div id="issue-status-icon-{{ issue.pk }}" class="issue-status-{{ issue.current_status.status }} issue-status-icon rounded-box-cell-left" href="javascript:void(0)"></div>
+  <div class="issue-text rounded-box-cell-right">
   <div class="issue-description">
-    <span class="label label-important">{{ issue.category }}</span><span class="issue-description-spaced">{{ issue.description }}</span>
+    <span class="label label-important issue-category">{{ issue.category }}</span>
+    <span class="issue-author">{{ issue.submitter.username }}</span>
+    <span class="issue-description-spaced">{{ issue.description }}</span>
     <script type="text/javascript">
       //  should this be on do cument ready?
       //$(document).ready(function(){
@@ -74,13 +76,17 @@
       }); 
     </script>
   </div>
-  <div>
+  <div class="comment-control">
     <span class="accordion-toggle" data-toggle="collapse" data-parent="#issue-accordion-{{ issue.pk }}" href="#issue-collapse-{{ issue.pk }}"> 
       <a id="issue-collapse-toggle-{{ issue.pk}}" class="center monospace">[+]</a>
       <span id="comment-count-{{ issue.pk }}" class="greyed"> {{ comment_count }} comments</span>
     </span>
-    <a id="issue-status-wont-fix-{{ issue.pk }}" class="greyed horizontal-list-spaced{% if issue.current_status.status == 3 %} bolded{% endif %}" href="javascript:void(0)">won't fix</a>
   </div>
+  <div class="issue-status-control">
+      <button class="btn btn-primary">fixed</button>
+      <button class="btn">won't fix</button>
+  </div>
+  <div class="clear"></div>
   <div id="issue-collapse-{{ issue.pk }}" class="collapse bar-side">
     {% render_comment_block issue %}
   </div>
@@ -142,6 +148,8 @@
         }
       });
   </script>
+  
   </div>
+  <div class="clear"></div>
 </div>
 
