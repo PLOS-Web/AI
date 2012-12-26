@@ -23,3 +23,11 @@ def render_issue_form(context, article, user):
     
     return context
     
+@register.inclusion_tag('issues/issue_status_control.html', takes_context=True)
+def render_issue_status_control(context, issue):
+    context.update({'issue': issue})
+    return context
+        
+        
+        
+    
