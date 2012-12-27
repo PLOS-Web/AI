@@ -1,0 +1,11 @@
+.article-detail-summary {
+    border: 1px solid rgba(0, 0, 0, .1);
+    background-color: #EFEFEF;
+    border-radius: 6px;
+    webkit-border-radius: 6px;
+    moz-border-radius: 6px;
+}
+
+.article-detail-issues {
+    padding-top: 20px;
+}
