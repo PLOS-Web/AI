@@ -28,6 +28,3 @@ def render_issue_status_control(context, issue):
     context.update({'issue': issue})
     return context
         
-        
-        
-    

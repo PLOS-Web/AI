@@ -46,3 +46,35 @@ $.ajaxSetup({
     }
 });
 
+
+function switch_status_ajax(issue_pk, issue_id_base, new_status, target_url){
+    var status_icon = $('#' + issue_id_base + issue_pk);
+    var status_control = $('#' + 'issue-status-control-' + issue_pk);
+
+    console.log('status_icon: ' + status_icon);
+    var postData = {
+	'issue_pk': issue_pk,
+	'status': new_status
+    };
+    console.log(postData);
+    $.ajax({
+	url: target_url,
+	type: 'POST',
+	datatype: "application/json; charset=utf-8",
+	data: postData
+    }).done(function (returnedData){
+	var valid_statuses = [1,2,3];
+        if (valid_statuses.indexOf(returnedData['status']) >= 0){
+	    console.log("valid status: " + returnedData['status']);
+	    for (i in valid_statuses){
+                console.log('issue-status-' + valid_statuses[i]);
+                status_icon.removeClass('issue-status-' + valid_statuses[i]);
+	    }
+	    status_icon.addClass('issue-status-' + returnedData.status);
+	    status_control.html(returnedData['issue-status-control']);
+        }
+    }).error(function (errorMsg){
+        console.log(errorMsg);
+    });
+}
+

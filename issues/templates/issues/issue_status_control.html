@@ -1,8 +1,18 @@
 {% if issue.current_status.status == 1 %}
-  <button class="btn btn-primary">fixed</button>
-  <button class="btn">won't fix</button>
+  <button id="wont-fix-button-issue-{{ issue.id }}" class="btn">won't fix</button>
+  <button id="fixed-button-issue-{{ issue.id }}" class="btn btn-primary">fixed</button>
+  <script type="text/javascript">
+    $('#fixed-button-issue-{{ issue.id }}').on("click", function(){switch_status_ajax({{ issue.id }}, 'issue-status-icon-', 2, '{% url toggle_issue_status %}');});
+    $('#wont-fix-button-issue-{{ issue.id }}').on("click", function(){switch_status_ajax({{ issue.id }}, 'issue-status-icon-', 3, '{% url toggle_issue_status %}');});
+  </script>
 {% elif issue.current_status.status == 2 %}
-  <button class="btn">reopen</button>
+  <button id="reopen-button-issue-{{ issue.id }}" class="btn">reopen</button>
+  <script type="text/javascript">
+    $('#reopen-button-issue-{{ issue.id }}').on("click", function(){switch_status_ajax({{ issue.id }}, 'issue-status-icon-', 1, '{% url toggle_issue_status %}');});
+  </script>
 {% elif issue.current_status.status == 3 %}
-  <button class="btn">reopen</button>
+  <button id="reopen-button-issue-{{ issue.id }}" class="btn">reopen</button>
+  <script type="text/javascript">
+    $('#reopen-button-issue-{{ issue.id }}').on("click", function(){switch_status_ajax({{ issue.id }}, 'issue-status-icon-', 1, '{% url toggle_issue_status %}');});
+  </script>
 {% endif %}

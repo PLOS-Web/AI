@@ -144,7 +144,15 @@ def toggle_issue_status(request):
         print "exited IssueStatus save"
 
     print issue.current_status.pk
-    to_json = {'status': issue.current_status.status}
+
+    # render issue status control
+    t = Template("{% load ajax_issues %} {% render_issue_status_control issue %}")
+    context = RequestContext(request)
+    context.update({'issue': issue})
+    control_buttons = t.render(context)
+
+    to_json = {'status': issue.current_status.status,
+               'issue-status-control': control_buttons}
     return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
     
 def get_issue_comment_count(request, pk):

@@ -12,69 +12,12 @@
     <span class="issue-author">{{ issue.submitter.username }}</span>
     <span class="issue-description-spaced">{{ issue.description }}</span>
     <script type="text/javascript">
-      //  should this be on do cument ready?
+      //  should this be on document ready?
       //$(document).ready(function(){
       //  $('#issue-status-icon-{{ issue.pk }}').html('lalala');
       //});
       var icon{{ issue.pk }} = $('#issue-status-icon-{{ issue.pk }}');
       icon{{ issue.pk }}.html('');
-      icon{{ issue.pk }}.on("click", function(){
-        console.log('firing');
-        // unresolved case
-        if (icon{{ issue.pk }}.hasClass('issue-status-1')){
-          var postData = {
-            'issue_pk': {{ issue.pk }},
-            'status': 2
-          };
-          console.log(postData);
-          $.ajax({
-            url: "{% url toggle_issue_status %}",
-            type: 'POST',
-            datatype: "application/json; charset=utf-8",
-            data: postData
-          }).done(function (returnedData){
-            var valid_statuses = [1,2,3];
-            if (valid_statuses.indexOf(returnedData['status']) >= 0){
-              console.log("valid status: " + returnedData['status']);
-              for (i in valid_statuses){
-                console.log('issue-status-' + i);
-                icon{{ issue.pk }}.removeClass('issue-status-' + valid_statuses[i]);
-              }
-              icon{{ issue.pk }}.addClass('issue-status-' + returnedData.status);
-              $('#issue-status-wont-fix-{{ issue.pk }}').removeClass('bolded');
-            }
-          }).error(function (errorMsg) {
-            console.log(errorMsg);
-          });
-      // resolved case
-        }else if(icon{{ issue.pk }}.hasClass('issue-status-2') || icon{{ issue.pk }}.hasClass('issue-status-3')){
-          var postData = {
-            'issue_pk': {{ issue.pk }},
-            'status': 1
-          };
-          console.log(postData);
-          $.ajax({
-            url: "{% url toggle_issue_status %}",
-            type: 'POST',
-            datatype: "application/json; charset=utf-8",
-            data: postData
-          }).done(function (returnedData){
-            var valid_statuses = [1,2,3];
-            if (valid_statuses.indexOf(returnedData['status']) >= 0){
-              console.log("valid status: " + returnedData['status']);
-              for (i in valid_statuses){
-                console.log('issue-status-' + i);
-                icon{{ issue.pk }}.removeClass('issue-status-' + valid_statuses[i]);
-              }
-              icon{{ issue.pk }}.addClass('issue-status-' + returnedData.status);
-              $('#issue-status-wont-fix-{{ issue.pk }}').removeClass('bolded');
-            }
-          }).error(function (errorMsg) {
-            console.log("error!");
-            console.log("errorMsg");
-          });
-        }
-      }); 
     </script>
   </div>
   <div class="comment-control">
@@ -83,7 +26,7 @@
       <span id="comment-count-{{ issue.pk }}" class="greyed"> {{ comment_count }} comments</span>
     </span>
   </div>
-  <div class="issue-status-control">
+  <div id="issue-status-control-{{ issue.pk }}" class="issue-status-control">
       {% render_issue_status_control issue %}
   </div>
   <div class="clear"></div>
