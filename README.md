@@ -9,6 +9,10 @@ built for:
 1.    django 1.4
 2.    python 2.7.3
 
+dependencies:
+
+libmysqlclient-dev python-dev
+
 ## Instructions
 
 1.	git clone
