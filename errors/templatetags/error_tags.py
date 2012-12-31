@@ -1,5 +1,6 @@
 from django import template
 from errors.models import ErrorSet, Error, ErrorStatus
+from articleflow.models import Article
 
 
 register = template.Library()
@@ -19,7 +20,11 @@ def render_comment_block(context, error):
     context.update({'error': error})
     return context
 
-#@register.tag
-#def render_latest_errors(context, article):
-#    latest_errorset = ErrorSet.objects.filter(article=article).latest('created')
-#    return render_errorset_block(context, latest_errorset)
+@register.inclusion_tag('errors/errorset.html', takes_context=True)
+def render_latest_errors(context, article):
+    #latest_errorset = ErrorSet.objects.filter(article=article).latest('created')
+    latest_errorset = article.error_sets.latest('created')
+    #print latest_errorset 
+    context.update({'errorset': latest_errorset})
+    return context
+    #return render_errorset_block(context, latest_errorset)
