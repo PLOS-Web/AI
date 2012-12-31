@@ -2,8 +2,8 @@
 {% load comments %}
 
 <div class="issue rounded-box-card-inner">
-  <div id="error-status-icon-{{ error.pk }}" class="issue-status-{{ error.current_status.state }}" href="javascript:void(0)">It's 2012 for god's sake, turn on Javascript.</div>
-  <div class="issue-text">
+  <div id="error-status-icon-{{ error.pk }}" class="issue-status-{{ error.current_status.state }} issue-status-icon rounded-box-cell-left" href="javascript:void(0)"></div>
+  <div class="issue-text rounded-box-cell-right">
   <div class="issue-description">
     <span class="label label-important">{{ error.get_level_display }}</span><span class="issue-description-spaced">{{ error.message }}</span>
     <script type="text/javascript">
