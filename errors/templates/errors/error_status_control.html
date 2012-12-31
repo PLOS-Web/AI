@@ -1,0 +1,18 @@
+{% if error.current_status.state == 1 %}
+  <button id="wont-fix-button-error-{{ error.id }}" class="btn">won't fix</button>
+  <script type="text/javascript">
+    $('#wont-fix-button-error-{{ error.id }}').on("click", function(){switch_status_ajax({{ error.id }}, 'error-status-icon-', 'error-status-control-', 3, '{% url toggle_error_status %}');});
+  </script>
+
+{% elif error.current_status.state == 2 %}
+  <button id="reopen-button-error-{{ error.id }}" class="btn">reopen</button>
+  <script type="text/javascript">
+    $('#reopen-button-error-{{ error.id }}').on("click", function(){switch_status_ajax({{ error.id }}, 'error-status-icon-', 'error-status-control-', 1, '{% url toggle_error_status %}');});
+  </script>
+
+{% elif error.current_status.state == 3 %}
+  <button id="reopen-button-error-{{ error.id }}" class="btn">reopen</button>
+  <script type="text/javascript">
+    $('#reopen-button-error-{{ error.id }}').on("click", function(){switch_status_ajax({{ error.id }}, 'error-status-icon-', 'error-status-control-', 1, '{% url toggle_error_status %}');});
+  </script>
+{% endif %}

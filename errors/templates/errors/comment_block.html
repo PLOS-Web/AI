@@ -1,54 +1,55 @@
 {% load crispy_forms_tags %}
 {% load comments %}
 {% load fancyauth %}
+{% load error_tags %}
 
   <div class="issue-comment-list">
-    {% render_comment_list for issue %}
+    {% render_comment_list for error %}
   </div>
   {% if user.is_authenticated %}
   <div class="issue-comment-response">
   </div>
-  {% get_comment_form for issue as comment_form %}
+  {% get_comment_form for error as comment_form %}
   <form action="{% comment_form_target %}" method="POST">
     {% csrf_token %}
     {% crispy comment_form %}
   </form>
 
   <script type="text/javascript">
-    var options_issue_{{ issue.pk }} = {
+    var options_error_{{ error.pk }} = {
       success: function(response_text, status_text, xhr, form_elem) {
         // reload comments
         $.ajax({
           type: "POST",
-          url: "{% url render_issue_comment_block issue.pk %}",
+          url: "{% url render_error_comment_block error.pk %}",
           success: function(msg){
              console.log(msg);
-             $('#issue-{{ issue.pk }}').html(msg.comments);
+             $('#error-{{ error.pk }}').html(msg.comments);
              comment_str = " " + msg.comment_count + " comments";
              console.log(comment_str);
-             $('#comment-count-{{ issue.pk }}').html(comment_str);
+             $('#comment-count-{{ error.pk }}').html(comment_str);
           }
         });
-        //$('#issue-{{ issue.pk }}').load("{% url render_issue_comment_block issue.pk %}" , function(response_text, textStatus, XMLHttpRequest) {
+        //$('#error-{{ error.pk }}').load("{% url render_error_comment_block error.pk %}" , function(response_text, textStatus, XMLHttpRequest) {
           // fill span with response
-          //$('#issue-{{ issue.pk }} .issue-comment-response').html(response_text);
+          //$('#error-{{ error.pk }} .error-comment-response').html(response_text);
           // rebind form
-          //$('#issue-{{ issue.pk }} form').ajaxForm(options_issue_{{ issue.pk }});
+          //$('#error-{{ error.pk }} form').ajaxForm(options_error_{{ error.pk }});
         //});
       }
     };
 
     $(function() {
-      $('#issue-{{ issue.pk }} form').ajaxForm(options_issue_{{ issue.pk }});
+      $('#error-{{ error.pk }} form').ajaxForm(options_error_{{ error.pk }});
     });
 
-    $('#issue-collapse-{{ issue.pk }}').on('show', function () {
+    $('#error-collapse-{{ error.pk }}').on('show', function () {
       console.log('something');
-      $('#issue-collapse-toggle-{{ issue.pk }}').html('[-]');
+      $('#error-collapse-toggle-{{ error.pk }}').html('[-]');
     });
 
-    $('#issue-collapse-{{ issue.pk }}').on('hide', function () {
-      $('#issue-collapse-toggle-{{ issue.pk }}').html('[+]');
+    $('#error-collapse-{{ error.pk }}').on('hide', function () {
+      $('#error-collapse-toggle-{{ error.pk }}').html('[+]');
     });
   </script>
 
