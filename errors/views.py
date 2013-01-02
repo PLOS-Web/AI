@@ -1,6 +1,13 @@
 from django.http import HttpResponse, Http404
 from django.views.generic import ListView
+from django.template import Template, RequestContext
+from django.shortcuts import render_to_response
 import simplejson
+
+from django.contrib.comments.models import Comment
+from django.contrib.contenttypes.models import ContentType
+
+from django.conf import settings
 
 from errors.models import ErrorSet, Error, ErrorStatus
 from articleflow.models import Article
@@ -45,12 +52,12 @@ def comment_block(request, pk):
     error = Error.objects.get(pk=pk)
     
     context = RequestContext(request)
-    context.update({'issue': issue})
+    context.update({'issue': error})
     
     comments_block = render_to_response('issues/comment_block_wrapper.html', context)
 
     comment_count = Comment.objects.filter(
-        content_type = ContentType.objects.get_for_model(Issue),
+        content_type = ContentType.objects.get_for_model(Error),
         object_pk = pk,
         site__pk = settings.SITE_ID
         ).count()
@@ -67,7 +74,7 @@ def toggle_error_status(request):
     if not request.user.is_authenticated():
         return HttpResponse("You need to log in dummy")
 
-    error = Error.objects.get(pk=request.POST['error_pk'])
+    error = Error.objects.get(pk=request.POST['issue_pk'])
     requested_status = int(request.POST['status'])
     
     print requested_status
@@ -79,9 +86,18 @@ def toggle_error_status(request):
         i.save()
         print "exited ErrorStatus save"
 
-    to_json = {'status': error.current_status.state}
-    return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+    print error.current_status.pk
 
+    # render error status control
+    t = Template("{% load error_tags %} {% render_error_status_control error %}")
+    context = RequestContext(request)
+    context.update({'error': error})
+    control_buttons = t.render(context)
+    print control_buttons
+
+    to_json = {'status': error.current_status.state,
+               'issue-status-control': control_buttons}
+    return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
 
 def get_error_comment_count(request, pk):
     comments = Comment.objects.filter(
