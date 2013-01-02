@@ -2,6 +2,8 @@
 {% load comments %}
 {% load error_tags %}
 
+{% get_comment_count for error as comment_count %}
+
 <div class="issue rounded-box-card-inner">
   <div id="error-status-icon-{{ error.pk }}" class="issue-status-{{ error.current_status.state }} issue-status-icon rounded-box-cell-left" href="javascript:void(0)"></div>
   <div class="issue-text rounded-box-cell-right">

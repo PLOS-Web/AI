@@ -62,6 +62,7 @@ def comment_block(request, pk):
         site__pk = settings.SITE_ID
         ).count()
 
+    print "Error comment_count: %s" % comment_count
     to_json = {
         'comments': comments_block.content,
         'comment_count': comment_count}
@@ -105,6 +106,7 @@ def get_error_comment_count(request, pk):
         object_pk = pk,
         site__pk = settings.SITE_ID
         ).count()
+    print "Error comment_count: %s" % comments
     to_json = {'count': comments}
 
     return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
