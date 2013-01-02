@@ -26,7 +26,6 @@ class Errors(ListView):
                 'article': article,
                 'errorset_list': self.get_queryset()
             })
-        print context
         return context
 
 def comment_list(request, id):
@@ -35,7 +34,6 @@ def comment_list(request, id):
     """
     # get object
     content_type = 'Errors-error'
-    print "Am i working?\n"
     app_label, model = content_type.split('-')
     ctype = ContentType.objects.get(app_label=app_label, model=model)
     obj = ctype.get_object_for_this_type(id=id)
@@ -62,7 +60,6 @@ def comment_block(request, pk):
         site__pk = settings.SITE_ID
         ).count()
 
-    print "Error comment_count: %s" % comment_count
     to_json = {
         'comments': comments_block.content,
         'comment_count': comment_count}
@@ -78,23 +75,16 @@ def toggle_error_status(request):
     error = Error.objects.get(pk=request.POST['issue_pk'])
     requested_status = int(request.POST['status'])
     
-    print requested_status
-
     if requested_status in map((lambda x: x[0]), STATUS_CODES):
-        print "in status codes"
         i = ErrorStatus(state=requested_status,error=error)
-        print "entering ErrorStatus save"
         i.save()
-        print "exited ErrorStatus save"
-
-    print error.current_status.pk
+        
 
     # render error status control
     t = Template("{% load error_tags %} {% render_error_status_control error %}")
     context = RequestContext(request)
     context.update({'error': error})
     control_buttons = t.render(context)
-    print control_buttons
 
     to_json = {'status': error.current_status.state,
                'issue-status-control': control_buttons}
@@ -106,7 +96,6 @@ def get_error_comment_count(request, pk):
         object_pk = pk,
         site__pk = settings.SITE_ID
         ).count()
-    print "Error comment_count: %s" % comments
     to_json = {'count': comments}
 
     return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
