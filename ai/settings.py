@@ -87,7 +87,8 @@ SECRET_KEY = '8odqed_i2qhzdxzw-d38dpdprzgt#@-tb(iszgn9w3#uvth1h&amp;'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    'django.template.loaders.eggs.Loader',
+    #'django.template.loaders.app_directories.load_template_source',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -139,7 +140,7 @@ INSTALLED_APPS = (
     'fancyauth',
     'notes',
     'crispycomments',
-    'errors'
+    'errors',
 )
 
 # Customizing contrib comments

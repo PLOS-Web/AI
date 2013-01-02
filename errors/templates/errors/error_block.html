@@ -1,9 +1,12 @@
 {% load ajax_comments %}
 {% load comments %}
+{% load error_tags %}
+
+{% get_comment_count for error as comment_count %}
 
 <div class="issue rounded-box-card-inner">
-  <div id="error-status-icon-{{ error.pk }}" class="issue-status-{{ error.current_status.state }}" href="javascript:void(0)">It's 2012 for god's sake, turn on Javascript.</div>
-  <div class="issue-text">
+  <div id="error-status-icon-{{ error.pk }}" class="issue-status-{{ error.current_status.state }} issue-status-icon rounded-box-cell-left" href="javascript:void(0)"></div>
+  <div class="issue-text rounded-box-cell-right">
   <div class="issue-description">
     <span class="label label-important">{{ error.get_level_display }}</span><span class="issue-description-spaced">{{ error.message }}</span>
     <script type="text/javascript">
@@ -45,17 +48,19 @@
             console.log("errorMsg");
           });
         }
-      }); 
+      });
     </script>
   </div>
-  <div>
+  <div class="comment-control">
     <span class="accordion-toggle" data-toggle="collapse" data-parent="#error-accordion-{{ error.pk }}" href="#error-collapse-{{ error.pk }}"> 
       <a id="error-collapse-toggle-{{ error.pk}}" class="center monospace">[+]</a>
       <span id="comment-count-{{ error.pk }}" class="greyed"> {{ comment_count }} comments</span>
     </span>
-    <button id="error-status-wont-fix-{{ error.pk }}" class="greyed horizontal-list-spaced{% if error.current_status.status == 3 %} bolded{% endif %}" href="javascript:void(0)">won't fix</button>
-    <button class="btn-primary">Close</button> 
   </div>
+  <div id="error-status-control-{{ error.pk }}" class="issue-status-control">
+    {% render_error_status_control error %}
+  </div>
+  <div class="clear"></div>
   <div id="error-collapse-{{ error.pk }}" class="collapse bar-side">
     {% render_comment_block error %}
   </div>
@@ -118,5 +123,6 @@
       });
   </script>
   </div>
+  <div class="clear"></div>
 </div>
 

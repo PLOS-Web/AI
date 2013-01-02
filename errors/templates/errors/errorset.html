@@ -1,7 +1,15 @@
-{% load errors %}
+{% load error_tags %}
 
-<p>Output from {{ errorset.source }} on {{ errorset.created }}</p>
-{% for error in errorset.errors.all %}
-  {% render_error_block error %}
-{% endfor %}
-
+<div id='error-block'>
+  <div id='issues' class="rounded-box-list">
+    <div class="rounded-box-header-inner">      
+      <h4 class="rounded-box-header">Errors</h4>
+    </div>
+    <div class="error-timestamp rounder-box-card-inner">
+      <p>{{ errorset.get_source_display }}: {{ errorset.created }}</p>
+    </div>
+    {% for error in errorset.errors.all %}
+      {% render_error_block error %}
+    {% endfor %}
+  </div>
+</div>
