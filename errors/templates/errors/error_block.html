@@ -51,7 +51,7 @@
       });
     </script>
   </div>
-  <div>
+  <div class="comment-control">
     <span class="accordion-toggle" data-toggle="collapse" data-parent="#error-accordion-{{ error.pk }}" href="#error-collapse-{{ error.pk }}"> 
       <a id="error-collapse-toggle-{{ error.pk}}" class="center monospace">[+]</a>
       <span id="comment-count-{{ error.pk }}" class="greyed"> {{ comment_count }} comments</span>
@@ -60,6 +60,7 @@
   <div id="error-status-control-{{ error.pk }}" class="issue-status-control">
     {% render_error_status_control error %}
   </div>
+  <div class="clear"></div>
   <div id="error-collapse-{{ error.pk }}" class="collapse bar-side">
     {% render_comment_block error %}
   </div>
@@ -122,5 +123,6 @@
       });
   </script>
   </div>
+  <div class="clear"></div>
 </div>
 
