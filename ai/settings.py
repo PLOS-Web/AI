@@ -135,6 +135,8 @@ INSTALLED_APPS = (
     # Project Apps
     'debug_toolbar',
     'crispy_forms',
+    'django-filters',
+
     'articleflow',
     'issues',
     'fancyauth',
