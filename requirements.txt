@@ -5,5 +5,6 @@ argparse==1.2.1
 distribute==0.6.24
 django-crispy-forms==1.2.2
 django-debug-toolbar==0.9.4
+-e git+https://github.com/alex/django-filter.git@b2b69617fab8d9a9288e0e86b617c65dc37bfee7#egg=django_filter-dev
 simplejson==2.6.2
 wsgiref==0.1.2
