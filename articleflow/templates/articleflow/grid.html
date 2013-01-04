@@ -9,6 +9,10 @@
 {% block content %}
 <h2>Article Grid</h2>
 
+<form action="" method="get">
+ {{ article_list.form.as_p }}
+</form>
+
 <table class='table table-hover'>
   <thead>
     <tr>

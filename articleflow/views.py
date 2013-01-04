@@ -5,15 +5,41 @@ from django.views.generic.base import View
 from django.template import RequestContext
 from django.contrib.auth.models import User
 
+import django_filters
+
 from articleflow.models import Article, ArticleState, State, Transition
 from issues.models import Issue, Category
 
-class ArticleGrid(ListView):
+class ArticleFilter(django_filters.FilterSet):
+    pubdate = django_filters.DateFilter(lookup_type='gt')
+    class Meta:
+        model = Article
+        fields = ['pubdate']
 
+class ArticleGrid(View):
+    
     template_name = 'articleflow/grid.html'
+    
+    def get_context_data(self, **kwargs):
+        #context = super(ArticleGrid, self).get_context_data(**kwargs)
+        
+        context = {}
+        context['article_list'] = Article.objects.all().select_related('journal__name', 'articlestate__state__name')
+        context['article_list'] = ArticleFilter(self.request.GET, queryset=Article.objects.all())
+        return context
+    #def get(self, request, *args, **kwargs):
 
-    def get_queryset(self):
-        return Article.objects.all().select_related('journal__name', 'articlestate__state__name')
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+        
+
+#class ArticleGrid(ListView):
+
+#    template_name = 'articleflow/grid.html'
+
+#    def get_queryset(self):
+#        return Article.objects.all().select_related('journal__name', 'articlestate__state__name')
 
 class ArticleDetailMain(View):
     
@@ -71,5 +97,6 @@ class ArticleDetailIssues(View):
         context = ({
                 'issues': issues,
                 'article': article
-                }) 
+                })
         return context
+
