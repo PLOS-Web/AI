@@ -12,11 +12,16 @@ from articleflow.models import Article, ArticleState, State, Transition
 from issues.models import Issue, Category
 
 class ArticleFilter(django_filters.FilterSet):
+    doi = django_filters.CharFilter(name='doi', label='DOI')
+
     datepicker_widget = forms.DateInput(attrs={'class': 'datepicker'})
-    pubdate_gte = django_filters.DateFilter(name='pubdate', label='Pubdate After', lookup_type='gte', widget=datepicker_widget) 
-    pubdate_lte = django_filters.DateFilter(name='pubdate', label='Pubdate Before', lookup_type='lte', widget=datepicker_widget) 
+    pubdate_gte = django_filters.DateFilter(name='pubdate', label='Pubdate on or after', lookup_type='gte', widget=datepicker_widget) 
+    pubdate_lte = django_filters.DateFilter(name='pubdate', label='Pubdate on or before', lookup_type='lte', widget=datepicker_widget) 
+
+    #journal = django_filters.ModelChoiceFilter()
     #pubdate = django_filters.DateRangeFilter()
-    #current_articlestate = django_filters.ModelMultipleChoiceFilter()
+    current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_articlestate__state', label='Article state', queryset=State.objects.all())
+    print current_articlestate
     class Meta:
         model = Article
         fields = []
