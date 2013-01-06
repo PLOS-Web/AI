@@ -11,10 +11,13 @@ from articleflow.models import Article, ArticleState, State, Transition
 from issues.models import Issue, Category
 
 class ArticleFilter(django_filters.FilterSet):
-    pubdate = django_filters.DateFilter(lookup_type='gt')
+    pubdate_gte = django_filters.DateFilter(name='pubdate', label='Pubdate After', lookup_type='gte') 
+    pubdate_lte = django_filters.DateFilter(name='pubdate', label='Pubdate Before', lookup_type='lte') 
+    #pubdate = django_filters.DateRangeFilter()
+    #current_articlestate = django_filters.ModelMultipleChoiceFilter()
     class Meta:
         model = Article
-        fields = ['pubdate']
+        fields = []
 
 class ArticleGrid(View):
     
