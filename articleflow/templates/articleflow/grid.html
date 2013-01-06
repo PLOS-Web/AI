@@ -1,5 +1,13 @@
 {% extends "base.html" %}    
 
+{% load crispy_forms_tags %}
+
+{% block head %}
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+<script src="{{ STATIC_URL }}js/grid.js"></script>
+{% endblock %}
+
 {% block main_nav %}
 {% include "includes/main_nav.html" with active_tab="grid" %}
 {% endblock %}
@@ -9,8 +17,13 @@
 {% block content %}
 <h2>Article Grid</h2>
 
-<form action="" method="get">
- {{ article_list.form.as_p }}
+<form class="form form-horizontal" action="" method="get">
+  {{ article_list.form|crispy }}
+  <div class="control-group">
+    <div class="controls">
+      <input type="submit" name="submit" value="Search">
+    </div>
+  </div>
 </form>
 
 <table class='table table-hover'>

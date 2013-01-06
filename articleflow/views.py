@@ -4,6 +4,7 @@ from django.views.generic import ListView, DetailView
 from django.views.generic.base import View
 from django.template import RequestContext
 from django.contrib.auth.models import User
+from django import forms
 
 import django_filters
 
@@ -11,8 +12,9 @@ from articleflow.models import Article, ArticleState, State, Transition
 from issues.models import Issue, Category
 
 class ArticleFilter(django_filters.FilterSet):
-    pubdate_gte = django_filters.DateFilter(name='pubdate', label='Pubdate After', lookup_type='gte') 
-    pubdate_lte = django_filters.DateFilter(name='pubdate', label='Pubdate Before', lookup_type='lte') 
+    datepicker_widget = forms.DateInput(attrs={'class': 'datepicker'})
+    pubdate_gte = django_filters.DateFilter(name='pubdate', label='Pubdate After', lookup_type='gte', widget=datepicker_widget) 
+    pubdate_lte = django_filters.DateFilter(name='pubdate', label='Pubdate Before', lookup_type='lte', widget=datepicker_widget) 
     #pubdate = django_filters.DateRangeFilter()
     #current_articlestate = django_filters.ModelMultipleChoiceFilter()
     class Meta:
