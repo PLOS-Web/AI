@@ -1,0 +1,16 @@
+{% for transition in transitions %}
+    <form action="{% url detail_transition article.doi %}" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="article" value="{{ article.pk }}">
+      <input type="hidden" name="transition" value="{{ transition.pk }}">
+      {% if transition.preference_weight < 25 %}
+        <input class="btn btn-danger" type="submit" name="something" value="{{ transition.name }}">
+      {% elif transition.preference_weight < 50 %}
+        <input class="btn btn-warning" type="submit" name="something" value="{{ transition.name }}">
+      {% elif transition.preference_weight < 75 %}
+        <input class="btn btn-primary" type="submit" name="something" value="{{ transition.name }}">
+      {% else %}
+        <input class="btn btn-success" type="submit" name="something" value="{{ transition.name }}">
+      {% endif %}
+    </form>
+{% endfor %}

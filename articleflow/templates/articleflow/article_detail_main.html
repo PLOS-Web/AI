@@ -5,6 +5,7 @@
 {% load ajax_comments %}
 {% load ajax_issues %}
 {% load error_tags %}
+{% load transitions %}
 
 {% block head %}
 <link href="{{ STATIC_URL }}css/articleflow.css" rel="stylesheet">
@@ -33,6 +34,13 @@
   </div>
   <div class="span6">
     {% render_latest_errors article %}
+  </div>
+</div>
+
+<div class="row">
+  <div class="span12 article-detail-summary">
+    <h4>Transitions</h4>
+  {% render_article_state_control article %}
   </div>
 </div>
 
