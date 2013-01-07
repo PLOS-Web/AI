@@ -1,5 +1,6 @@
+
 {% for transition in transitions %}
-    <form action="{% url detail_transition article.doi %}" method="post">
+<form class="state-control-form" action="{% url detail_transition article.doi %}" method="post"> 
       {% csrf_token %}
       <input type="hidden" name="article" value="{{ article.pk }}">
       <input type="hidden" name="transition" value="{{ transition.pk }}">
@@ -12,5 +13,5 @@
       {% else %}
         <input class="btn btn-success" type="submit" name="something" value="{{ transition.name }}">
       {% endif %}
-    </form>
+</form>
 {% endfor %}
