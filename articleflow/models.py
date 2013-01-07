@@ -71,6 +71,7 @@ class Transition(models.Model):
     name = models.CharField(max_length=200)
     from_state = models.ForeignKey('State', related_name='possible_transitions')
     to_state = models.ForeignKey('State', related_name='possible_last_transitions')
+    preference_weight = models.IntegerField()
     last_modified = models.DateTimeField(auto_now=True)
     
     def __unicode__(self):

@@ -196,3 +196,8 @@ textarea.issue-textarea {
     float: left;
     //padding-top: 5px;
 }
+
+.state-control-form{
+    float: left;
+    padding-left: 10px;
+}

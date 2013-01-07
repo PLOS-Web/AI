@@ -1,9 +1,10 @@
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.views.generic import ListView, DetailView
 from django.views.generic.base import View
 from django.template import RequestContext
 from django.contrib.auth.models import User
+from django.core.urlresolvers import reverse
 from django import forms
 
 import django_filters
@@ -90,7 +91,8 @@ class ArticleDetailTransition(View):
         article.execute_transition(transition, user)
         
         context = self.get_context_data(kwargs)
-        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('home')))
+        #return render_to_response(self.template_name, context, context_instance=RequestContext(request))
 
 class ArticleDetailIssues(View):
 
