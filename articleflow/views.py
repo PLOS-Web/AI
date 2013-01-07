@@ -4,16 +4,51 @@ from django.views.generic import ListView, DetailView
 from django.views.generic.base import View
 from django.template import RequestContext
 from django.contrib.auth.models import User
+from django import forms
 
-from articleflow.models import Article, ArticleState, State, Transition
+import django_filters
+
+from articleflow.models import Article, ArticleState, State, Transition, Journal
 from issues.models import Issue, Category
 
-class ArticleGrid(ListView):
+class ArticleFilter(django_filters.FilterSet):
+    doi = django_filters.CharFilter(name='doi', label='DOI')
 
+    datepicker_widget = forms.DateInput(attrs={'class': 'datepicker'})
+    pubdate_gte = django_filters.DateFilter(name='pubdate', label='Pubdate on or after', lookup_type='gte', widget=datepicker_widget) 
+    pubdate_lte = django_filters.DateFilter(name='pubdate', label='Pubdate on or before', lookup_type='lte', widget=datepicker_widget) 
+
+    journal = django_filters.ModelMultipleChoiceFilter(name='journal', label='Journal', queryset=Journal.objects.all())
+    current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_articlestate__state', label='Article state', queryset=State.objects.all())
+    
+    class Meta:
+        model = Article
+        fields = []
+
+class ArticleGrid(View):
+    
     template_name = 'articleflow/grid.html'
+    
+    def get_context_data(self, **kwargs):
+        #context = super(ArticleGrid, self).get_context_data(**kwargs)
+        
+        context = {}
+        context['article_list'] = Article.objects.all().select_related('journal__name', 'articlestate__state__name')
+        context['article_list'] = ArticleFilter(self.request.GET, queryset=Article.objects.all())
+        return context
+    #def get(self, request, *args, **kwargs):
 
-    def get_queryset(self):
-        return Article.objects.all().select_related('journal__name', 'articlestate__state__name')
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+        
+
+#class ArticleGrid(ListView):
+
+#    template_name = 'articleflow/grid.html'
+
+#    def get_queryset(self):
+#        return Article.objects.all().select_related('journal__name', 'articlestate__state__name')
 
 class ArticleDetailMain(View):
     
@@ -71,5 +106,6 @@ class ArticleDetailIssues(View):
         context = ({
                 'issues': issues,
                 'article': article
-                }) 
+                })
         return context
+
