@@ -9,9 +9,9 @@ built for:
 1.    django 1.4
 2.    python 2.7.3
 
-dependencies:
+deb-pendencies:
 
-libmysqlclient-dev python-dev
+libmysqlclient-dev python-dev libldap2-dev libsasl2-dev libssl-dev
 
 ## Instructions
 
