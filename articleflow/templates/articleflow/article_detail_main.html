@@ -20,14 +20,26 @@
 {% block sub_header %}Main{% endblock %}
 
 {% block article_detail_content %}
-<div class="row">
-  <div class="span12 article-detail-summary">
-    <div class="span5">
+
+<div class="row article-detail-summary">
+  <div class="span6">
+      <table>
+	<tr>
+	  <td>Pubdate</td>
+	  <td>{{ article.pubdate }}</td>
+	</tr>
+	<tr>
+	  <td>Current state: </td>
+	  <td>{{ article.current_articlestate.state.name }}</td>
+	</tr>
+      </table>
+  </div>
+  <div class="span5">
       <h4>Notes</h4>
       {% render_article_note_block article user %}
-    </div>
   </div>
 </div>
+
 <div class="row article-detail-issues">
   <div class="span6">
     {% render_issues article %}
