@@ -4,6 +4,7 @@
 
 {% block head %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{{ STATIC_URL }}css/grid.css" />
 <script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
 <script src="{{ STATIC_URL }}js/grid.js"></script>
 {% endblock %}
@@ -17,14 +18,21 @@
 {% block content %}
 <h2>Article Grid</h2>
 
-<form class="form form-horizontal" action="" method="get">
-  {{ article_list.form|crispy }}
-  <div class="control-group">
-    <div class="controls">
-      <input type="submit" name="submit" value="Search">
+<div class="row">
+  <div class="span12 search-accordion">
+    <a id="search-collapse-toggle" data-toggle="collapse" data-target="#search-panel">[+] search</a>
+    <div class="collapse" id="search-panel">
+      <form class="form form-horizontal" action="" method="get">
+	{{ article_list.form|crispy }}
+	<div class="control-group">
+	  <div class="controls">
+	    <input type="submit" name="submit" value="Search">
+	  </div>
+	</div>
+      </form>
     </div>
   </div>
-</form>
+</div>
 
 <table class='table table-hover'>
   <thead>
