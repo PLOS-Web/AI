@@ -1,4 +1,6 @@
 # Django settings for ai project.
+import ldap
+from django_auth_ldap.config import LDAPSearch
 
 import os.path
 
@@ -108,11 +110,6 @@ MIDDLEWARE_CLASSES = (
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-AUTHENTICATION_BACKENDS = (
-    'django_auth_ldap.backend.LDAPBackend',
-    'django.contrib.auth.backends.ModelBackend',
-)
-
 ROOT_URLCONF = 'ai.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
@@ -181,6 +178,19 @@ LOGGING = {
         },
     }
 }
+
+# LDAP stuff
+AUTHENTICATION_BACKENDS = (
+    'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+AUTH_LDAP_SERVER_URI = "ldap://ldap.plos.org"
+
+AUTH_LDAP_BIND_DN = ""
+AUTH_LDAP_BIND_PASSWORD = ""
+AUTH_LDAP_USER_SEARCH = LDAPSearch("ou=PLoS,dc=plos,dc=org",
+    ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
 
 # App stuff
 INTERNAL_IPS = ('127.0.0.1',)
