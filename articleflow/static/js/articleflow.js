@@ -1,0 +1,1 @@
+function switch_article_state_ajax(article_pk, requested_transition_pk, 

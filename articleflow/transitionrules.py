@@ -11,10 +11,9 @@ def ready_to_ignore(item):
     if isinstance(item, Error):
         if item.current_status.state in (2,3):
             return True
-        if (item.current_status.state == 1 && item.level == 2):
+        if (item.current_status.state == 1 and item.level == 2):
             return True
         return True
-
 
 def article_count_open_items(article):
     open_errors = 0
@@ -35,6 +34,6 @@ def article_count_open_items(article):
 
 def article_no_open_items(article):
     items = article_count_open_items(article)
-    if (items.open_issues == 0 && items.open_errors == 0):
+    if (items.open_issues == 0 and items.open_errors == 0):
         return True
     return False
