@@ -87,7 +87,7 @@ class ArticleDetailTransition(View):
         if request.is_ajax():
             article = Article.objects.get(pk=request.POST['article'])
             transition = Transition.objects.get(pk=request.POST['transition'])
-        # @TODO, fix this shit!
+            # @TODO, fix this shit!
             user = User.objects.get(pk=1)
 
             open_items = article_count_open_items(article)
