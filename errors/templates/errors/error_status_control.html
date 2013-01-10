@@ -5,13 +5,13 @@
   </script>
 
 {% elif error.current_status.state == 2 %}
-  <button id="reopen-button-error-{{ error.id }}" class="btn">reopen</button>
+  <button id="reopen-button-error-{{ error.id }}" class="btn btn-link">reopen</button>
   <script type="text/javascript">
     $('#reopen-button-error-{{ error.id }}').on("click", function(){switch_status_ajax({{ error.id }}, 'error-status-icon-', 'error-status-control-', 1, '{% url toggle_error_status %}');});
   </script>
 
 {% elif error.current_status.state == 3 %}
-  <button id="reopen-button-error-{{ error.id }}" class="btn">reopen</button>
+  <button id="reopen-button-error-{{ error.id }}" class="btn btn-link">reopen</button>
   <script type="text/javascript">
     $('#reopen-button-error-{{ error.id }}').on("click", function(){switch_status_ajax({{ error.id }}, 'error-status-icon-', 'error-status-control-', 1, '{% url toggle_error_status %}');});
   </script>
