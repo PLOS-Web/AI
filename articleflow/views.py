@@ -6,8 +6,11 @@ from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django import forms
+import simplejson
 
 import django_filters
+
+import transitionrules
 
 from articleflow.models import Article, ArticleState, State, Transition, Journal
 from issues.models import Issue, Category
@@ -42,14 +45,6 @@ class ArticleGrid(View):
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         return render_to_response(self.template_name, context, context_instance=RequestContext(request))
-        
-
-#class ArticleGrid(ListView):
-
-#    template_name = 'articleflow/grid.html'
-
-#    def get_queryset(self):
-#        return Article.objects.all().select_related('journal__name', 'articlestate__state__name')
 
 class ArticleDetailMain(View):
     
@@ -84,14 +79,41 @@ class ArticleDetailTransition(View):
         return context
 
     def post(self, request, *args, **kwargs):
-        article = Article.objects.get(pk=request.POST['article'])
-        transition = Transition.objects.get(pk=request.POST['transition'])
-        # @TODO, fix this shit!
-        user = User.objects.get(pk=1)
-        article.execute_transition(transition, user)
-        
-        context = self.get_context_data(kwargs)
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('home')))
+        if not request.user.is_authenticated():
+            to_json = {
+                'error': 'Need to login'
+                }    
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+        if request.is_ajax():
+            article = Article.objects.get(pk=request.POST['article'])
+            transition = Transition.objects.get(pk=request.POST['transition'])
+            # @TODO, fix this shit!
+            user = User.objects.get(pk=1)
+
+            open_items = article_count_open_items(article)
+            if (items.open_issues > 0 or items.open_errors > 0):
+                to_json = {
+                    'open_item_error': {
+                        'open_isses': open_items.open_issues,
+                        'open_errors': open_items.open_errors
+                        }
+                    }
+                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')    
+            success = article.execute_transition(transition, user)
+            #context = self.get_context_data(kwargs)
+
+            if success:    
+                to_json = {
+                    'redirect_url': request.META.get('HTTP_REFERER', reverse('home'))
+                    }
+                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+            else:
+                to_json = {
+                    'error': 'State transition failed'
+                    }
+                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+            #return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('home')))
         #return render_to_response(self.template_name, context, context_instance=RequestContext(request))
 
 class ArticleDetailIssues(View):
