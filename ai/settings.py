@@ -190,12 +190,13 @@ AUTH_LDAP_SERVER_URI = "ldap://ldap.plos.org"
 AUTH_LDAP_BIND_DN = "ldap_ad"
 #needs password
 AUTH_LDAP_BIND_PASSWORD = "G@mar@!"
-AUTH_LDAP_USER_SEARCH = LDAPSearch("ou=PLoS,dc=plos,dc=org",
+AUTH_LDAP_USER_SEARCH = LDAPSearch("OU=PLoS,DC=plos,DC=org",
     ldap.SCOPE_SUBTREE, "(sAMAccountName=%(user)s)")
+
 AUTH_LDAP_USER_ATTR_MAP = {
     "first_name": "givenName", 
     "last_name": "sn",
-    "email": "mail",
+    "email": "mail"
     }
 
 # App stuff

@@ -71,6 +71,7 @@ class Transition(models.Model):
     name = models.CharField(max_length=200)
     from_state = models.ForeignKey('State', related_name='possible_transitions')
     to_state = models.ForeignKey('State', related_name='possible_last_transitions')
+    disallow_open_items = models.BooleanField(default=False)
     preference_weight = models.IntegerField()
     last_modified = models.DateTimeField(auto_now=True)
     
