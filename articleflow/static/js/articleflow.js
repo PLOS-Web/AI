@@ -10,6 +10,7 @@ function switch_article_state_ajax(article_pk, requested_transition_pk, error_ms
 	datatype: "application/json; charset=utf-8",
 	data: postData
     }).done(function (returnedData){
+	console.log(returnedData);
 	if returnedData.error{
 	    error_msg_obj.html(returnedData.error);
 	} else if returnedData.open_item_error{
