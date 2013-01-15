@@ -47,9 +47,9 @@ $.ajaxSetup({
 });
 
 
-function switch_status_ajax(issue_pk, issue_id_base, new_status, target_url){
+function switch_status_ajax(issue_pk, issue_id_base, issue_status_control, new_status, target_url){
     var status_icon = $('#' + issue_id_base + issue_pk);
-    var status_control = $('#' + 'issue-status-control-' + issue_pk);
+    var status_control = $('#' + issue_status_control + issue_pk);
 
     console.log('status_icon: ' + status_icon);
     var postData = {
@@ -77,4 +77,3 @@ function switch_status_ajax(issue_pk, issue_id_base, new_status, target_url){
         console.log(errorMsg);
     });
 }
-
