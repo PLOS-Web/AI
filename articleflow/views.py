@@ -90,16 +90,16 @@ class ArticleDetailTransition(View):
             # @TODO, fix this shit!
             user = User.objects.get(pk=1)
 
-            open_items = transitionrules.article_count_open_items(article)
-            print open_items
-            if (open_items['open_issues'] > 0 or open_items['open_errors'] > 0):
-                to_json = {
-                    'open_item_error': {
-                        'open_issues': open_items['open_issues'],
-                        'open_errors': open_items['open_errors']
+            if transition.disallow_open_items:
+                open_items = transitionrules.article_count_open_items(article)
+                if (open_items['open_issues'] > 0 or open_items['open_errors'] > 0):
+                    to_json = {
+                        'open_item_error': {
+                            'open_issues': open_items['open_issues'],
+                            'open_errors': open_items['open_errors']
+                            }
                         }
-                    }
-                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')    
+                    return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')    
             success = article.execute_transition(transition, user)
             #context = self.get_context_data(kwargs)
             print "success?"
