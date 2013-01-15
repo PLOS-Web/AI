@@ -1,4 +1,6 @@
 # Django settings for ai project.
+import ldap
+from django_auth_ldap.config import LDAPSearch
 
 import os.path
 
@@ -177,7 +179,32 @@ LOGGING = {
     }
 }
 
+# LDAP stuff
+AUTHENTICATION_BACKENDS = (
+    'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+AUTH_LDAP_SERVER_URI = "ldap://ldap.plos.org"
+
+AUTH_LDAP_BIND_DN = "ldap_ad"
+#needs password
+AUTH_LDAP_BIND_PASSWORD = "G@mar@!"
+AUTH_LDAP_USER_SEARCH = LDAPSearch("ou=PLoS,dc=plos,dc=org",
+    ldap.SCOPE_SUBTREE, "(sAMAccountName=%(user)s)")
+AUTH_LDAP_USER_ATTR_MAP = {
+    "first_name": "givenName", 
+    "last_name": "sn",
+    "email": "mail",
+    }
+
 # App stuff
 INTERNAL_IPS = ('127.0.0.1',)
 
 CRISPY_TEMPLATE_PACK = 'bootstrap'
+
+import logging
+
+logger = logging.getLogger('django_auth_ldap')
+logger.addHandler(logging.StreamHandler())
+logger.setLevel(logging.DEBUG)
