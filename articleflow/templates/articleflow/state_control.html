@@ -1,12 +1,11 @@
 {% load transitions %}
 
-
-<p id='state-error-board'></p>
-
-{% for transition in transitions %}
-<button id="state-transition-{{ transition.pk }}" class="btn {{ transition.preference_weight|buttonclass }}">{{ transition.name }}</button>
+<div class="article-state-control">
+  {% for transition in transitions %}
+  <button id="state-transition-{{ transition.pk }}" class="btn {{ transition.preference_weight|buttonclass }}">{{ transition.name }}</button>
 
 <script type="text/javascript">
   $('#state-transition-{{ transition.pk }}').on("click", function(){switch_article_state_ajax({{ article.pk }}, {{ transition.pk }}, 'state-error-board', '{% url detail_transition article.doi %}')});
 </script>
 {% endfor %}
+</div>
