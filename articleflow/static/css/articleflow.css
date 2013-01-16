@@ -10,3 +10,18 @@
 .article-detail-issues {
     padding-top: 20px;
 }
+
+.article-state-control {
+    margin-top: 60px;
+    //background-color: pink;
+}
+
+.article-state-control {
+    float: right;
+}
+
+.article-state-control button {
+    font-size: 1.7em;
+    height: 80px;
+    width: 200px;
+}
