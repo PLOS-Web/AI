@@ -17,7 +17,7 @@ function switch_article_state_ajax(article_pk, requested_transition_pk, error_ms
 	} 
 	
 	else if (returnedData.open_item_error){
-	    alert("Can't advance state, theres still " + returnedData.open_item_error.open_issues + " open issues and " + returnedData.open_item_error.open_errors + " open errors." );
+	    alert("Can't do that while there are open items that need action:\n\t" + returnedData.open_item_error.open_issues + " open issues\n\t" + returnedData.open_item_error.open_errors + " open errors." );
 	} else {
 	    document.location.href = returnedData.redirect_url
 	}
