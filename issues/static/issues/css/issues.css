@@ -201,3 +201,8 @@ textarea.issue-textarea {
     float: left;
     padding-left: 10px;
 }
+
+.issue-form-card {
+    border-top: 1px solid rgba(0, 0, 0, .1);
+    background-color: #EFEFEF;
+}
