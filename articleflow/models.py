@@ -61,7 +61,7 @@ class Article(models.Model):
         return self.current_articlestate.state.possible_transitions
 
     def execute_transition(self, transition, user):
-        transition.execute_transition(self, user)
+        return transition.execute_transition(self, user)
             
 class Transition(models.Model):
     """
@@ -88,6 +88,7 @@ class Transition(models.Model):
             s = art.article_states.create(state=self.to_state,
                                           from_transition=self,
                                           from_transition_user=user)
+            
             return s
         else:
             return False

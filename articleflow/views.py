@@ -85,22 +85,25 @@ class ArticleDetailTransition(View):
                 }    
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
         if request.is_ajax():
-            article = Article.objects.get(pk=request.POST['article'])
-            transition = Transition.objects.get(pk=request.POST['transition'])
+            article = Article.objects.get(pk=request.POST['article_pk'])
+            transition = Transition.objects.get(pk=request.POST['requested_transition_pk'])
             # @TODO, fix this shit!
             user = User.objects.get(pk=1)
 
-            open_items = article_count_open_items(article)
-            if (items.open_issues > 0 or items.open_errors > 0):
-                to_json = {
-                    'open_item_error': {
-                        'open_isses': open_items.open_issues,
-                        'open_errors': open_items.open_errors
+            if transition.disallow_open_items:
+                open_items = transitionrules.article_count_open_items(article)
+                if (open_items['open_issues'] > 0 or open_items['open_errors'] > 0):
+                    to_json = {
+                        'open_item_error': {
+                            'open_issues': open_items['open_issues'],
+                            'open_errors': open_items['open_errors']
+                            }
                         }
-                    }
-                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')    
+                    return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')    
             success = article.execute_transition(transition, user)
             #context = self.get_context_data(kwargs)
+            print "success?"
+            print success
 
             if success:    
                 to_json = {

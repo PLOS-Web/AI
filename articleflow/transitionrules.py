@@ -19,11 +19,12 @@ def article_count_open_items(article):
     open_errors = 0
     open_issues = 0
 
-    for i in article.issues:
+    for i in article.issues.all():
         if not ready_to_ignore(i):
             open_issues += 1
-    
-    for e in article.errors:
+            
+    latest_errorset = article.error_sets.latest('created')
+    for e in latest_errorset.errors.all():
         if not ready_to_ignore(i):
             open_errors += 1
 

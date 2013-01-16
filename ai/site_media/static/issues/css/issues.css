@@ -40,6 +40,24 @@
     background-clip: padding-box;
 }
 
+.error-timestamp {
+    padding: 0px 0px 0px 0px;
+    margin: 0px 0px 0px 0px;
+    background-color: rgba(0, 0, 0, .1);
+    margin-bottom: 0px;
+    clear: both;
+    border-top: 1px solid rgba(0, 0, 0, .1);
+    //border-bottom: 1px solid rgba(0, 0, 0, .1);
+    border-collapse: collapse;
+    webkit-background-clip: padding-box;
+    background-clip: padding-box;
+}
+
+.error-timestamp p {
+    padding-bottom: 7px;
+    margin: 7px 0px 0px 10px;
+}
+
 .accordion-toggle {
     //background-color: green;
 }
@@ -177,4 +195,9 @@ textarea.issue-textarea {
 .comment-control {
     float: left;
     //padding-top: 5px;
+}
+
+.state-control-form{
+    float: left;
+    padding-left: 10px;
 }
