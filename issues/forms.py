@@ -24,13 +24,13 @@ class IssueForm(ModelForm):
         self.form_class = 'tesssssst'
         self.helper.layout = Layout(
             Field('article'),
-            Field('category', css_class='btn dropdown-toggle span2', selected='category'),
+            Field('category', css_class='btn dropdown-toggle', selected='category'),
             Field('description', rows="1", css_class='span5'),
-            Submit('submit', 'Add Issue', css_class='btn-primary'),
+            Submit('submit', 'Submit', css_class='btn-primary'),
             )
         
         super(IssueForm, self).__init__(*args, **kwargs)
-        self.fields['category'].empty_label = '(Category)'
+        self.fields['category'].empty_label = 'Select Category'
         self.fields['category'].label = ""
         
     class Meta:

@@ -3,9 +3,13 @@
 
 {% if user.is_authenticated %}
 
-<form action="{% url post_issue_ajax %}" method="post" class="form-horizontal-compact">
+<div>
+  <h4>Add New Issue</h4>
+
+  <form action="{% url post_issue_ajax %}" method="post" class="form-horizontal-compact">
   {% crispy form %}
-</form>
+  </form>
+</div>
 
 <script type="text/javascript">
   var options_issue_form = {
