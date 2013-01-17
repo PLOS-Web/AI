@@ -20,7 +20,7 @@ def render_article_state_control(context, article):
         
     context.update({
             'article': article,
-            'transitions': transitions.all()
+            'transitions': transitions.all().order_by('preference_weight').reverse()
             })
     return context
 
