@@ -12,16 +12,23 @@
 }
 
 .article-state-control {
-    margin-top: 60px;
+    margin-top: 20px;
     //background-color: pink;
 }
 
 .article-state-control {
-    float: right;
+    //float: right;
 }
 
 .article-state-control button {
+    float: right;
+    margin: 10px 10px 10px 5px; 
+    padding: 0px;
     font-size: 1.7em;
     height: 80px;
     width: 200px;
+}
+
+.article-state-control .rounded-box-card-inner {
+    background-color: #EFEFEF;
 }
