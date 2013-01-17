@@ -22,7 +22,11 @@ def render_comment_block(context, error):
 
 @register.inclusion_tag('errors/errorset.html', takes_context=True)
 def render_latest_errors(context, article):
-    latest_errorset = article.error_sets.latest('created')
+    sets = article.error_sets
+    if sets.all():
+        latest_errorset = article.error_sets.latest('created')
+    else:
+        latest_errorset = None
     context.update({'errorset': latest_errorset})
     return context
 
