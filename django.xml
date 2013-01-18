@@ -1,0 +1,5 @@
+<uwsgi>
+  <socket>127.0.0.1:8000</socket>
+  <chdir>/var/www/ai/ai</chdir>
+  <module>django_wsgi</module>
+</uwsgi>
