@@ -15,7 +15,7 @@ class IssueCommentForm(CommentForm):
         submit_label = 'Add thing'
 
         if isinstance(args[0], Article):
-            submit_label = 'Add note'
+            submit_label = 'Submit'
         elif isinstance(args[0], Issue):
             submit_label = 'Add comment'
         

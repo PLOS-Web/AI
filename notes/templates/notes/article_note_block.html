@@ -6,6 +6,12 @@
   {% render_comment_list for article %}
 </div>
 {% if user.is_authenticated %}
+<span data-toggle="collapse" data-target="#article-note-form">
+  <a id="article-note-collapse-toggle" class="center monospace">[+]</a>
+  <a>Add a note</a>
+</span>
+<div class="collapse" id="article-note-form">
+
 <div class="article-note-response">
 </div>
 {% get_comment_form for article as note_form %}
@@ -30,6 +36,7 @@
   });
 </script>
 
+</div>
 {% else %}
 <p>Please {% render_login_modal_link "log in" %} to leave a comment.</p>
 {% endif %}

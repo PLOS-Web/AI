@@ -153,6 +153,7 @@ textarea.issue-textarea {
 }
 
 .rounded-box-header-inner {
+    //background-color: rgba(0, 0, 0, .1);
     padding: 10px;
 }
 
@@ -162,6 +163,8 @@ textarea.issue-textarea {
 }
 
 .rounded-box-card-inner {
+    border-top: 1px solid rgba(0, 0, 0, .1);
+    border-collapse: collapse;
     padding: 4px 10px 4px 10px;
 }
 

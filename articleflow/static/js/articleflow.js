@@ -24,3 +24,13 @@ function switch_article_state_ajax(article_pk, requested_transition_pk, error_ms
 	
     });
 }
+
+$(document).ready(function(){
+    $('#article-note-form').on('hide', function(){
+	$('#article-note-collapse-toggle').html('[+]');
+    });
+    
+    $('#article-note-form').on('show', function(){
+	$('#article-note-collapse-toggle').html('[-]');
+    });
+});

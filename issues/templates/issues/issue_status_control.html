@@ -1,6 +1,6 @@
 {% if issue.current_status.status == 1 %}
   <button id="wont-fix-button-issue-{{ issue.id }}" class="btn">won't fix</button>
-  <button id="fixed-button-issue-{{ issue.id }}" class="btn btn-primary">fixed</button>
+  <button id="fixed-button-issue-{{ issue.id }}" class="btn btn-success">fixed</button>
   <script type="text/javascript">
     $('#fixed-button-issue-{{ issue.id }}').on("click", function(){switch_status_ajax({{ issue.id }}, 'issue-status-icon-', 'issue-status-control-', 2, '{% url toggle_issue_status %}');});
     $('#wont-fix-button-issue-{{ issue.id }}').on("click", function(){switch_status_ajax({{ issue.id }}, 'issue-status-icon-', 'issue-status-control-', 3, '{% url toggle_issue_status %}');});
