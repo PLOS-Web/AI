@@ -1,0 +1,479 @@
+[
+  {
+    "pk": 55,
+    "model": "articleflow.state",
+    "fields": {
+      "last_modified": "2013-01-22T22:36:39Z",
+      "name": "At CW"
+    }
+  },
+  {
+    "pk": 57,
+    "model": "articleflow.state",
+    "fields": {
+      "last_modified": "2013-01-22T22:36:53Z",
+      "name": "At Merops"
+    }
+  },
+  {
+    "pk": 59,
+    "model": "articleflow.state",
+    "fields": {
+      "last_modified": "2013-01-22T22:37:01Z",
+      "name": "Delivered"
+    }
+  },
+  {
+    "pk": 61,
+    "model": "articleflow.state",
+    "fields": {
+      "last_modified": "2013-01-22T22:37:10Z",
+      "name": "Ingested"
+    }
+  },
+  {
+    "pk": 63,
+    "model": "articleflow.state",
+    "fields": {
+      "last_modified": "2013-01-22T22:37:18Z",
+      "name": "Ready for QC (CW)"
+    }
+  },
+  {
+    "pk": 65,
+    "model": "articleflow.state",
+    "fields": {
+      "last_modified": "2013-01-22T22:37:25Z",
+      "name": "Ready for QC (Merops)"
+    }
+  },
+  {
+    "pk": 67,
+    "model": "articleflow.state",
+    "fields": {
+      "last_modified": "2013-01-22T22:37:36Z",
+      "name": "Needs Web Corrections (Merops)"
+    }
+  },
+  {
+    "pk": 69,
+    "model": "articleflow.state",
+    "fields": {
+      "last_modified": "2013-01-22T22:40:42Z",
+      "name": "Needs Web Corrections (CW)"
+    }
+  },
+  {
+    "pk": 71,
+    "model": "articleflow.state",
+    "fields": {
+      "last_modified": "2013-01-22T22:40:48Z",
+      "name": "Ready to Publish"
+    }
+  },
+  {
+    "pk": 73,
+    "model": "articleflow.state",
+    "fields": {
+      "last_modified": "2013-01-22T22:40:53Z",
+      "name": "Published on Stage"
+    }
+  },
+  {
+    "pk": 75,
+    "model": "articleflow.state",
+    "fields": {
+      "last_modified": "2013-01-22T22:40:57Z",
+      "name": "Published Live"
+    }
+  },
+  {
+    "pk": 77,
+    "model": "articleflow.state",
+    "fields": {
+      "last_modified": "2013-01-22T22:41:03Z",
+      "name": "Back at CW"
+    }
+  },
+  {
+    "pk": 79,
+    "model": "articleflow.state",
+    "fields": {
+      "last_modified": "2013-01-22T22:41:07Z",
+      "name": "Back at Merops"
+    }
+  },
+  {
+    "pk": 1,
+    "model": "articleflow.articlestate",
+    "fields": {
+      "from_transition_user": null,
+      "from_transition": null,
+      "created": "2013-01-22T23:04:34Z",
+      "state": 55,
+      "last_modified": "2013-01-22T23:04:34Z",
+      "article": 1
+    }
+  },
+  {
+    "pk": 3,
+    "model": "articleflow.articlestate",
+    "fields": {
+      "from_transition_user": [
+        "admin"
+      ],
+      "from_transition": 45,
+      "created": "2013-01-23T00:28:19Z",
+      "state": 59,
+      "last_modified": "2013-01-23T00:28:19Z",
+      "article": 1
+    }
+  },
+  {
+    "pk": 5,
+    "model": "articleflow.articlestate",
+    "fields": {
+      "from_transition_user": [
+        "admin"
+      ],
+      "from_transition": 49,
+      "created": "2013-01-23T00:28:23Z",
+      "state": 61,
+      "last_modified": "2013-01-23T00:28:23Z",
+      "article": 1
+    }
+  },
+  {
+    "pk": 7,
+    "model": "articleflow.articlestate",
+    "fields": {
+      "from_transition_user": [
+        "admin"
+      ],
+      "from_transition": 53,
+      "created": "2013-01-23T00:28:26Z",
+      "state": 65,
+      "last_modified": "2013-01-23T00:28:26Z",
+      "article": 1
+    }
+  },
+  {
+    "pk": 9,
+    "model": "articleflow.articlestate",
+    "fields": {
+      "from_transition_user": [
+        "admin"
+      ],
+      "from_transition": 57,
+      "created": "2013-01-23T00:28:45Z",
+      "state": 67,
+      "last_modified": "2013-01-23T00:28:45Z",
+      "article": 1
+    }
+  },
+  {
+    "pk": 11,
+    "model": "articleflow.articlestate",
+    "fields": {
+      "from_transition_user": [
+        "admin"
+      ],
+      "from_transition": 73,
+      "created": "2013-01-23T00:28:48Z",
+      "state": 57,
+      "last_modified": "2013-01-23T00:28:48Z",
+      "article": 1
+    }
+  },
+  {
+    "pk": 13,
+    "model": "articleflow.articlestate",
+    "fields": {
+      "from_transition_user": [
+        "admin"
+      ],
+      "from_transition": 47,
+      "created": "2013-01-23T00:28:50Z",
+      "state": 59,
+      "last_modified": "2013-01-23T00:28:50Z",
+      "article": 1
+    }
+  },
+  {
+    "pk": 15,
+    "model": "articleflow.articlestate",
+    "fields": {
+      "from_transition_user": [
+        "admin"
+      ],
+      "from_transition": 49,
+      "created": "2013-01-23T00:28:51Z",
+      "state": 61,
+      "last_modified": "2013-01-23T00:28:51Z",
+      "article": 1
+    }
+  },
+  {
+    "pk": 17,
+    "model": "articleflow.articlestate",
+    "fields": {
+      "from_transition_user": [
+        "admin"
+      ],
+      "from_transition": 53,
+      "created": "2013-01-23T00:28:52Z",
+      "state": 65,
+      "last_modified": "2013-01-23T00:28:52Z",
+      "article": 1
+    }
+  },
+  {
+    "pk": 1,
+    "model": "articleflow.journal",
+    "fields": {
+      "last_modified": "2013-01-22T23:03:49Z",
+      "short_name": "pone",
+      "full_name": "PLOS ONE"
+    }
+  },
+  {
+    "pk": 1,
+    "model": "articleflow.article",
+    "fields": {
+      "doi": "pone.0000001",
+      "pubdate": "2013-01-22",
+      "created": "2013-01-22T23:04:20Z",
+      "journal": 1,
+      "current_articlestate": 17,
+      "last_modified": "2013-01-23T00:28:52Z"
+    }
+  },
+  {
+    "pk": 45,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 55,
+      "name": "Deliver",
+      "preference_weight": 100,
+      "last_modified": "2013-01-22T22:51:23Z",
+      "disallow_open_items": false,
+      "to_state": 59
+    }
+  },
+  {
+    "pk": 47,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 57,
+      "name": "Deliver",
+      "preference_weight": 100,
+      "last_modified": "2013-01-22T22:51:37Z",
+      "disallow_open_items": false,
+      "to_state": 59
+    }
+  },
+  {
+    "pk": 49,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 59,
+      "name": "Ingest",
+      "preference_weight": 100,
+      "last_modified": "2013-01-22T22:51:51Z",
+      "disallow_open_items": false,
+      "to_state": 61
+    }
+  },
+  {
+    "pk": 51,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 61,
+      "name": "Assign to QC (CW)",
+      "preference_weight": 100,
+      "last_modified": "2013-01-22T22:52:29Z",
+      "disallow_open_items": false,
+      "to_state": 63
+    }
+  },
+  {
+    "pk": 53,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 61,
+      "name": "Assign to QC (Merops)",
+      "preference_weight": 100,
+      "last_modified": "2013-01-22T22:53:02Z",
+      "disallow_open_items": false,
+      "to_state": 65
+    }
+  },
+  {
+    "pk": 55,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 63,
+      "name": "Needs Web Corrections (CW)",
+      "preference_weight": 50,
+      "last_modified": "2013-01-22T22:53:50Z",
+      "disallow_open_items": false,
+      "to_state": 69
+    }
+  },
+  {
+    "pk": 57,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 65,
+      "name": "Needs Web Corrections (Merops)",
+      "preference_weight": 50,
+      "last_modified": "2013-01-22T22:54:15Z",
+      "disallow_open_items": false,
+      "to_state": 67
+    }
+  },
+  {
+    "pk": 59,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 63,
+      "name": "Ready to Publish",
+      "preference_weight": 100,
+      "last_modified": "2013-01-22T22:54:30Z",
+      "disallow_open_items": true,
+      "to_state": 71
+    }
+  },
+  {
+    "pk": 61,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 65,
+      "name": "Ready to Publish",
+      "preference_weight": 100,
+      "last_modified": "2013-01-22T22:54:49Z",
+      "disallow_open_items": true,
+      "to_state": 71
+    }
+  },
+  {
+    "pk": 63,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 63,
+      "name": "Send back to CW",
+      "preference_weight": 25,
+      "last_modified": "2013-01-22T22:55:30Z",
+      "disallow_open_items": false,
+      "to_state": 77
+    }
+  },
+  {
+    "pk": 65,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 65,
+      "name": "Send back to Merops",
+      "preference_weight": 25,
+      "last_modified": "2013-01-22T22:55:47Z",
+      "disallow_open_items": false,
+      "to_state": 79
+    }
+  },
+  {
+    "pk": 67,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 69,
+      "name": "Send back to Production",
+      "preference_weight": 25,
+      "last_modified": "2013-01-22T22:56:36Z",
+      "disallow_open_items": false,
+      "to_state": 63
+    }
+  },
+  {
+    "pk": 69,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 67,
+      "name": "Send back to Production",
+      "preference_weight": 25,
+      "last_modified": "2013-01-22T22:57:08Z",
+      "disallow_open_items": false,
+      "to_state": 65
+    }
+  },
+  {
+    "pk": 71,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 69,
+      "name": "Send back to CW",
+      "preference_weight": 25,
+      "last_modified": "2013-01-22T23:00:15Z",
+      "disallow_open_items": false,
+      "to_state": 55
+    }
+  },
+  {
+    "pk": 73,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 67,
+      "name": "Send back to Merops",
+      "preference_weight": 25,
+      "last_modified": "2013-01-22T23:01:23Z",
+      "disallow_open_items": false,
+      "to_state": 57
+    }
+  },
+  {
+    "pk": 75,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 67,
+      "name": "Ready to Publish",
+      "preference_weight": 100,
+      "last_modified": "2013-01-22T23:02:43Z",
+      "disallow_open_items": true,
+      "to_state": 71
+    }
+  },
+  {
+    "pk": 77,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 69,
+      "name": "Ready to Publish",
+      "preference_weight": 100,
+      "last_modified": "2013-01-22T23:02:38Z",
+      "disallow_open_items": true,
+      "to_state": 71
+    }
+  },
+  {
+    "pk": 79,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 71,
+      "name": "Publish on Stage",
+      "preference_weight": 100,
+      "last_modified": "2013-01-22T23:03:01Z",
+      "disallow_open_items": false,
+      "to_state": 73
+    }
+  },
+  {
+    "pk": 81,
+    "model": "articleflow.transition",
+    "fields": {
+      "from_state": 73,
+      "name": "Publish on Live",
+      "preference_weight": 100,
+      "last_modified": "2013-01-22T23:03:18Z",
+      "disallow_open_items": false,
+      "to_state": 75
+    }
+  }
+]
