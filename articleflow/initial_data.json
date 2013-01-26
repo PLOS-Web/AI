@@ -237,6 +237,60 @@
     }
   },
   {
+    "pk": 3,
+    "model": "articleflow.journal",
+    "fields": {
+      "last_modified": "2013-01-25T15:59:08Z",
+      "short_name": "ppat",
+      "full_name": "PLOS Pathogens"
+    }
+  },
+  {
+    "pk": 5,
+    "model": "articleflow.journal",
+    "fields": {
+      "last_modified": "2013-01-25T15:59:20Z",
+      "short_name": "pgen",
+      "full_name": "PLOS Genetics"
+    }
+  },
+  {
+    "pk": 7,
+    "model": "articleflow.journal",
+    "fields": {
+      "last_modified": "2013-01-25T15:59:33Z",
+      "short_name": "pbio",
+      "full_name": "PLOS Biology"
+    }
+  },
+  {
+    "pk": 9,
+    "model": "articleflow.journal",
+    "fields": {
+      "last_modified": "2013-01-25T16:08:33Z",
+      "short_name": "pntd",
+      "full_name": "PLOS Neglected Tropical Diseases"
+    }
+  },
+  {
+    "pk": 11,
+    "model": "articleflow.journal",
+    "fields": {
+      "last_modified": "2013-01-25T16:09:36Z",
+      "short_name": "pcbi",
+      "full_name": "PLOS Computational Biology"
+    }
+  },
+  {
+    "pk": 13,
+    "model": "articleflow.journal",
+    "fields": {
+      "last_modified": "2013-01-25T16:09:55Z",
+      "short_name": "pmed",
+      "full_name": "PLOS Medicine"
+    }
+  },
+  {
     "pk": 1,
     "model": "articleflow.article",
     "fields": {
