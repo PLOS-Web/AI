@@ -10,3 +10,25 @@
 .article-detail-issues {
     padding-top: 20px;
 }
+
+.article-state-control {
+    margin-top: 20px;
+    //background-color: pink;
+}
+
+.article-state-control {
+    //float: right;
+}
+
+.article-state-control button {
+    float: right;
+    margin: 10px 10px 10px 5px; 
+    padding: 0px;
+    font-size: 1.2em;
+    height: 44px;
+    width: 160px;
+}
+
+.article-state-control .rounded-box-card-inner {
+    background-color: #EFEFEF;
+}
