@@ -138,6 +138,7 @@ INSTALLED_APPS = (
     'debug_toolbar',
     'crispy_forms',
     'django_filters',
+    'south',
 
     'articleflow',
     'issues',
