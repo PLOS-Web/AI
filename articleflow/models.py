@@ -46,7 +46,7 @@ class Article(models.Model):
     """
     Holds information about each article
     """
-    doi = models.CharField(max_length=50)
+    doi = models.CharField(max_length=50, unique=True)
     pubdate = models.DateField()
     journal = models.ForeignKey('Journal')
     current_articlestate = models.ForeignKey('ArticleState', related_name='current_article', null=True, blank=True, default=None)
