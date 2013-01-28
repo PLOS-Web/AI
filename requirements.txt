@@ -1,5 +1,6 @@
 Django==1.4.2
 MySQL-python==1.2.3
+South==0.7.6
 argparse==1.2.1
 -e git://github.com/earle/django-bootstrap.git@9ec5697aee8fed5b612ac8a0a40bb1921e9390e8#egg=bootstrap-dev
 distribute==0.6.24
@@ -9,4 +10,5 @@ django-debug-toolbar==0.9.4
 -e git+https://github.com/alex/django-filter.git@b2b69617fab8d9a9288e0e86b617c65dc37bfee7#egg=django_filter-dev
 python-ldap==2.4.10
 simplejson==2.6.2
+uWSGI==1.4.4
 wsgiref==0.1.2

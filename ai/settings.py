@@ -19,10 +19,10 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'ai_dev',                      # Or path to database file if using sqlite3.
-        'USER': 'ai_dev',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
+        'NAME': 'ai_stage',                      # Or path to database file if using sqlite3.
+        'USER': 'ai_stage',                      # Not used with sqlite3.
+        'PASSWORD': '9AXVgiuK',                  # Not used with sqlite3.
+        'HOST': 'sfo-db01.int.plos.org',         # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
@@ -138,6 +138,7 @@ INSTALLED_APPS = (
     'debug_toolbar',
     'crispy_forms',
     'django_filters',
+    'south',
 
     'articleflow',
     'issues',
