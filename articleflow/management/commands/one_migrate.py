@@ -30,10 +30,11 @@ def insert_articles(pulls):
             pubdate = '1900-01-01'
 
         # Create Article
-        a = Article(doi=pull['doi'],
-                    pubdate=pubdate,
-                    journal=get_journal_from_doi(pull['doi'])
-                    )
+        a, _ = Article.objects.get_or_create(doi=pull['doi'],
+                                          pubdate=pubdate,
+                                          journal=get_journal_from_doi(pull['doi'])
+                                          )
+        print a
         a.save()
 
         # Create Article State
@@ -56,6 +57,6 @@ def insert_articles(pulls):
         
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        m = migration.GrabAT()
+        m = one_migration.GrabAT()
         pulls = m.get_pull_dois()
         insert_articles(pulls)
