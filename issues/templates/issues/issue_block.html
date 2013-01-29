@@ -1,6 +1,7 @@
 {% load ajax_comments %}
 {% load ajax_issues %}
 {% load comments %}
+{% load grid %}
 
 {% get_comment_count for issue as comment_count %}
 
@@ -8,7 +9,7 @@
   <div id="issue-status-icon-{{ issue.pk }}" class="issue-status-{{ issue.current_status.status }} issue-status-icon rounded-box-cell-left" href="javascript:void(0)"></div>
   <div class="issue-text rounded-box-cell-right">
   <div class="issue-description">
-    <span class="label label-important issue-category">{{ issue.category }}</span>
+    <span class="label label-{{ issue.category.name|sanitize_class_name }} issue-category">{{ issue.category }}</span>
     <span class="issue-author">{{ issue.submitter.username }}</span>
     <span class="issue-description-spaced">{{ issue.description }}</span>
     <script type="text/javascript">
