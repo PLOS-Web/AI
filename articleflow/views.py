@@ -15,6 +15,43 @@ import transitionrules
 from articleflow.models import Article, ArticleState, State, Transition, Journal
 from issues.models import Issue, Category
 
+class ColumnHandler():
+    @staticmethod
+    def doi(a):
+        return a.doi
+
+    @staticmethod
+    def pubdate(a):
+        return a.pubdate
+
+    @staticmethod
+    def journal_name(a):
+        return a.journal.short_name
+
+    @staticmethod
+    def state(a):
+        return a.current_articlestate.state.name
+
+    @staticmethod
+    def issues(a):
+        issues = a.issues.all()
+        issue_counts = []
+        for category in Category.objects.all():
+            count = issues.filter(category=category).count()
+            if count:
+                issue_counts.append({'category':category.name, 'count':count})
+        return issue_counts
+        
+
+COLUMN_CHOICES = (
+    (0, 'DOI', ColumnHandler.doi),
+    (1, 'PubDate', ColumnHandler.pubdate),
+    (2, 'Journal', ColumnHandler.journal_name),
+    (3, 'Issues', ColumnHandler.issues),
+    (4, 'Notes', 'lala'),
+    (5, 'State', ColumnHandler.state),
+    )
+
 class ArticleFilter(django_filters.FilterSet):
     doi = django_filters.CharFilter(name='doi', label='DOI')
 
@@ -29,21 +66,55 @@ class ArticleFilter(django_filters.FilterSet):
         model = Article
         fields = []
 
-class ArticleGrid(View):
-    
+class ArticleGrid(View):    
     template_name = 'articleflow/grid.html'
+
+    def get_selected_cols(self):
+        if not self.request.GET.getlist('cols'):
+            requested_cols = range(0,4) + [5] #default columns
+        else:
+            requested_cols = [0] #make sure DOI is always included
+            requested_cols += self.request.GET.getlist('cols')
+        return requested_cols
+
+    def get_selected_cols_names(self, requested_cols):
+        name_list = []
+        for col in requested_cols:
+            name_list.append(COLUMN_CHOICES[int(col)][1])
+        return name_list
     
     def get_context_data(self, **kwargs):
         #context = super(ArticleGrid, self).get_context_data(**kwargs)
-        
+        if self.request.GET:
+            print "QUERY DATA!"
+            print self.request.GET
         context = {}
-        context['article_list'] = Article.objects.all().select_related('journal__name', 'articlestate__state__name')
-        context['article_list'] = ArticleFilter(self.request.GET, queryset=Article.objects.all())
+        #context['article_list'] = Article.objects.all().select_related('journal__name', 'articlestate__state__name')
+        
+        raw_list = ArticleFilter(self.request.GET, queryset=Article.objects.all())
+        print raw_list
+
+        requested_cols = self.get_selected_cols()
+
+        annotated_list = [] 
+        
+        for article in raw_list:
+            a_annotated = []
+            for col in requested_cols:
+                fn = COLUMN_CHOICES[int(col)][2]
+                a_annotated.append((COLUMN_CHOICES[int(col)][1], fn(article)))
+            annotated_list.append(a_annotated)
+            print a_annotated
+
+        context['article_list'] = annotated_list
+        context['filter_form'] = raw_list.form
+        context['requested_cols'] = self.get_selected_cols_names(requested_cols)
+
         return context
-    #def get(self, request, *args, **kwargs):
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
+        context['column_choices'] = COLUMN_CHOICES[1:]
         return render_to_response(self.template_name, context, context_instance=RequestContext(request))
 
 class ArticleDetailMain(View):
@@ -82,7 +153,7 @@ class ArticleDetailTransition(View):
         if not request.user.is_authenticated():
             to_json = {
                 'error': 'Need to login'
-                }    
+                }
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
         if request.is_ajax():
             article = Article.objects.get(pk=request.POST['article_pk'])

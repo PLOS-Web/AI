@@ -1,6 +1,7 @@
 {% extends "base.html" %}    
 
 {% load crispy_forms_tags %}
+{% load grid %}
 
 {% block head %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
@@ -23,7 +24,18 @@
     <a id="search-collapse-toggle" data-toggle="collapse" data-target="#search-panel">[+] search</a>
     <div class="collapse" id="search-panel">
       <form class="form form-horizontal" action="" method="get">
-	{{ article_list.form|crispy }}
+	{{ filter_form|crispy }}
+	<hr />
+	<div id="div_id_current_articlestate" class="control-group">
+	  <label for="id_current_articlestate" class="control-label">Select columns</label>
+	  <div class="controls">
+	    <select multiple="multiple" id="id_cols" class="selectmultiple" name="cols">
+	      {% for choice in column_choices %}
+	      <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+	      {% endfor %}
+	    </select>
+	  </div>
+	</div>
 	<div class="control-group">
 	  <div class="controls">
 	    <input type="submit" name="submit" value="Search">
@@ -37,26 +49,31 @@
 <table class='table table-hover'>
   <thead>
     <tr>
-      <th>PubDate</th>
-      <th>DOI</th>
-      <th>Journal</th>
-      <th>Issues</th>
-      <th>Notes</th>
-      <th>State</th>
+      {% for col in requested_cols %}
+      <th>{{ col }}</th>
+      {% endfor %}
     </tr>
   </thead>
   <tbody>
     {% for article in article_list %}
     <tr>
-      <td>{{ article.pubdate }}</td>
-      <td><a href="/detail/{{article.doi}}">{{ article.doi }}</a></td>
-      <td>{{ article.journal.short_name }}</td>
-      <td>fake_1, fake_2, fake_3</td>
-      <td>fake_1, fake_2, fake_3</td>
-      <td>{{ article.current_articlestate.state.name }}</td>
+      {% for col, value in article %}
+      <td>
+	{% if col == "DOI" %}
+	  <a href="{% url detail_main value %}">{{ value }}</a>
+	{% elif col == "Issues" %}
+	  {% for issue in value %}
+	    <span href="#" rel="tootip" title="{{ issue.category }} issues: {{ issue.count}}" class="label label-{{ issue.category|sanitize_class_name }}">{{ issue.count }}</span>
+	  {% endfor %}
+	{% else %}
+	  {{ value }}
+	{% endif %}
+	  
+      </td>
+      {% endfor %}
     </tr>
+    {% endfor %}
   </tbody>
-  {% endfor %}
 </table>
 
 {% endblock %}

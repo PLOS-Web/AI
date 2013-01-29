@@ -8,6 +8,13 @@ STATUS_CODES = (
     (3, 'Wont fix'),
 )
 
+CATEGORY_COLORS = (
+    (1, 'blue'),
+    (2, 'red'),
+    (3, 'violet'),
+    (4, 'orange'),
+    )
+
 class Issue(models.Model):
     """
     Issue table.
@@ -43,7 +50,6 @@ class Issue(models.Model):
             ret = super(Issue, self).save(*args, **kwargs)
 
         return ret
-
 
 
 class IssueStatus(models.Model):
