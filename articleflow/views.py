@@ -31,13 +31,23 @@ class ColumnHandler():
     @staticmethod
     def state(a):
         return a.current_articlestate.state.name
+
+    @staticmethod
+    def issues(a):
+        issues = a.issues.all()
+        issue_counts = []
+        for category in Category.objects.all():
+            count = issues.filter(category=category).count()
+            if count:
+                issue_counts.append({'category':category.name, 'count':count})
+        return issue_counts
         
 
 COLUMN_CHOICES = (
     (0, 'DOI', ColumnHandler.doi),
     (1, 'PubDate', ColumnHandler.pubdate),
     (2, 'Journal', ColumnHandler.journal_name),
-    (3, 'Issues', 'lala'),
+    (3, 'Issues', ColumnHandler.issues),
     (4, 'Notes', 'lala'),
     (5, 'State', ColumnHandler.state),
     )

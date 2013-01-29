@@ -8,6 +8,13 @@ STATUS_CODES = (
     (3, 'Wont fix'),
 )
 
+CATEGORY_COLORS = (
+    (1, 'blue'),
+    (2, 'red'),
+    (3, 'violet'),
+    (4, 'orange'),
+    )
+
 class Issue(models.Model):
     """
     Issue table.
@@ -45,7 +52,6 @@ class Issue(models.Model):
         return ret
 
 
-
 class IssueStatus(models.Model):
     status = models.IntegerField(choices=STATUS_CODES)
     
@@ -74,6 +80,7 @@ class Category(models.Model):
     Table of available issue categories
     """
     name = models.CharField(max_length=50)
+    color = models.IntegerField(choices=STATUS_CODES)
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
     
