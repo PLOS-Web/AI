@@ -1,6 +1,7 @@
 {% extends "base.html" %}    
 
 {% load crispy_forms_tags %}
+{% load grid %}
 
 {% block head %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
@@ -60,6 +61,10 @@
       <td>
 	{% if col == "DOI" %}
 	  <a href="{% url detail_main value %}">{{ value }}</a>
+	{% elif col == "Issues" %}
+	  {% for issue in value %}
+	    <span class="label label-{{ issue.category|sanitize_class_name }}">{{ issue.count }}</span>
+	  {% endfor %}
 	{% else %}
 	  {{ value }}
 	{% endif %}

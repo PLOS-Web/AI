@@ -71,7 +71,7 @@ class ArticleGrid(View):
 
     def get_selected_cols(self):
         if not self.request.GET.getlist('cols'):
-            requested_cols = range(0,2)
+            requested_cols = range(0,4) + [5] #default columns
         else:
             requested_cols = [0] #make sure DOI is always included
             requested_cols += self.request.GET.getlist('cols')

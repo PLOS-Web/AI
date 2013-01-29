@@ -32,3 +32,19 @@
 .article-state-control .rounded-box-card-inner {
     background-color: #EFEFEF;
 }
+
+.label-XML {
+    background-color: #08C;
+}
+
+.label-PDF {
+    background-color: #F56565;
+}
+
+.label-XMLPDF {
+    background-color: #844AFF; 
+}
+
+.label-SI {
+    background-color: #999; 
+}
