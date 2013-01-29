@@ -80,7 +80,6 @@ class Category(models.Model):
     Table of available issue categories
     """
     name = models.CharField(max_length=50)
-    color = models.IntegerField(choices=STATUS_CODES)
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
     
