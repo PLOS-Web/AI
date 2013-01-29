@@ -63,7 +63,7 @@
 	  <a href="{% url detail_main value %}">{{ value }}</a>
 	{% elif col == "Issues" %}
 	  {% for issue in value %}
-	    <span class="label label-{{ issue.category|sanitize_class_name }}">{{ issue.count }}</span>
+	    <span href="#" rel="tootip" title="{{ issue.category }} issues: {{ issue.count}}" class="label label-{{ issue.category|sanitize_class_name }}">{{ issue.count }}</span>
 	  {% endfor %}
 	{% else %}
 	  {{ value }}
