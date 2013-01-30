@@ -80,4 +80,13 @@
   </tbody>
 </table>
 
+<p>Showing results {{ pagination.start_index }} - {{ pagination.end_index }} out of {{ total_articles }}</p>
+{% if pagination.has_previous %}
+<a href="?page={{ pagination.previous_page_number }}">previous</a>
+{% endif %}
+
+{% if pagination.has_next %}
+<a href="?page={{ pagination.next_page_number }}">next</a>
+{% endif %}
+
 {% endblock %}

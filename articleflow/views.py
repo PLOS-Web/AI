@@ -6,6 +6,7 @@ from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django import forms
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import simplejson
 
 import django_filters
@@ -103,30 +104,40 @@ class ArticleGrid(View):
         context = {}
         #context['article_list'] = Article.objects.all().select_related('journal__name', 'articlestate__state__name')
         
+        # 
         raw_list = ArticleFilter(self.request.GET, queryset=Article.objects.all())
-        print raw_list
+        paginator = Paginator(raw_list, 1)
+        get_page_num = self.request.GET.get('page')
 
+        try:
+            article_page = paginator.page(get_page_num)
+        except PageNotAnInteger:
+            article_page = paginator.page(1)
+        except EmptyPage:
+            article_page = paginator.page(paginator.num_pages)
+
+        # Annotate output with requested info
         requested_cols = self.get_selected_cols()
-
-        annotated_list = [] 
-        
-        for article in raw_list:
+        annotated_list = []
+        for i, article in enumerate(article_page):
             a_annotated = []
             for col in requested_cols:
                 fn = COLUMN_CHOICES[int(col)][2]
                 a_annotated.append((COLUMN_CHOICES[int(col)][1], fn(article)))
             annotated_list.append(a_annotated)
-            print a_annotated
 
         context['article_list'] = annotated_list
+        context['total_articles'] = sum (1 for article in raw_list)
+        context['pagination'] = article_page
         context['filter_form'] = raw_list.form
         context['requested_cols'] = self.get_selected_cols_names(requested_cols)
-
+        context['querystring'] = self.get.
         return context
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(**kwargs)
         context['column_choices'] = COLUMN_CHOICES[1:]
+        
         return render_to_response(self.template_name, context, context_instance=RequestContext(request))
 
 class ArticleDetailMain(View):
