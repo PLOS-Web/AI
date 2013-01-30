@@ -65,6 +65,10 @@
 	  {% for issue in value %}
 	    <span href="#" rel="tootip" title="{{ issue.category }} issues: {{ issue.count}}" class="label label-{{ issue.category|sanitize_class_name }}">{{ issue.count }}</span>
 	  {% endfor %}
+	{% elif col == "Errors" %}
+	    {% for level in value %}
+	    <span class="label">{{ level.0 }}s: {{ level.1 }}</span>
+	    {% endfor %}
 	{% else %}
 	  {{ value }}
 	{% endif %}

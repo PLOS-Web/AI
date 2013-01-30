@@ -14,6 +14,7 @@ import transitionrules
 
 from articleflow.models import Article, ArticleState, State, Transition, Journal
 from issues.models import Issue, Category
+from errors.models import ErrorSet, Error, ERROR_LEVEL
 
 class ColumnHandler():
     @staticmethod
@@ -41,6 +42,17 @@ class ColumnHandler():
             if count:
                 issue_counts.append({'category':category.name, 'count':count})
         return issue_counts
+
+    @staticmethod
+    def errors(a):
+        try:
+            latest_errors = a.error_sets.latest('created').errors
+        except ErrorSet.DoesNotExist:
+            return []
+        error_counts = []
+        for level in ERROR_LEVEL:
+            error_counts.append((level[1], latest_errors.filter(level=level[0]).count()))
+        return error_counts
         
 
 COLUMN_CHOICES = (
@@ -48,7 +60,7 @@ COLUMN_CHOICES = (
     (1, 'PubDate', ColumnHandler.pubdate),
     (2, 'Journal', ColumnHandler.journal_name),
     (3, 'Issues', ColumnHandler.issues),
-    (4, 'Notes', 'lala'),
+    (4, 'Errors', ColumnHandler.errors),
     (5, 'State', ColumnHandler.state),
     )
 
@@ -71,7 +83,7 @@ class ArticleGrid(View):
 
     def get_selected_cols(self):
         if not self.request.GET.getlist('cols'):
-            requested_cols = range(0,4) + [5] #default columns
+            requested_cols = range(0,6) #default columns
         else:
             requested_cols = [0] #make sure DOI is always included
             requested_cols += self.request.GET.getlist('cols')
