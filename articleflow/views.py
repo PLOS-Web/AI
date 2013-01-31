@@ -82,6 +82,12 @@ class ArticleFilter(django_filters.FilterSet):
 class ArticleGrid(View):    
     template_name = 'articleflow/grid.html'
 
+    def get_results_per_page(self):
+        if not self.request.GET.getlist('page_size'):
+            return 100
+        else:
+            return self.request.GET.getlist('page_size')[0]
+
     def get_selected_cols(self):
         if not self.request.GET.getlist('cols'):
             requested_cols = range(0,6) #default columns
@@ -106,7 +112,7 @@ class ArticleGrid(View):
         
         # 
         raw_list = ArticleFilter(self.request.GET, queryset=Article.objects.all())
-        paginator = Paginator(raw_list, 1)
+        paginator = Paginator(raw_list, self.get_results_per_page())
         get_page_num = self.request.GET.get('page')
 
         try:
@@ -126,12 +132,22 @@ class ArticleGrid(View):
                 a_annotated.append((COLUMN_CHOICES[int(col)][1], fn(article)))
             annotated_list.append(a_annotated)
 
+        # construct urls for next and last page
+        r_query = self.request.GET.copy()
+        if article_page.has_next():
+            r_query['page'] = article_page.next_page_number()
+            context['next_page_qs'] = r_query.urlencode()
+        r_query = self.request.GET.copy()
+        if article_page.has_previous():
+            r_query['page'] = article_page.previous_page_number()
+            print r_query
+            context['previous_page_qs'] = r_query.urlencode()
         context['article_list'] = annotated_list
         context['total_articles'] = sum (1 for article in raw_list)
         context['pagination'] = article_page
         context['filter_form'] = raw_list.form
         context['requested_cols'] = self.get_selected_cols_names(requested_cols)
-        context['querystring'] = self.get.
+        
         return context
 
     def get(self, request, *args, **kwargs):
