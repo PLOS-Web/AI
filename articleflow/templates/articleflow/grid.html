@@ -26,13 +26,24 @@
       <form class="form form-horizontal" action="" method="get">
 	{{ filter_form|crispy }}
 	<hr />
-	<div id="div_id_current_articlestate" class="control-group">
-	  <label for="id_current_articlestate" class="control-label">Select columns</label>
+	<div id="div_id_cols" class="control-group">
+	  <label for="id_cols" class="control-label">Select columns</label>
 	  <div class="controls">
 	    <select multiple="multiple" id="id_cols" class="selectmultiple" name="cols">
 	      {% for choice in column_choices %}
 	      <option value="{{ choice.0 }}">{{ choice.1 }}</option>
 	      {% endfor %}
+	    </select>
+	  </div>
+	</div>
+	<div id="div_id_cols" class="control-group">
+	  <label for="id_cols" class="control-label">Results per page</label>
+	  <div class="controls">
+	    <select id="id_cols" class="selectmultiple" name="page_size">
+	      <option value="25">25</option>
+	      <option value="50">50</option>
+	      <option value="100">100</option>
+	      <option value="200">200</option>
 	    </select>
 	  </div>
 	</div>
@@ -45,6 +56,20 @@
     </div>
   </div>
 </div>
+
+<span>Showing results {{ pagination.start_index }} - {{ pagination.end_index }} out of {{ total_articles }}
+{% if previous_page_qs or next_page_qs %}
+|
+{% endif %}
+</span>
+
+{% if previous_page_qs %}
+<a href="?{{ previous_page_qs }}">previous</a>
+{% endif %}
+
+{% if next_page_qs %}
+<a href="?{{ next_page_qs }}">next</a>
+{% endif %}
 
 <table class='table table-hover'>
   <thead>
@@ -80,4 +105,20 @@
   </tbody>
 </table>
 
+<span>Showing results {{ pagination.start_index }} - {{ pagination.end_index }} out of {{ total_articles }}
+{% if previous_page_qs or next_page_qs %}
+|
+{% endif %}
+</span>
+
+ </span>
+{% if previous_page_qs %}
+<a href="?{{ previous_page_qs }}">previous</a>
+{% endif %}
+
+{% if next_page_qs %}
+<a href="?{{ next_page_qs }}">next</a>
+{% endif %}
+
+{{ querystring }}
 {% endblock %}
