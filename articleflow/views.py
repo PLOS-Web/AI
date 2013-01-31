@@ -84,7 +84,7 @@ class ArticleGrid(View):
 
     def get_results_per_page(self):
         if not self.request.GET.getlist('page_size'):
-            return 100
+            return 50
         else:
             return self.request.GET.getlist('page_size')[0]
 
