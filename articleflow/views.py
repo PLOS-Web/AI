@@ -147,6 +147,7 @@ class ArticleGrid(View):
         context['pagination'] = article_page
         context['filter_form'] = raw_list.form
         context['requested_cols'] = self.get_selected_cols_names(requested_cols)
+        context['base_qs'] = self.request.GET.urlencode()
         
         return context
 

@@ -3,3 +3,23 @@
     font-family: monospace;
 }
 
+.order-arrows {
+    float: right;
+    display: inline;
+}
+
+.order-arrow-inactive {
+    display: none;
+}
+
+.table th {
+    vertical-align: middle;
+}
+
+.grid-header {
+    min-width: 105px;
+}
+
+.order-arrow-active {
+    color: #333;
+} 
