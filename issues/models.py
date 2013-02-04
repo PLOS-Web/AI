@@ -48,6 +48,25 @@ class Issue(models.Model):
 
             self.current_status = status
             ret = super(Issue, self).save(*args, **kwargs)
+            
+            a_extras, new = self.article.article_extras.get_or_create()
+
+            print a_extras
+            
+            #bad hardcoding for issue counts in articleextras
+            print self.category.name
+            if self.category.name == "XML":
+                a_extras.num_issues_xml += 1
+            elif self.category.name == "PDF":
+                a_extras.num_issues_pdf += 1
+            elif self.category.name == "XML+PDF":
+                a_extras.num_issues_xmlpdf += 1
+            elif self.category.name == "SI":
+                a_extras.num_issues_si += 1
+            else:
+                print "Encountered category unknown to articleextras"
+
+            a_extras.save()
 
         return ret
 

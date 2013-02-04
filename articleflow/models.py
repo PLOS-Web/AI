@@ -68,7 +68,7 @@ class ArticleExtras(models.Model):
     Holds extra, fuzzy info about articles for shortcutting searching and filtering
     """
 
-    current_articlestate = models.ForeignKey('Article', related_name='article_extras')
+    article = models.ForeignKey('Article', related_name='article_extras')
 
     # Issue counts
     num_issues_xml = models.IntegerField(default=0)
