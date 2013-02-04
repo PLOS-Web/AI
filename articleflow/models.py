@@ -31,6 +31,7 @@ class ArticleState(models.Model):
         art = self.article
         if art:
             art.current_articlestate = self
+            art.current_state = self.state
             art.save()
         return ret
 
@@ -50,6 +51,7 @@ class Article(models.Model):
     pubdate = models.DateField()
     journal = models.ForeignKey('Journal')
     current_articlestate = models.ForeignKey('ArticleState', related_name='current_article', null=True, blank=True, default=None)
+    current_state = models.ForeignKey('State', related_name="current_articles", null=True, blank=True, default=None)
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
 
@@ -71,6 +73,11 @@ class Article(models.Model):
         if insert: 
             a_extras, new = self.article_extras.get_or_create()
             a_extras.save()
+
+            if not self.current_articlestate:
+                a_as = ArticleState(article=self)
+                a_as.state, new = State.objects.get_or_create(name="New")
+                a_as.save()
 
 class ArticleExtras(models.Model):
     """
