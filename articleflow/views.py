@@ -73,7 +73,7 @@ class ArticleFilter(django_filters.FilterSet):
     pubdate_lte = django_filters.DateFilter(name='pubdate', label='Pubdate on or before', lookup_type='lte', widget=datepicker_widget) 
 
     journal = django_filters.ModelMultipleChoiceFilter(name='journal', label='Journal', queryset=Journal.objects.all())
-    current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_articlestate__state', label='Article state', queryset=State.objects.all())
+    current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_state', label='Article state', queryset=State.objects.all())
     
     class Meta:
         model = Article
