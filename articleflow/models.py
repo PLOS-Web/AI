@@ -62,6 +62,23 @@ class Article(models.Model):
 
     def execute_transition(self, transition, user):
         return transition.execute_transition(self, user)
+
+class ArticleExtras(models.Model):
+    """
+    Holds extra, fuzzy info about articles for shortcutting searching and filtering
+    """
+
+    current_articlestate = models.ForeignKey('Article', related_name='article_extras')
+
+    # Issue counts
+    num_issues_xml = models.IntegerField(default=0)
+    num_issues_pdf = models.IntegerField(default=0)
+    num_issues_xmlpdf = models.IntegerField(default=0)
+    num_issues_si = models.IntegerField(default=0)
+    
+    # Error counts
+    num_errors = models.IntegerField(default=0)
+    num_warnings = models.IntegerField(default=0)
             
 class Transition(models.Model):
     """
