@@ -63,9 +63,18 @@ class Article(models.Model):
     def execute_transition(self, transition, user):
         return transition.execute_transition(self, user)
 
+    def save(self, *args, **kwargs):
+        insert = not self.pk
+        ret = super(Article, self).save(*args, **kwargs)
+
+        # Create a blank articleextras row
+        if insert: 
+            a_extras, new = self.article_extras.get_or_create()
+            a_extras.save()
+
 class ArticleExtras(models.Model):
     """
-    Holds extra, fuzzy info about articles for shortcutting searching and filtering
+    Holds extra, fuzzy aggregates on articles for shortcutting searching and filtering
     """
 
     article = models.ForeignKey('Article', related_name='article_extras')
