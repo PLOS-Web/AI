@@ -45,6 +45,20 @@ class Error(models.Model):
             status = ErrorStatus(state=1, error=self)
             status.save()
 
+            # Only do anything if this is an error for the latest errorset
+            if self.error_set == self.error_set.article.error_sets.latest('created'):
+                a_extras, new = self.error_set.article.article_extras.get_or_create()
+                
+            #bad hardcoding for error counts in articleextras
+                if self.level == 1:
+                    a_extras.num_errors += 1
+                elif self.level == 2:
+                    a_extras.num_warnings += 1
+                else:
+                    print "Encountered error category unknown to articleextras"
+                    
+                a_extras.save()
+
         return ret
             
 class ErrorStatus(models.Model):
@@ -81,5 +95,21 @@ class ErrorSet(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return "%s, %s" % (self.get_source_display(), self.created)
+        return "%s: %s, %s" % (self.article.doi, self.get_source_display(), self.created)
     
+    def save(self, *args, **kwargs):
+        insert = not self.pk
+        ret = super(ErrorSet, self).save(*args, **kwargs)
+        
+        # Wipe out articleextra tallies on new errorset
+        if insert: 
+            a_extras, new = self.article.article_extras.get_or_create()
+            a_extras.num_errors = 0
+            a_extras.num_warnings = 0
+            a_extras.save()
+
+        return ret
+            
+        
+
+        
