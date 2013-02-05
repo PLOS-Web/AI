@@ -17,52 +17,13 @@ from articleflow.models import Article, ArticleState, State, Transition, Journal
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL
 
-class ColumnHandler():
-    @staticmethod
-    def doi(a):
-        return a.doi
-
-    @staticmethod
-    def pubdate(a):
-        return a.pubdate
-
-    @staticmethod
-    def journal_name(a):
-        return a.journal.short_name
-
-    @staticmethod
-    def state(a):
-        return a.current_articlestate.state.name
-
-    @staticmethod
-    def issues(a):
-        issues = a.issues.all()
-        issue_counts = []
-        for category in Category.objects.all():
-            count = issues.filter(category=category).count()
-            if count:
-                issue_counts.append({'category':category.name, 'count':count})
-        return issue_counts
-
-    @staticmethod
-    def errors(a):
-        try:
-            latest_errors = a.error_sets.latest('created').errors
-        except ErrorSet.DoesNotExist:
-            return []
-        error_counts = []
-        for level in ERROR_LEVEL:
-            error_counts.append((level[1], latest_errors.filter(level=level[0]).count()))
-        return error_counts
-        
-
 COLUMN_CHOICES = (
-    (0, 'DOI', ColumnHandler.doi),
-    (1, 'PubDate', ColumnHandler.pubdate),
-    (2, 'Journal', ColumnHandler.journal_name),
-    (3, 'Issues', ColumnHandler.issues),
-    (4, 'Errors', ColumnHandler.errors),
-    (5, 'State', ColumnHandler.state),
+    (0, 'DOI'),
+    (1, 'PubDate'),
+    (2, 'Journal'),
+    (3, 'Issues'),
+    (4, 'Errors'),
+    (5, 'State'),
     )
 
 class ArticleFilter(django_filters.FilterSet):
@@ -73,7 +34,7 @@ class ArticleFilter(django_filters.FilterSet):
     pubdate_lte = django_filters.DateFilter(name='pubdate', label='Pubdate on or before', lookup_type='lte', widget=datepicker_widget) 
 
     journal = django_filters.ModelMultipleChoiceFilter(name='journal', label='Journal', queryset=Journal.objects.all())
-    current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_articlestate__state', label='Article state', queryset=State.objects.all())
+    current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_state', label='Article state', queryset=State.objects.all())
     
     class Meta:
         model = Article
@@ -108,9 +69,8 @@ class ArticleGrid(View):
             print "QUERY DATA!"
             print self.request.GET
         context = {}
-        #context['article_list'] = Article.objects.all().select_related('journal__name', 'articlestate__state__name')
         
-        # 
+        # Paginate!
         raw_list = ArticleFilter(self.request.GET, queryset=Article.objects.all())
         paginator = Paginator(raw_list, self.get_results_per_page())
         get_page_num = self.request.GET.get('page')
@@ -122,16 +82,6 @@ class ArticleGrid(View):
         except EmptyPage:
             article_page = paginator.page(paginator.num_pages)
 
-        # Annotate output with requested info
-        requested_cols = self.get_selected_cols()
-        annotated_list = []
-        for i, article in enumerate(article_page):
-            a_annotated = []
-            for col in requested_cols:
-                fn = COLUMN_CHOICES[int(col)][2]
-                a_annotated.append((COLUMN_CHOICES[int(col)][1], fn(article)))
-            annotated_list.append(a_annotated)
-
         # construct urls for next and last page
         r_query = self.request.GET.copy()
         if article_page.has_next():
@@ -142,11 +92,14 @@ class ArticleGrid(View):
             r_query['page'] = article_page.previous_page_number()
             print r_query
             context['previous_page_qs'] = r_query.urlencode()
-        context['article_list'] = annotated_list
+
+        context['article_list'] = article_page
         context['total_articles'] = sum (1 for article in raw_list)
         context['pagination'] = article_page
         context['filter_form'] = raw_list.form
+        requested_cols = self.get_selected_cols()
         context['requested_cols'] = self.get_selected_cols_names(requested_cols)
+        context['error_level'] = ERROR_LEVEL
         
         return context
 
