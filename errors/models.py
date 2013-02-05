@@ -1,5 +1,6 @@
 from django.db import models
-from articleflow.models import Article
+from articleflow.models import Article, ArticleExtras
+
 
 ERROR_LEVEL = (
     (1, 'Error'),
@@ -46,8 +47,8 @@ class Error(models.Model):
             status.save()
 
             # Only do anything if this is an error for the latest errorset
-            if self.error_set == self.error_set.article.error_sets.latest('created'):
-                a_extras, new = self.error_set.article.article_extras.get_or_create()
+            if self.error_set == self.error_set.article.error_sets.latest('created'):    
+                a_extras, new = ArticleExtras.objects.get_or_create(article=self.error_set.article)
                 
             #bad hardcoding for error counts in articleextras
                 if self.level == 1:
@@ -103,7 +104,7 @@ class ErrorSet(models.Model):
         
         # Wipe out articleextra tallies on new errorset
         if insert: 
-            a_extras, new = self.article.article_extras.get_or_create()
+            a_extras, new = ArticleExtras.objects.get_or_create(article=self.article)
             a_extras.num_errors = 0
             a_extras.num_warnings = 0
             a_extras.save()

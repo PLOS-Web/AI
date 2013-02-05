@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from articleflow.models import Article
+from articleflow.models import Article, ArticleExtras
 
 STATUS_CODES = (
     (1, 'Open'),
@@ -49,7 +49,7 @@ class Issue(models.Model):
             self.current_status = status
             ret = super(Issue, self).save(*args, **kwargs)
             
-            a_extras, new = self.article.article_extras.get_or_create()
+            a_extras, new = ArticleExtras.objects.get_or_create(article=self.article)
 
             print a_extras
             

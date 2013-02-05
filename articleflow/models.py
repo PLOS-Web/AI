@@ -72,9 +72,12 @@ class Article(models.Model):
         ret = super(Article, self).save(*args, **kwargs)
 
         # Create a blank articleextras row
-        if insert: 
-            a_extras, new = self.article_extras.get_or_create()
-            a_extras.save()
+        if insert:
+            if not self.article_extras:
+                a_extras = ArticleExtras(article=self)
+                a_extras.save()
+                self.article_extras = a_extras
+                self.save()
 
             if not self.current_articlestate:
                 a_as = ArticleState(article=self)
@@ -86,7 +89,7 @@ class ArticleExtras(models.Model):
     Holds extra, fuzzy aggregates on articles for shortcutting searching and filtering
     """
 
-    article = models.ForeignKey('Article', related_name='article_extras')
+    article = models.ForeignKey('Article', related_name='article_extras_dont_use')
 
     # Issue counts
     num_issues_xml = models.IntegerField(default=0)
@@ -97,6 +100,27 @@ class ArticleExtras(models.Model):
     # Error counts
     num_errors = models.IntegerField(default=0)
     num_warnings = models.IntegerField(default=0)
+
+    def save(self, *args, **kwargs):
+        insert = not self.pk
+        ret = super(ArticleExtras, self).save(*args, **kwargs)
+
+        if insert:
+            a = self.article
+            a.article_extras = self
+            a.save()
+
+        return ret
+
+    def __unicode__(self):
+        doi = ""
+        try:
+            doi = self.article.doi
+        except Article.DoesNotExist:
+            pass
+
+        return "Article_extras: (doi: %s)" % doi
+        
             
 class Transition(models.Model):
     """

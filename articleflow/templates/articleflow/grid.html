@@ -86,10 +86,11 @@
       <td>
 	{% if col == "DOI" %}
 	  <a href="{% url detail_main article.doi %}">{{ article.doi }}</a>
+	{% elif col == "Journal" %}
+	  {{ article.journal.short_name }}
 	{% elif col == "PubDate" %}
 	  {{ article.pubdate }}
 	{% elif col == "Issues" %}
-	  {{ article.article_extras.get.num_issues_xml }}
 	  {% if article.article_extras.num_issues_xml %}
 	    <span href="#" rel="tooltip" title="XML issues: {{ article.article_extras.num_issues_xml }}" class="label label-XML">{{ article.article_extras.num_issues_xml }}</span>
 	  {% endif %}
@@ -97,17 +98,20 @@
 	    <span href="#" rel="tooltip" title="PDF issues: {{ article.article_extras.num_issues_pdf }}" class="label label-PDF">{{ article.article_extras.num_issues_pdf }}</span>
 	  {% endif %}
 	  {% if article.article_extras.num_issues_xmlpdf %}
-	    <span href="#" rel="tooltip" title="XML+PDF issues: {{ article.article_extras.num_issues_xmlpdf }}" class="label label-PDF">{{ article.article_extras.num_issues_pdf }}</span>
+	    <span href="#" rel="tooltip" title="XML+PDF issues: {{ article.article_extras.num_issues_xmlpdf }}" class="label label-XMLPDF">{{ article.article_extras.num_issues_xmlpdf }}</span>
 	  {% endif %}
 	  {% if article.article_extras.num_issues_si %}
 	    <span href="#" rel="tooltip" title="SI issues: {{ article.article_extras.num_issues_si }}" class="label label-SI">{{ article.article_extras.num_issues_si }}</span>
-	  {% endif %}
-	
-	  
+	  {% endif %}  
 	{% elif col == "Errors" %}
-	    {% for level in value %}
-	    <span class="label">{{ level.0 }}s: {{ level.1 }}</span>
-	    {% endfor %}
+	    {% if article.article_extras.num_errors %}
+	    <span class="label">Errors: {{ article.article_extras.num_errors }}</span>
+	    {% endif %}
+	    {% if article.article_extras.num_warnings %}
+	    <span class="label">Warnings: {{ article.article_extras.num_warnings }}</span>
+	    {% endif %}
+	{% elif col == "State" %}
+	    {{ article.current_state.name }}
 	{% else %}
 	  {{ value }}
 	{% endif %}
