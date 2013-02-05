@@ -52,6 +52,8 @@ class Article(models.Model):
     journal = models.ForeignKey('Journal')
     current_articlestate = models.ForeignKey('ArticleState', related_name='current_article', null=True, blank=True, default=None)
     current_state = models.ForeignKey('State', related_name="current_articles", null=True, blank=True, default=None)
+    article_extras = models.ForeignKey('ArticleExtras', related_name="article_dont_use", null=True, blank=True, default=None)
+
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
 

@@ -82,14 +82,28 @@
   <tbody>
     {% for article in article_list %}
     <tr>
-      {% for col, value in article %}
+      {% for col in requested_cols %}
       <td>
 	{% if col == "DOI" %}
-	  <a href="{% url detail_main value %}">{{ value }}</a>
+	  <a href="{% url detail_main article.doi %}">{{ article.doi }}</a>
+	{% elif col == "PubDate" %}
+	  {{ article.pubdate }}
 	{% elif col == "Issues" %}
-	  {% for issue in value %}
-	    <span href="#" rel="tootip" title="{{ issue.category }} issues: {{ issue.count}}" class="label label-{{ issue.category|sanitize_class_name }}">{{ issue.count }}</span>
-	  {% endfor %}
+	  {{ article.article_extras.get.num_issues_xml }}
+	  {% if article.article_extras.num_issues_xml %}
+	    <span href="#" rel="tooltip" title="XML issues: {{ article.article_extras.num_issues_xml }}" class="label label-XML">{{ article.article_extras.num_issues_xml }}</span>
+	  {% endif %}
+	  {% if article.article_extras.num_issues_pdf %}
+	    <span href="#" rel="tooltip" title="PDF issues: {{ article.article_extras.num_issues_pdf }}" class="label label-PDF">{{ article.article_extras.num_issues_pdf }}</span>
+	  {% endif %}
+	  {% if article.article_extras.num_issues_xmlpdf %}
+	    <span href="#" rel="tooltip" title="XML+PDF issues: {{ article.article_extras.num_issues_xmlpdf }}" class="label label-PDF">{{ article.article_extras.num_issues_pdf }}</span>
+	  {% endif %}
+	  {% if article.article_extras.num_issues_si %}
+	    <span href="#" rel="tooltip" title="SI issues: {{ article.article_extras.num_issues_si }}" class="label label-SI">{{ article.article_extras.num_issues_si }}</span>
+	  {% endif %}
+	
+	  
 	{% elif col == "Errors" %}
 	    {% for level in value %}
 	    <span class="label">{{ level.0 }}s: {{ level.1 }}</span>
@@ -97,7 +111,7 @@
 	{% else %}
 	  {{ value }}
 	{% endif %}
-	  
+	
       </td>
       {% endfor %}
     </tr>

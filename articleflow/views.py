@@ -32,17 +32,18 @@ class ColumnHandler():
 
     @staticmethod
     def state(a):
-        return a.current_articlestate.state.name
+        return a.current_state.name
 
     @staticmethod
     def issues(a):
-        issues = a.issues.all()
-        issue_counts = []
-        for category in Category.objects.all():
-            count = issues.filter(category=category).count()
-            if count:
-                issue_counts.append({'category':category.name, 'count':count})
-        return issue_counts
+        pass
+        #issues = a.issues.all()
+        #issue_counts = []
+        #for category in Category.objects.all():
+        #    count = issues.filter(category=category).count()
+        #    if count:
+        #        issue_counts.append({'category':category.name, 'count':count})
+        #return issue_counts
 
     @staticmethod
     def errors(a):
@@ -142,7 +143,7 @@ class ArticleGrid(View):
             r_query['page'] = article_page.previous_page_number()
             print r_query
             context['previous_page_qs'] = r_query.urlencode()
-        context['article_list'] = annotated_list
+        context['article_list'] = article_page
         context['total_articles'] = sum (1 for article in raw_list)
         context['pagination'] = article_page
         context['filter_form'] = raw_list.form
