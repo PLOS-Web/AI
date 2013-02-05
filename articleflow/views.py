@@ -17,53 +17,13 @@ from articleflow.models import Article, ArticleState, State, Transition, Journal
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL
 
-class ColumnHandler():
-    @staticmethod
-    def doi(a):
-        return a.doi
-
-    @staticmethod
-    def pubdate(a):
-        return a.pubdate
-
-    @staticmethod
-    def journal_name(a):
-        return a.journal.short_name
-
-    @staticmethod
-    def state(a):
-        return a.current_state.name
-
-    @staticmethod
-    def issues(a):
-        pass
-        #issues = a.issues.all()
-        #issue_counts = []
-        #for category in Category.objects.all():
-        #    count = issues.filter(category=category).count()
-        #    if count:
-        #        issue_counts.append({'category':category.name, 'count':count})
-        #return issue_counts
-
-    @staticmethod
-    def errors(a):
-        try:
-            latest_errors = a.error_sets.latest('created').errors
-        except ErrorSet.DoesNotExist:
-            return []
-        error_counts = []
-        for level in ERROR_LEVEL:
-            error_counts.append((level[1], latest_errors.filter(level=level[0]).count()))
-        return error_counts
-        
-
 COLUMN_CHOICES = (
-    (0, 'DOI', ColumnHandler.doi),
-    (1, 'PubDate', ColumnHandler.pubdate),
-    (2, 'Journal', ColumnHandler.journal_name),
-    (3, 'Issues', ColumnHandler.issues),
-    (4, 'Errors', ColumnHandler.errors),
-    (5, 'State', ColumnHandler.state),
+    (0, 'DOI'),
+    (1, 'PubDate'),
+    (2, 'Journal'),
+    (3, 'Issues'),
+    (4, 'Errors'),
+    (5, 'State'),
     )
 
 class ArticleFilter(django_filters.FilterSet):
