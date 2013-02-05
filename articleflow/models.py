@@ -31,6 +31,7 @@ class ArticleState(models.Model):
         art = self.article
         if art:
             art.current_articlestate = self
+            art.current_state = self.state
             art.save()
         return ret
 
@@ -50,6 +51,9 @@ class Article(models.Model):
     pubdate = models.DateField()
     journal = models.ForeignKey('Journal')
     current_articlestate = models.ForeignKey('ArticleState', related_name='current_article', null=True, blank=True, default=None)
+    current_state = models.ForeignKey('State', related_name="current_articles", null=True, blank=True, default=None)
+    article_extras = models.ForeignKey('ArticleExtras', related_name="article_dont_use", null=True, blank=True, default=None)
+
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
 
@@ -62,6 +66,61 @@ class Article(models.Model):
 
     def execute_transition(self, transition, user):
         return transition.execute_transition(self, user)
+
+    def save(self, *args, **kwargs):
+        insert = not self.pk
+        ret = super(Article, self).save(*args, **kwargs)
+
+        # Create a blank articleextras row
+        if insert:
+            if not self.article_extras:
+                a_extras = ArticleExtras(article=self)
+                a_extras.save()
+                self.article_extras = a_extras
+                self.save()
+
+            if not self.current_articlestate:
+                a_as = ArticleState(article=self)
+                a_as.state, new = State.objects.get_or_create(name="New")
+                a_as.save()
+
+class ArticleExtras(models.Model):
+    """
+    Holds extra, fuzzy aggregates on articles for shortcutting searching and filtering
+    """
+
+    article = models.ForeignKey('Article', related_name='article_extras_dont_use')
+
+    # Issue counts
+    num_issues_xml = models.IntegerField(default=0)
+    num_issues_pdf = models.IntegerField(default=0)
+    num_issues_xmlpdf = models.IntegerField(default=0)
+    num_issues_si = models.IntegerField(default=0)
+    
+    # Error counts
+    num_errors = models.IntegerField(default=0)
+    num_warnings = models.IntegerField(default=0)
+
+    def save(self, *args, **kwargs):
+        insert = not self.pk
+        ret = super(ArticleExtras, self).save(*args, **kwargs)
+
+        if insert:
+            a = self.article
+            a.article_extras = self
+            a.save()
+
+        return ret
+
+    def __unicode__(self):
+        doi = ""
+        try:
+            doi = self.article.doi
+        except Article.DoesNotExist:
+            pass
+
+        return "Article_extras: (doi: %s)" % doi
+        
             
 class Transition(models.Model):
     """
