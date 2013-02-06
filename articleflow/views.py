@@ -292,3 +292,36 @@ class ArticleDetailIssues(View):
                 })
         return context
 
+class AssignToMe(View):
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated():
+            to_json = {
+                'error': 'Need to login'
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+        if request.is_ajax():
+            article = Article.objects.get(pk=request.POST['article_pk'])
+            user = request.user
+
+            # Make sure user is in appropriate group to make assignment
+            if not article.current_state.worker_groups.filter(user=user):
+                to_json = {
+                    'error': "You're not allowed to make this assignment"
+                    }
+                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+            
+            # Make sure nobody else grabbed the article
+            other_assignee = article.current_articlestate.assignee
+            if other_assignee:
+                to_json = {
+                    'other_assignee': other_assignee.username
+                    }
+                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+            # Make assignment
+            article.current_articlestate.assign_user(request.user)
+
+            to_json = {
+                'redirect_url': reverse('detail_main', args=[article.doi])
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')

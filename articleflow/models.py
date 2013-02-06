@@ -41,6 +41,9 @@ class ArticleState(models.Model):
             art.current_articlestate = self
             art.current_state = self.state
             art.save()
+        if self.assignee:
+            ah = AssignmentHistory(user=self.assignee, article_state=self)
+            ah.save()
         return ret
 
 class Journal(models.Model):

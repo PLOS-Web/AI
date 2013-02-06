@@ -30,6 +30,36 @@ function switch_article_state_ajax(article_pk, requested_transition_pk, error_ms
     });
 }
 
+function assign_to_me_ajax(article_pk, target_url){
+    var postData = {
+	'article_pk': article_pk
+    };
+    
+    $.ajax({
+	url: target_url,
+	type: 'POST',
+	datatype: "application/json; charset=utf-8",
+	data: postData
+    }).done(function (returnedData){
+	console.log(returnedData);
+	console.log(this);
+
+	if (returnedData.error){
+	    alert(returnedData.error);
+	}
+	else if (returnedData.other_assignee){
+	    alert("Article already taken by user, " + returnedData.other_assignee);
+	}
+	else if (returnedData.redirect_url){
+	    document.location.href = returnedData.redirect_url;
+	}
+	
+    });
+}
+
+	    
+	
+
 $(document).ready(function(){
     $('#article-note-form').on('hide', function(){
 	$('#article-note-collapse-toggle').html('[+]');

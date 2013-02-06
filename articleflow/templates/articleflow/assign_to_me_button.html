@@ -1,0 +1,7 @@
+{% if legal_to_assign %}
+<button id="assign-to-me-{{ article.pk }}" class="btn btn-success">Assign to me</button>
+<script type="text/javascript">
+	$('#assign-to-me-{{ article.pk }}').on("click", function(){
+	   assign_to_me_ajax({{ article.pk }}, '{% url assign_to_me article.doi %}')});
+</script>
+{% endif %}
