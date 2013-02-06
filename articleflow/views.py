@@ -50,11 +50,21 @@ class ColumnOrder():
     @staticmethod
     def state(a, type):
         return a.order_by(ColumnOrder.parse_type(type) + 'current_state')
+
+    @staticmethod
+    def issues(a, type):
+        return a.order_by(ColumnOrder.parse_type(type) + 'article_extras__num_issues_total')
+
+    @staticmethod
+    def errors(a, type):
+        return a.order_by(ColumnOrder.parse_type(type) + 'article_extras__num_errors_total')
     
 ORDER_CHOICES = {
     'DOI': ColumnOrder.doi,
     'PubDate' : ColumnOrder.pubdate,
     'Journal' : ColumnOrder.journal,
+    'Issues' : ColumnOrder.issues,
+    'Errors' : ColumnOrder.errors,
     'State' : ColumnOrder.state,
 }
 
