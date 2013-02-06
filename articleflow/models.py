@@ -61,8 +61,11 @@ class Article(models.Model):
         return self.doi
     
     # Return the possible transitions that this object can do based on its current state
-    def possible_transitions(self):
-        return self.current_articlestate.state.possible_transitions
+    def possible_transitions(self, user=None):
+        if user:
+            raw_transitions = self.current_state.possible_transitions.all()
+            return raw_transitions.filter(allowed_groups__user=user)
+        return self.current_state.possible_transitions
 
     def execute_transition(self, transition, user):
         return transition.execute_transition(self, user)

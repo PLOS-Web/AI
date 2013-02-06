@@ -49,13 +49,17 @@
   </div>
 </div>
 
+{% if user.is_authenticated %}
+
 <div class="row">
   <div class="span12">
     <div class="clear"></div>
     <div>
-      {% render_article_state_control article %}
+      {% render_article_state_control article user %}
     </div>
   </div>
 </div>
+
+{% endif %}
 
 {% endblock %}

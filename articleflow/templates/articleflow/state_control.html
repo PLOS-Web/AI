@@ -7,6 +7,9 @@
   
   <div class="rounded-box-card-inner">
     <div class="">
+      {% if not transitions %}
+      <p>No available transitions.</p>
+      {% endif %}
       {% for transition in transitions %}
       <button id="state-transition-{{ transition.pk }}" class="btn {{ transition.preference_weight|buttonclass }}">{{ transition.name }}</button>
       
