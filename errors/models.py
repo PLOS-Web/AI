@@ -58,6 +58,8 @@ class Error(models.Model):
                 else:
                     print "Encountered error category unknown to articleextras"
                     
+                a_extras.num_errors_total += 1                    
+
                 a_extras.save()
 
         return ret
@@ -105,6 +107,7 @@ class ErrorSet(models.Model):
         # Wipe out articleextra tallies on new errorset
         if insert: 
             a_extras, new = ArticleExtras.objects.get_or_create(article=self.article)
+            a_extras.num_errors_total = 0
             a_extras.num_errors = 0
             a_extras.num_warnings = 0
             a_extras.save()
