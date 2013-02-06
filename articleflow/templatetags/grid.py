@@ -15,13 +15,22 @@ def sanitize_class_name(raw_name):
     return sanitized
 
 @register.inclusion_tag('articleflow/grid_order_arrows.html', takes_context=True)
-def render_ordering_arrows(context, column, base_qs, active=False):
+def render_ordering_arrows(context, column, base_qs):
     qs = QueryDict(base_qs).copy()
-    qs['sort'] = column
+    active = False
+
+    if qs.get('order_col') == column:
+        if qs.get('order_mode') == 'asc':
+            active = 'asc'
+        else:
+            active = 'desc'
+
+    print active
+    qs['order_col'] = column
     qs_asc = qs.copy()
-    qs_asc['sort_type'] = 'asc'
+    qs_asc['order_mode'] = 'asc'
     qs_desc = qs.copy()
-    qs_desc['sort_type'] = 'desc'
+    qs_desc['order_mode'] = 'desc'
 
     context.update({'column': column,
                     'active': active,

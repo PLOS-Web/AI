@@ -1,6 +1,6 @@
 {% load grid %}
 
 <div id="order-arrows-{{ column|sanitize_class_name }}" class="order-arrows">
-  <a href="?{{ qs_asc }}" class="order-arrow {% if active == 'asc' %}order-arrow-active{% else %}order-arrow-inactive{% endif %}">&#x25B2;</a>
-  <a href="?{{ qs_desc }}" class="order-arrow {% if active == 'desc' %}order-arrow-active{% else %}order-arrow-inactive{% endif %}">&#x25BC;</a>
+  <a href="?{{ qs_desc }}" class="order-arrow {% if active == 'desc' %}order-arrow-active{% else %}order-arrow-inactive{% endif %}">&#x25B2;</a>
+  <a href="?{{ qs_asc }}" class="order-arrow {% if active == 'asc' %}order-arrow-active{% else %}order-arrow-inactive{% endif %}">&#x25BC;</a>
 </div>

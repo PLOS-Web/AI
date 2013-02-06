@@ -77,7 +77,7 @@
       {% for col in requested_cols %}
       <th class="grid-header">
 	{{ col }}
-	{% render_ordering_arrows col base_qs 'desc'%}
+	{% render_ordering_arrows col base_qs%}
       </th>
       {% endfor %}
     </tr>
