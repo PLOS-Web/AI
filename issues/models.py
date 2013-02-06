@@ -66,6 +66,8 @@ class Issue(models.Model):
             else:
                 print "Encountered category unknown to articleextras"
 
+            a_extras.num_issues_total += 1
+
             a_extras.save()
 
         return ret

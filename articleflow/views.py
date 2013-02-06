@@ -26,7 +26,51 @@ COLUMN_CHOICES = (
     (5, 'State'),
     )
 
+class ColumnOrder():
+    @staticmethod
+    def parse_type(type):
+        if type == 'asc':
+            return ''
+        elif type == 'desc':
+            return '-'
+        raise ValueError
+
+    @staticmethod
+    def pubdate(a, type):
+        return a.order_by(ColumnOrder.parse_type(type) + 'pubdate')
+
+    @staticmethod
+    def doi(a, type):
+        return a.order_by(ColumnOrder.parse_type(type) + 'doi')
+
+    @staticmethod
+    def journal(a, type):
+        return a.order_by(ColumnOrder.parse_type(type) + 'journal__short_name')
+
+    @staticmethod
+    def state(a, type):
+        return a.order_by(ColumnOrder.parse_type(type) + 'current_state')
+
+    @staticmethod
+    def issues(a, type):
+        return a.order_by(ColumnOrder.parse_type(type) + 'article_extras__num_issues_total')
+
+    @staticmethod
+    def errors(a, type):
+        return a.order_by(ColumnOrder.parse_type(type) + 'article_extras__num_errors_total')
+    
+ORDER_CHOICES = {
+    'DOI': ColumnOrder.doi,
+    'PubDate' : ColumnOrder.pubdate,
+    'Journal' : ColumnOrder.journal,
+    'Issues' : ColumnOrder.issues,
+    'Errors' : ColumnOrder.errors,
+    'State' : ColumnOrder.state,
+}
+
+
 class ArticleFilter(django_filters.FilterSet):
+    
     doi = django_filters.CharFilter(name='doi', label='DOI')
 
     datepicker_widget = forms.DateInput(attrs={'class': 'datepicker'})
@@ -62,7 +106,7 @@ class ArticleGrid(View):
         for col in requested_cols:
             name_list.append(COLUMN_CHOICES[int(col)][1])
         return name_list
-    
+        
     def get_context_data(self, **kwargs):
         #context = super(ArticleGrid, self).get_context_data(**kwargs)
         if self.request.GET:
@@ -70,9 +114,26 @@ class ArticleGrid(View):
             print self.request.GET
         context = {}
         
-        # Paginate!
         raw_list = ArticleFilter(self.request.GET, queryset=Article.objects.all())
-        paginator = Paginator(raw_list, self.get_results_per_page())
+
+        # Order!
+        order_col = self.request.GET.getlist('order_col')
+        order_mode = self.request.GET.getlist('order_mode')
+        print order_col
+        if not order_col:
+            qs = ColumnOrder.pubdate(raw_list.qs, 'asc')
+        else:
+            try:
+                fn = ORDER_CHOICES[order_col[0]]
+                qs = fn(raw_list.qs, order_mode[0] or '')
+            except KeyError:
+                print "Can't order by that"
+                qs = ColumnOrder.pubdate(raw_list.qs, 'asc')
+
+
+
+        # Paginate!
+        paginator = Paginator(qs, self.get_results_per_page())
         get_page_num = self.request.GET.get('page')
 
         try:
@@ -92,6 +153,7 @@ class ArticleGrid(View):
             r_query['page'] = article_page.previous_page_number()
             print r_query
             context['previous_page_qs'] = r_query.urlencode()
+        
 
         context['article_list'] = article_page
         context['total_articles'] = sum (1 for article in raw_list)
@@ -99,6 +161,7 @@ class ArticleGrid(View):
         context['filter_form'] = raw_list.form
         requested_cols = self.get_selected_cols()
         context['requested_cols'] = self.get_selected_cols_names(requested_cols)
+        context['base_qs'] = self.request.GET.urlencode()
         context['error_level'] = ERROR_LEVEL
         
         return context

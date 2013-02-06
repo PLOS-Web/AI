@@ -75,7 +75,10 @@
   <thead>
     <tr>
       {% for col in requested_cols %}
-      <th>{{ col }}</th>
+      <th class="grid-header">
+	{{ col }}
+	{% render_ordering_arrows col base_qs%}
+      </th>
       {% endfor %}
     </tr>
   </thead>

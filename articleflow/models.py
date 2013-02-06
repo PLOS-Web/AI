@@ -92,12 +92,14 @@ class ArticleExtras(models.Model):
     article = models.ForeignKey('Article', related_name='article_extras_dont_use')
 
     # Issue counts
+    num_issues_total = models.IntegerField(default=0)
     num_issues_xml = models.IntegerField(default=0)
     num_issues_pdf = models.IntegerField(default=0)
     num_issues_xmlpdf = models.IntegerField(default=0)
     num_issues_si = models.IntegerField(default=0)
     
     # Error counts
+    num_errors_total = models.IntegerField(default=0)
     num_errors = models.IntegerField(default=0)
     num_warnings = models.IntegerField(default=0)
 

@@ -1,4 +1,5 @@
 from django import template
+from django.http import QueryDict
 
 register = template.Library()
 
@@ -12,3 +13,27 @@ def sanitize_class_name(raw_name):
     for char in raw_name:
         if ord(char) in allowed_chars: sanitized += char
     return sanitized
+
+@register.inclusion_tag('articleflow/grid_order_arrows.html', takes_context=True)
+def render_ordering_arrows(context, column, base_qs):
+    qs = QueryDict(base_qs).copy()
+    active = False
+
+    if qs.get('order_col') == column:
+        if qs.get('order_mode') == 'asc':
+            active = 'asc'
+        else:
+            active = 'desc'
+
+    print active
+    qs['order_col'] = column
+    qs_asc = qs.copy()
+    qs_asc['order_mode'] = 'asc'
+    qs_desc = qs.copy()
+    qs_desc['order_mode'] = 'desc'
+
+    context.update({'column': column,
+                    'active': active,
+                    'qs_asc': qs_asc.urlencode(),
+                    'qs_desc': qs_desc.urlencode()})
+    return context
