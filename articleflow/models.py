@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 
 class State(models.Model):
     """
@@ -133,6 +133,7 @@ class Transition(models.Model):
     from_state = models.ForeignKey('State', related_name='possible_transitions')
     to_state = models.ForeignKey('State', related_name='possible_last_transitions')
     disallow_open_items = models.BooleanField(default=False)
+    allowed_groups = models.ManyToManyField(Group, related_name="allowed_transitions")
     preference_weight = models.IntegerField()
     last_modified = models.DateTimeField(auto_now=True)
     
