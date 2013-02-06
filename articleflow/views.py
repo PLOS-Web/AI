@@ -26,6 +26,7 @@ COLUMN_CHOICES = (
     (3, 'Issues'),
     (4, 'Errors'),
     (5, 'State'),
+    (6, 'Assigned'),
     )
 
 class ColumnOrder():
@@ -60,6 +61,10 @@ class ColumnOrder():
     @staticmethod
     def errors(a, type):
         return a.order_by(ColumnOrder.parse_type(type) + 'article_extras__num_errors_total')
+
+    @staticmethod
+    def assigned(a, type):
+        return a.order_by(ColumnOrder.parse_type(type) + 'current_articlestate__assignee__username')
     
 ORDER_CHOICES = {
     'DOI': ColumnOrder.doi,
@@ -68,6 +73,7 @@ ORDER_CHOICES = {
     'Issues' : ColumnOrder.issues,
     'Errors' : ColumnOrder.errors,
     'State' : ColumnOrder.state,
+    'Assigned' : ColumnOrder.assigned,
 }
 
 
@@ -75,12 +81,14 @@ class ArticleFilter(django_filters.FilterSet):
     
     doi = django_filters.CharFilter(name='doi', label='DOI')
 
+
     datepicker_widget = forms.DateInput(attrs={'class': 'datepicker'})
     pubdate_gte = django_filters.DateFilter(name='pubdate', label='Pubdate on or after', lookup_type='gte', widget=datepicker_widget) 
     pubdate_lte = django_filters.DateFilter(name='pubdate', label='Pubdate on or before', lookup_type='lte', widget=datepicker_widget) 
 
     journal = django_filters.ModelMultipleChoiceFilter(name='journal', label='Journal', queryset=Journal.objects.all())
     current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_state', label='Article state', queryset=State.objects.all())
+    current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_articlestate__assignee', label='Assigned', queryset=User.objects.all())
     
     class Meta:
         model = Article
@@ -97,7 +105,7 @@ class ArticleGrid(View):
 
     def get_selected_cols(self):
         if not self.request.GET.getlist('cols'):
-            requested_cols = range(0,6) #default columns
+            requested_cols = range(0,7) #default columns
         else:
             requested_cols = [0] #make sure DOI is always included
             requested_cols += self.request.GET.getlist('cols')
