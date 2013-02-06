@@ -6,6 +6,7 @@
 {% load ajax_issues %}
 {% load error_tags %}
 {% load transitions %}
+{% load assignment %}
 
 {% block head %}
 <link href="{{ STATIC_URL }}css/articleflow.css" rel="stylesheet">
@@ -25,12 +26,22 @@
   <div class="span6">
       <table>
 	<tr>
-	  <td>Pubdate</td>
+	  <td>Pubdate:</td>
 	  <td>{{ article.pubdate }}</td>
 	</tr>
 	<tr>
 	  <td>Current state: </td>
 	  <td>{{ article.current_articlestate.state.name }}</td>
+	</tr>
+	<tr>
+	  <td>Assigned to: </td>
+	  <td>	    
+	    {% if article.current_articlestate.assignee.username %}
+	    {{ article.current_articlestate.assignee.username }}
+	    {% elif user.is_authenticated %}
+	    {% render_assign_to_me_button article user %}
+	    {% endif %}
+	  </td>
 	</tr>
       </table>
   </div>
