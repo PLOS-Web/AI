@@ -7,6 +7,8 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django import forms
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.auth.models import Group
+
 import simplejson
 
 import django_filters
@@ -217,10 +219,16 @@ class ArticleDetailTransition(View):
 
             # Make sure user is in appropriate group to make transition
             auth_legal = False
-            for group in user.groups.all():
-                if group in transition.allowed_groups:
-                    auth_legal = True
-                    break
+
+            admin_group = Group.objects.get(name='admin')
+            if admin_group in user.groups.all():
+                auth_legal = True
+            else:
+                for group in user.groups.all():
+                    if group in transition.allowed_groups:
+                        auth_legal = True
+                        break
+
             if not auth_legal:
                 to_json = {
                     'not_allowed_error': {
@@ -228,7 +236,8 @@ class ArticleDetailTransition(View):
                         }
                     }                
                 return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')    
-
+            
+            # Make sure open errors and issues are in correct state
             if transition.disallow_open_items:
                 open_items = transitionrules.article_count_open_items(article)
                 if (open_items['open_issues'] > 0 or open_items['open_errors'] > 0):
