@@ -213,8 +213,21 @@ class ArticleDetailTransition(View):
         if request.is_ajax():
             article = Article.objects.get(pk=request.POST['article_pk'])
             transition = Transition.objects.get(pk=request.POST['requested_transition_pk'])
-            # @TODO, fix this shit!
-            user = User.objects.get(pk=1)
+            user = request.user
+
+            # Make sure user is in appropriate group to make transition
+            auth_legal = False
+            for group in user.groups.all():
+                if group in transition.allowed_groups:
+                    auth_legal = True
+                    break
+            if not auth_legal:
+                to_json = {
+                    'not_allowed_error': {
+                        'allowed_groups': []
+                        }
+                    }                
+                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')    
 
             if transition.disallow_open_items:
                 open_items = transitionrules.article_count_open_items(article)
