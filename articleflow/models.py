@@ -7,6 +7,7 @@ class State(models.Model):
     """
     name = models.CharField(max_length=100)
     last_modified = models.DateTimeField(auto_now=True)
+    worker_groups = models.ManyToManyField(Group, related_name="state_assignments")
 
     def __unicode__(self):
         return self.name
@@ -18,6 +19,7 @@ class ArticleState(models.Model):
     """
     article = models.ForeignKey('Article', related_name='article_states')
     state = models.ForeignKey('State')
+    assignee = models.ForeignKey(User,null=True, blank=True, default=None)
     from_transition = models.ForeignKey('Transition', related_name='articlestates_created' , null=True, blank=True, default=None)
     from_transition_user = models.ForeignKey(User, related_name='articlestates_created',null=True, blank=True, default=None)
     created = models.DateTimeField(auto_now_add=True)
@@ -26,6 +28,12 @@ class ArticleState(models.Model):
     def __unicode__(self):
         return u'%s: %s' % (self.article, self.state)
     
+    def assign_user(self, user):
+        self.assignee = user
+        ah = AssignmentHistory(user=user, article_state=self)
+        self.save()
+        ah.save()
+
     def save(self, *args, **kwargs):
         ret = super(ArticleState, self).save(*args, **kwargs)
         art = self.article
@@ -106,6 +114,10 @@ class ArticleExtras(models.Model):
     num_errors = models.IntegerField(default=0)
     num_warnings = models.IntegerField(default=0)
 
+    # Bookkeeping
+    created = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
+
     def save(self, *args, **kwargs):
         insert = not self.pk
         ret = super(ArticleExtras, self).save(*args, **kwargs)
@@ -158,4 +170,9 @@ class Transition(models.Model):
         else:
             return False
 
-
+class AssignmentHistory(models.Model):
+    user = models.ForeignKey(User, related_name='assignment_histories')
+    article_state = models.ForeignKey('ArticleState', related_name='assignment_histories')
+    
+    created = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
