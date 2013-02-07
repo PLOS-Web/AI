@@ -9,5 +9,6 @@ urlpatterns = patterns('articleflow.views',
                        url(r'^detail/(?P<doi>[a-z|\.|0-9]{0,50})/issues', ArticleDetailIssues.as_view(), name='detail_issues'),
                        url(r'^detail/(?P<doi>[a-z|\.|0-9]{0,50})/errors', Errors.as_view(), name='detail_errors'),
                        url(r'^detail/(?P<doi>[a-z|\.|0-9]{0,50})/assign-to-me', AssignToMe.as_view(), name='assign_to_me'),
+                       url(r'^assign_ratios/', AssignRatios.as_view(), name='assign_ratios'),
                        )
 

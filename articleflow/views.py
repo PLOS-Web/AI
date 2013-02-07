@@ -325,3 +325,20 @@ class AssignToMe(View):
                 'redirect_url': reverse('detail_main', args=[article.doi])
                 }
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+class AssignRatios(View):
+        template_name = 'articleflow/assign_ratios.html'
+
+        def get_context_data(self, kwargs):
+            assignment_states = State.objects.filter(auto_assign__gte=2).all()
+            for state in assignment_states:
+                states = {
+                    'state': state,
+                    }
+            return {
+                'assignment_states' : states
+                }
+
+        def get(self, request, *args, **kwargs):
+            context = self.get_context_data(kwargs)
+            return render_to_response(self.template_name, context, context_instance=RequestContext(request))

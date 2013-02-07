@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block sub_title %} - Assignments{% endblock %}
+
+{% block content %}
+<h2>Assignment Ratios</h2>
+{% for state in assignment_states %}
+<h3>{{ state.name }}</h3>
+  {% for group in state.worker_groups.all %}
+  <h4>{{ group.name }}</h4>
+  {% endfor %}
+{% endfor %}
+
+{% endblock %}

@@ -1,6 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User, Group
 
+AUTO_ASSIGN = (
+    (1, 'No'),
+    (2, 'Yes'),
+    (3, 'Custom')
+)
+
 class State(models.Model):
     """
     Defines the possible states that articles can be in
@@ -8,6 +14,8 @@ class State(models.Model):
     name = models.CharField(max_length=100)
     last_modified = models.DateTimeField(auto_now=True)
     worker_groups = models.ManyToManyField(Group, related_name="state_assignments")
+    auto_assign = models.IntegerField(default=1, choices=AUTO_ASSIGN)
+
 
     def __unicode__(self):
         return self.name
