@@ -179,3 +179,15 @@ class AssignmentHistory(models.Model):
     
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
+
+class AssignmentRatios(models.Model):
+    user = models.ForeignKey(User, related_name='assignment_weights')
+    state = models.ForeignKey('State', related_name='assignment_weights')
+    weight = models.IntegerField()
+
+    # bookkeeping
+    created = models.DateTimeField(auto_now_add=True)
+    last_modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("user", "state")
