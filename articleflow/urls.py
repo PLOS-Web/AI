@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, include, url
-from articleflow.views import ArticleGrid, ArticleDetailMain, ArticleDetailTransition, ArticleDetailIssues
+from articleflow.views import *
 from errors.views import Errors
 
 urlpatterns = patterns('articleflow.views',
@@ -8,5 +8,6 @@ urlpatterns = patterns('articleflow.views',
                        url(r'^detail/(?P<doi>[a-z|\.|0-9]{0,50})/transitions', ArticleDetailTransition.as_view(), name='detail_transition'),
                        url(r'^detail/(?P<doi>[a-z|\.|0-9]{0,50})/issues', ArticleDetailIssues.as_view(), name='detail_issues'),
                        url(r'^detail/(?P<doi>[a-z|\.|0-9]{0,50})/errors', Errors.as_view(), name='detail_errors'),
+                       url(r'^help/', Help.as_view(), name='help'),
                        )
 

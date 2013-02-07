@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block main_nav %}
+{% include "includes/main_nav.html" with active_tab="help" %}
+{% endblock %}
+
+{% block sub_title %} - {{ article.doi }}{% endblock %}
+
+{% block content %}
+<h2>Help</h2>
+<p>This is the bit that nina will fill in!</p>
+{% endblock %}

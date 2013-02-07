@@ -262,3 +262,10 @@ class ArticleDetailIssues(View):
                 })
         return context
 
+
+class Help(View):
+    template_name = 'articleflow/help.html'
+
+    def get(self, request, *args, **kwargs):
+        context = {}
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
