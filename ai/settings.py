@@ -7,11 +7,11 @@ import os.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+     ('Jack LaBarba', 'jlabarba@plos.org'),
 )
 
 MANAGERS = ADMINS
@@ -210,3 +210,10 @@ import logging
 logger = logging.getLogger('django_auth_ldap')
 logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.DEBUG)
+
+# EMAIL config
+EMAIL_HOST = "sfexch02.plos.org"
+EMAIL_HOST_USER = "ai"
+EMAIL_HOST_PASSWORD = ""
+
+SERVER_EMAIL = "ai@plos.org"
