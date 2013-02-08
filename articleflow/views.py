@@ -362,6 +362,15 @@ class PutArticle(BaseTransaction):
         except KeyError:
             pass
 
+        try:
+            username = self.payload['state_change_user']
+            user=User.objects.get(username=username)
+        except User.DoesNotExist:
+            print "User Doesn't exist"
+            return False
+        except KeyError:
+            pass
+
         return True
 
     def control(self):
@@ -370,6 +379,10 @@ class PutArticle(BaseTransaction):
 
         if self.get_val('pubdate'):
             a.pubdate=self.get_val('pubdate')
+        if self.get_val('md5'):
+            a.md5=self.get_val('md5')
+        if self.get_val('si_guid'):
+            a.si_guid=self.get_val('si_guid')
         a.journal=Journal.objects.get(pk=self.get_val('journal'))
                                           
         print "New article? %s" % new
@@ -381,6 +394,9 @@ class PutArticle(BaseTransaction):
                 s = ArticleState(article=a,
                                  state=State.objects.get(name=requested_state)
                                  )
+                if self.get_val('state_change_user'):
+                    s.from_transition_user = User.objects.get(username=self.get_val('state_change_user')) 
+
                 s.save()
         return self.payload
 
@@ -396,9 +412,10 @@ class PutArticle(BaseTransaction):
         # make change
         response_dict = self.control()
 
-        return self.response(self.payload)
+        return self.get(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
+        print kwargs
         print kwargs['doi']
         try:
             a = Article.objects.get(doi=kwargs['doi'])
@@ -408,6 +425,8 @@ class PutArticle(BaseTransaction):
         a_dict = {'doi': a.doi,
                   'pubdate': a.pubdate.strftime("%Y-%m-%d"),
                   'state': a.current_state.name,
+                  'si_guid': a.si_guid,
+                  'md5': a.md5,
                   }
 
         return self.response(a_dict)

@@ -62,9 +62,20 @@ data = {
 r = requests.put('http://10.135.2.181:8000/api/article/pone.9999999', data=simplejson.dumps(data))
 print r.text
 
-print "Shouldn't do anything"
+print "Should complain about a fake user"
 data = {
-    'state': 'New'
+    'state': 'Delivered',
+    'state_change_user': 'fake_user',
 }
 r = requests.put('http://10.135.2.181:8000/api/article/pone.9999999', data=simplejson.dumps(data))
 print r.text
+
+print "Should reset article to new effected by jlabarba"
+data = {
+    'state': 'New',
+    'state_change_user': 'jlabarba',
+}
+r = requests.put('http://10.135.2.181:8000/api/article/pone.9999999', data=simplejson.dumps(data))
+print r.text
+
+
