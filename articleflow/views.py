@@ -2,6 +2,7 @@ from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.views.generic import ListView, DetailView
 from django.views.generic.base import View
+from django.views.decorators.csrf import csrf_exempt
 from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
@@ -25,6 +26,18 @@ COLUMN_CHOICES = (
     (4, 'Errors'),
     (5, 'State'),
     )
+
+def get_journal_from_doi(doi):
+    match = re.match('.*(?=\.)', doi)
+    
+    if not match:
+        raise ValueError('Could not find a journal short_name in doi, %s' % doi)
+    short_name = re.match('.*(?=\.)', doi).group(0)
+    
+    try:
+        return Journal.objects.get(short_name=short_name)
+    except Journal.DoesNotExist:
+        raise ValueError("doi prefix, %s, does not match any known journal" % short_name)
 
 class ColumnOrder():
     @staticmethod
@@ -269,3 +282,92 @@ class Help(View):
     def get(self, request, *args, **kwargs):
         context = {}
         return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
+
+#API stuff
+class BaseTransaction(View):
+    def get_val(self, key, dic=None):
+        if not dic:
+            dic = self.payload
+        try:
+            return dic[key]
+        except KeyError:
+            return None
+
+    # override me
+    def valid_payload(self):
+        return True
+
+    # override me
+    def control(self):
+        return True
+
+    def parse_payload(self, json_str):
+        try:
+            self.payload = simplejson.loads(json_str)
+        except:
+            print "Couldn't parse json"
+            return (self.error_response("Unable to parse json message"), True)
+
+        if not self.valid_payload():
+            print "not valid payload"
+            return (self.error_response("Invalid data in payload"), True)
+        return (None, False)
+    
+    def response(self, message_dict, status_code=200):
+        return HttpResponse(simplejson.dumps(message_dict), mimetype='application/json')
+
+    def error_response(self, message, status_code=400):
+        payload = {
+            'error': message
+            }
+        return self.response(payload, status_code=status_code) 
+
+    @csrf_exempt
+    def dispatch(self, *args, **kwargs):
+        return super(BaseTransaction, self).dispatch(*args, **kwargs)
+
+
+class PutArticle(BaseTransaction):
+    def valid_payload(self):
+        print self.payload
+        try:
+            self.payload['doi']
+        except KeyError:
+            print "Can't find doi"
+            return False
+        try:
+            payload['journal']=get_journal_from_doi(payload['doi'])
+        except ValueError:
+            print "Can't resolve journal"
+            return False
+
+        return True
+
+    def control(self):
+        print self.get_val('doi')
+
+        a = Article(doi=self.get_val('doi'),
+                    pubdate=self.get_val('pubdate'),
+                    journal=self.get_val('journal'))
+        print a
+        return {'doi': self.get_val('doi')}
+
+    def put(self, request, *args, **kwargs):
+        response, fail = self.parse_payload(request.body)
+        if fail:
+            return response
+
+        # make change
+        response_dict = self.control()
+
+        return self.response(self.payload)
+
+    def get(self, request, *args, **kwargs):
+        response, fail = self.parse_payload(request.body)
+        if fail:
+            print response
+            return response
+        return self.response(self.payload)
+    
+    
