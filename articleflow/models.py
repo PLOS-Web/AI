@@ -48,7 +48,7 @@ class Article(models.Model):
     Holds information about each article
     """
     doi = models.CharField(max_length=50, unique=True)
-    pubdate = models.DateField()
+    pubdate = models.DateField(null=True, blank=True, default=None)
     journal = models.ForeignKey('Journal')
     current_articlestate = models.ForeignKey('ArticleState', related_name='current_article', null=True, blank=True, default=None)
     current_state = models.ForeignKey('State', related_name="current_articles", null=True, blank=True, default=None)
@@ -73,6 +73,10 @@ class Article(models.Model):
 
         # Create a blank articleextras row
         if insert:
+            # create new state
+            s = ArticleState(article=self, state=State.objects.get(name="New"))
+            s.save()
+            
             if not self.article_extras:
                 a_extras = ArticleExtras(article=self)
                 a_extras.save()
