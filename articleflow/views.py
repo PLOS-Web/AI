@@ -3,12 +3,15 @@ from django.shortcuts import render_to_response
 from django.views.generic import ListView, DetailView
 from django.views.generic.base import View
 from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import ValidationError
 from django.template import RequestContext
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django import forms
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 import simplejson
+import re
 
 import django_filters
 
@@ -277,7 +280,8 @@ class ArticleDetailIssues(View):
 
 
 class Help(View):
-    template_name = 'articleflow/help.html'
+    template_name = '404.html'
+    #template_name = 'articleflow/help.html'
 
     def get(self, request, *args, **kwargs):
         context = {}
@@ -337,26 +341,60 @@ class PutArticle(BaseTransaction):
             print "Can't find doi"
             return False
         try:
-            payload['journal']=get_journal_from_doi(payload['doi'])
+            self.payload['journal']=get_journal_from_doi(self.payload['doi']).pk
         except ValueError:
             print "Can't resolve journal"
             return False
 
+        try:
+            print "Validating date"
+            match = re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}$', self.payload['pubdate'])
+            print match
+            if not match:
+                print "Incorrect pubdate format"
+                return False
+        except KeyError:
+            pass
+
+        try:
+            requested_state = self.payload['state']
+            state=State.objects.get(name=requested_state)
+        except State.DoesNotExist:
+            print "Nonexistant state"
+            return False
+        except KeyError:
+            pass
+
+
         return True
 
     def control(self):
-        print self.get_val('doi')
+        print "start control"
+        a, new = Article.objects.get_or_create(doi=self.get_val('doi'))
 
-        a = Article(doi=self.get_val('doi'),
-                    pubdate=self.get_val('pubdate'),
-                    journal=self.get_val('journal'))
-        print a
-        return {'doi': self.get_val('doi')}
+        if self.get_val('pubdate'):
+            a.pubdate=self.get_val('pubdate')
+        a.journal=Journal.objects.get(pk=self.get_val('journal'))
+                                          
+        print "New article? %s" % new
+        a.save()
+
+        requested_state = self.get_val('state')
+        if requested_state:
+            if a.current_state.name != requested_state:
+                s = ArticleState(article=a,
+                                 state=State.objects.get(name=requested_state)
+                                 )
+                s.save()
+        return self.payload
 
     def put(self, request, *args, **kwargs):
+        print "start put"
         response, fail = self.parse_payload(request.body)
         if fail:
             return response
+        print self.payload
+        print "pubdate: %s" % self.get_val('pubdate')
 
         # make change
         response_dict = self.control()
@@ -364,10 +402,6 @@ class PutArticle(BaseTransaction):
         return self.response(self.payload)
 
     def get(self, request, *args, **kwargs):
-        response, fail = self.parse_payload(request.body)
-        if fail:
-            print response
-            return response
-        return self.response(self.payload)
-    
+        print "NANANAN"
+        return self.put(request, *args, **kwargs)
     
