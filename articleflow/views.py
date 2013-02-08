@@ -335,11 +335,8 @@ class BaseTransaction(View):
 class PutArticle(BaseTransaction):
     def valid_payload(self):
         print self.payload
-        try:
-            self.payload['doi']
-        except KeyError:
-            print "Can't find doi"
-            return False
+        self.payload['doi'] = self.doi
+
         try:
             self.payload['journal']=get_journal_from_doi(self.payload['doi']).pk
         except ValueError:
@@ -365,7 +362,6 @@ class PutArticle(BaseTransaction):
         except KeyError:
             pass
 
-
         return True
 
     def control(self):
@@ -390,6 +386,7 @@ class PutArticle(BaseTransaction):
 
     def put(self, request, *args, **kwargs):
         print "start put"
+        self.doi = kwargs['doi']
         response, fail = self.parse_payload(request.body)
         if fail:
             return response
@@ -402,6 +399,21 @@ class PutArticle(BaseTransaction):
         return self.response(self.payload)
 
     def get(self, request, *args, **kwargs):
-        print "NANANAN"
-        return self.put(request, *args, **kwargs)
-    
+        print kwargs['doi']
+        try:
+            a = Article.objects.get(doi=kwargs['doi'])
+        except Article.DoesNotExist:
+            return self.error_response('Article does not exist')
+        
+        a_dict = {'doi': a.doi,
+                  'pubdate': a.pubdate.strftime("%Y-%m-%d"),
+                  'state': a.current_state.name,
+                  }
+
+        return self.response(a_dict)
+                                   
+        
+
+class GetArticle(BaseTransaction):
+    def valid_payload(self):
+        pass
