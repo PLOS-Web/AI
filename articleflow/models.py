@@ -50,6 +50,8 @@ class Article(models.Model):
     doi = models.CharField(max_length=50, unique=True)
     pubdate = models.DateField(null=True, blank=True, default=None)
     journal = models.ForeignKey('Journal')
+    si_guid = models.CharField(max_length=500, null=True, blank=True, default=None)
+    md5 = models.CharField(max_length=500, null=True, blank=True, default=None)
     current_articlestate = models.ForeignKey('ArticleState', related_name='current_article', null=True, blank=True, default=None)
     current_state = models.ForeignKey('State', related_name="current_articles", null=True, blank=True, default=None)
     article_extras = models.ForeignKey('ArticleExtras', related_name="article_dont_use", null=True, blank=True, default=None)
