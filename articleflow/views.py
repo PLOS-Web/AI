@@ -19,7 +19,13 @@ import transitionrules
 
 from articleflow.models import Article, ArticleState, State, Transition, Journal
 from issues.models import Issue, Category
-from errors.models import ErrorSet, Error, ERROR_LEVEL
+from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
+
+def resolve_choice_index(choices, key):
+    for choice in choices:
+        if key == choice[1]:
+            return choice[0]
+    return None
 
 COLUMN_CHOICES = (
     (0, 'DOI'),
@@ -307,6 +313,7 @@ class BaseTransaction(View):
         return True
 
     def parse_payload(self, json_str):
+        print json_str
         try:
             self.payload = simplejson.loads(json_str)
         except:
@@ -332,7 +339,7 @@ class BaseTransaction(View):
         return super(BaseTransaction, self).dispatch(*args, **kwargs)
 
 
-class PutArticle(BaseTransaction):
+class TransactionArticle(BaseTransaction):
     def valid_payload(self):
         print self.payload
         self.payload['doi'] = self.doi
@@ -431,8 +438,42 @@ class PutArticle(BaseTransaction):
 
         return self.response(a_dict)
                                    
+
+class TransactionErrorset(BaseTransaction):
+    def valid_payload(self):
+        print self.payload
+
+        try:
+            i = resolve_choice_index(ERROR_SET_SOURCES, self.payload['source'])
+            if not i:
+                print "Source doesn't exist"
+                return False
+        except KeyError:
+            print "Didn't supply source"
+            return False
+
+        try:
+            self.payload['errors']
+        except KeyError:
+            print "Didn't supply errors"
+            return False
+
+        return True
+        
+    def control(self):
+        print "start control"
         
 
-class GetArticle(BaseTransaction):
-    def valid_payload(self):
-        pass
+    def put(self, request, *args, **kwargs):
+        self.doi = kwargs['doi']
+        self.errorset_pk = kwargs['errorset_pk']
+        print "REQUEST BODY:"
+        response, fail = self.parse_payload(request.body)
+        if fail:
+            return response
+
+        return self.response(self.payload)
+
+
+    def get(self, request, *args, **kwargs):
+        return self.response("yoyoyoy")

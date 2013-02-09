@@ -79,3 +79,14 @@ r = requests.put('http://10.135.2.181:8000/api/article/pone.9999999', data=simpl
 print r.text
 
 
+##### PUT errorset tests #####
+print "Errorset PUT"
+data = {
+    'source': 'ariesPull',
+    'errors': 'error: stuff'
+}
+
+r = requests.put('http://10.135.2.181:8000/api/article/pone.9999999/errorset/', data=simplejson.dumps(data))
+print r.text
+
+
