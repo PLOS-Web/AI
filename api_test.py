@@ -94,3 +94,35 @@ r = requests.put(host_base + '/api/article/pone.9999999/errorset/', data=simplej
 print r.text
 
 
+##### POST transition tests #####
+print "Put article into transitionable state"
+data = {
+    'state': 'Delivered',
+}
+r = requests.put(host_base + '/api/article/pone.9999999', data=simplejson.dumps(data))
+print r.text
+
+print "transition POST: fake transition name"
+data = {
+    'name': 'not a transition',
+    'transition_user': 'jlabarba',
+}
+r = requests.post(host_base + '/api/article/pone.9999999/transition/', data=simplejson.dumps(data))
+print r.text
+
+print "transition POST: fake user name"
+data = {
+    'name': 'not a transition',
+    'transition_user': 'not a user',
+}
+r = requests.post(host_base + '/api/article/pone.9999999/transition/', data=simplejson.dumps(data))
+print r.text
+
+print "transition POST: ingest"
+data = {
+    'name': 'Ingest',
+    'transition_user': 'jlabarba',
+}
+
+r = requests.post(host_base + '/api/article/pone.9999999/transition/', data=simplejson.dumps(data))
+print r.text

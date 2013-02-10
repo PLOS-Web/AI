@@ -523,3 +523,50 @@ class TransactionErrorset(BaseTransaction):
 
     def get(self, request, *args, **kwargs):
         return self.error_response("Not Implemented")
+
+class TransactionTransition(BaseTransaction):
+    def valid_payload(self):
+        print self.payload
+
+        try:
+            username = self.payload['transition_user']
+            self.user=User.objects.get(username=username)
+        except User.DoesNotExist:
+            print "User Doesn't exist"
+            return False
+        except KeyError:
+            pass
+
+        try:
+            self.article = Article.objects.get(doi=self.doi)
+        except Article.DoesNotExist:
+            print "That article doesn't exist"
+            return False
+
+        try:
+            self.transition = Transition.objects.get(name=self.payload['name'])
+
+            if self.transition not in self.article.possible_transitions().all():
+                print "That transition is not legal"
+                return False
+        except Transition.DoesNotExist:
+            print "That transition doesn't exist"
+            return False
+        except KeyError:
+            print "Didn't supply transition name"
+            return False
+        
+        return True
+
+    def control(self):
+        self.article.execute_transition(self.transition, self.user)
+
+    def post(self, request, *args, **kwargs):
+        self.doi = kwargs['doi']
+
+        response, fail = self.parse_payload(request.body)
+        if fail:
+            return response
+
+        self.control()
+        return self.response(self.payload)        

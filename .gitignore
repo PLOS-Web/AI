@@ -13,6 +13,7 @@ downloads
 eggs
 parts
 src/*.egg-info
+src/*
 lib
 lib64
 /env
