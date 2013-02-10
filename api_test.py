@@ -118,6 +118,10 @@ data = {
 r = requests.post(host_base + '/api/article/pone.9999999/transition/', data=simplejson.dumps(data))
 print r.text
 
+print "transition GET: ingest"
+r = requests.get(host_base + '/api/article/pone.9999999/transition/')
+print r.text
+
 print "transition POST: ingest"
 data = {
     'name': 'Ingest',

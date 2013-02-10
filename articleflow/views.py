@@ -348,7 +348,9 @@ class BaseTransaction(View):
         return (None, False)
     
     def response(self, message_dict, status_code=200):
-        return HttpResponse(simplejson.dumps(message_dict), mimetype='application/json')
+        r = HttpResponse(simplejson.dumps(message_dict), mimetype='application/json')
+        r.status_code = status_code
+        return r
 
     def error_response(self, message, status_code=400):
         payload = {
@@ -569,4 +571,24 @@ class TransactionTransition(BaseTransaction):
             return response
 
         self.control()
-        return self.response(self.payload)        
+        return self.response(self.payload)
+
+    # return list of available transitions
+    def get(self, request, *args, **kwargs):
+        self.doi = kwargs['doi']
+
+        try:
+            self.article = Article.objects.get(doi=self.doi)
+        except Article.DoesNotExist:
+            print "That article doesn't exist"
+            return self.error_result("That article doesn't exist")
+
+        transitions = self.article.possible_transitions().all()
+
+        t_names = []
+        for t in transitions:
+            t_names += [t.name]
+
+        return self.response({"possible_transitions": t_names})
+
+        
