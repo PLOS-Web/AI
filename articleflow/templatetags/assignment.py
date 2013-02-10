@@ -16,4 +16,4 @@ def render_assign_to_me_button(context, article, user):
     
 @register.filter()
 def joinby(value, arg):
-    return arg.join(value)    
+    return arg.join(value)  

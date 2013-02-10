@@ -1,5 +1,10 @@
+import datetime
+
 from django.db import models
 from django.contrib.auth.models import User, Group
+
+from django.db.models import Sum, Max
+###import autoassign
 
 AUTO_ASSIGN = (
     (1, 'No'),
@@ -21,6 +26,7 @@ class State(models.Model):
 
     def possible_assignees(self):
         return User.objects.filter(groups__state_assignments=self)
+
 
 class ArticleState(models.Model):
     """
@@ -45,15 +51,25 @@ class ArticleState(models.Model):
         ah.save()
 
     def save(self, *args, **kwargs):
+        insert = not self.pk
+        
         ret = super(ArticleState, self).save(*args, **kwargs)
         art = self.article
+
+        if insert:
+            if self.assignee:
+                self.assign_user(self.assignee)
+            elif self.state.auto_assign > 1:
+                print "Finding worker ..."
+                a_user = AutoAssign.pick_worker(self.article, self.state, datetime.date.today())
+                if a_user:
+                    self.assign_user(a_user)
+
         if art:
             art.current_articlestate = self
             art.current_state = self.state
             art.save()
-        if self.assignee:
-            ah = AssignmentHistory(user=self.assignee, article_state=self)
-            ah.save()
+
         return ret
 
 class Journal(models.Model):
@@ -190,6 +206,9 @@ class AssignmentHistory(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
 
+    def __unicode__(self):
+        return u'(%s, %s): %s %s' % (self.article_state.article.doi, self.article_state.state.name, self.user.username, self.created)
+
 class AssignmentRatio(models.Model):
     user = models.ForeignKey(User, related_name='assignment_weights')
     state = models.ForeignKey('State', related_name='assignment_weights')
@@ -201,3 +220,75 @@ class AssignmentRatio(models.Model):
 
     class Meta:
         unique_together = ("user", "state")
+
+
+class AutoAssign():
+    @staticmethod
+    def total_group_weight(state):
+        return state.assignment_weights.aggregate(Sum('weight'))['weight__sum']
+
+    @staticmethod
+    def total_assignments(state, start_time):
+        return AssignmentHistory.objects.filter(created__gte=start_time).count()
+
+    @staticmethod
+    def worker_assignments(state, user, start_time):
+        return AssignmentHistory.objects.filter(user=user).filter(created__gte=start_time).count()
+
+    @staticmethod
+    def pick_worker(article, state, start_time):
+        print "Pick Worker start"
+        total_assigns = AutoAssign.total_assignments(state, start_time)
+        total_weight = AutoAssign.total_group_weight(state)
+
+        possible_assignees = state.possible_assignees()
+        
+        # if this is returning to an old state, try to reassign to the last person who had it
+        try:
+            last_state = ArticleState.objects.filter(article=article).filter(state=state).order_by('created')[1]
+            print "last_state: %s" % last_state
+            print "last_state_assignee: %s" % last_state.assignee
+            if last_state.assignee in possible_assignees.all():
+                print "Old assignee found"
+                return last_state.assignee
+        except IndexError:
+            pass
+
+        # if there are no weights defined, don't assign
+        if total_weight == 0:
+            print "No weights defined"
+            return None
+
+        # if nothing has been assigned, give to person with highest weight
+        if total_assigns == 0:
+            print "Nothing assigned yet, giving max weighted user"
+            max_weight = AssignmentRatio.objects.filter(state=state).aggregate(Max('weight'))['weight__max']
+            print "Max_weight: %s" % max_weight
+            return AssignmentRatio.objects.filter(weight=max_weight)[0].user
+
+    # otherwise figure out who has the biggest assignment deficit
+
+        print "Analying deficits"
+        r_users = []
+        max_deficit = (0, None)
+        for u in possible_assignees.all():
+            print "Analyzing %s ..." % u
+            work_ratio = AutoAssign.worker_assignments(state, u, start_time) / float(total_assigns)
+            print "work_ratio: %s" % work_ratio
+            try:
+                weight_ratio = AssignmentRatio.objects.get(user=u, state=state).weight / float(total_weight)
+                if weight_ratio == 0:
+                    print "Weight ratio is zero, skipping"
+                    continue
+            except AssignmentRatio.DoesNotExist:
+                print "No weight assigned, skipping"
+                continue
+            print "weight_ratio: %s" % weight_ratio
+            deficit = weight_ratio - work_ratio
+            print "deficit: %s" % deficit
+        
+            r_users += [(deficit, u)]
+            if deficit > max_deficit[0] or not max_deficit[1]:
+                max_deficit = (deficit, u)
+
+        return max_deficit[1]
