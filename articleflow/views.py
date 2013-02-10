@@ -496,11 +496,16 @@ class TransactionArticle(BaseTransaction):
         if a.pubdate:
             pubdate_str = a.pubdate.strftime("%Y-%m-%d")
 
+        assignee = None
+        if a.current_articlestate.assignee:
+            assignee = a.current_articlestate.assignee.username
+
         a_dict = {'doi': a.doi,
                   'pubdate': pubdate_str,
                   'state': a.current_state.name,
                   'si_guid': a.si_guid,
                   'md5': a.md5,
+                  'assignee': assignee,
                   }
 
         return self.response(a_dict)

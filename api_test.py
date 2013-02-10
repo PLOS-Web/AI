@@ -82,6 +82,10 @@ data = {
 r = requests.put(host_base + '/api/article/pone.9999999', data=simplejson.dumps(data))
 print r.text
 
+print "GET for pone.0000001"
+r = requests.get(host_base + '/api/article/pone.0000001')
+print r.text
+
 
 ##### PUT errorset tests #####
 print "Errorset PUT"
