@@ -48,6 +48,28 @@ def get_journal_from_doi(doi):
     except Journal.DoesNotExist:
         raise ValueError("doi prefix, %s, does not match any known journal" % short_name)
 
+def separate_errors(e):
+    if not e:
+        return []
+    errors_raw = e.strip().splitlines(False)
+    
+    errors=[]
+    for error in errors_raw:
+        error_tuple = (error, 1)
+        print "Raw: %s" % error
+        for i, level in ERROR_LEVEL:
+            
+            p = re.compile('(?<=%s:).*' % level, re.IGNORECASE)
+            m = p.search(error) 
+            if m:
+                print "Match: %s" % m.group(0)
+                error_tuple = (m.group(0).strip(), i)
+                break
+
+        errors += [error_tuple]
+    
+    return errors
+
 class ColumnOrder():
     @staticmethod
     def parse_type(type):
@@ -346,6 +368,7 @@ class TransactionArticle(BaseTransaction):
 
         try:
             self.payload['journal']=get_journal_from_doi(self.payload['doi']).pk
+            print "Journal: %s" % self.payload['journal']
         except ValueError:
             print "Can't resolve journal"
             return False
@@ -382,7 +405,9 @@ class TransactionArticle(BaseTransaction):
 
     def control(self):
         print "start control"
-        a, new = Article.objects.get_or_create(doi=self.get_val('doi'))
+        a, new = Article.objects.get_or_create(doi=self.get_val('doi'),
+                                               journal=Journal.objects.get(pk=self.get_val('journal')))
+        print "New article? %s" % new
 
         if self.get_val('pubdate'):
             a.pubdate=self.get_val('pubdate')
@@ -390,6 +415,8 @@ class TransactionArticle(BaseTransaction):
             a.md5=self.get_val('md5')
         if self.get_val('si_guid'):
             a.si_guid=self.get_val('si_guid')
+
+        print "Journal: %s" % self.payload['journal']
         a.journal=Journal.objects.get(pk=self.get_val('journal'))
                                           
         print "New article? %s" % new
@@ -429,8 +456,12 @@ class TransactionArticle(BaseTransaction):
         except Article.DoesNotExist:
             return self.error_response('Article does not exist')
         
+        pubdate_str = None
+        if a.pubdate:
+            pubdate_str = a.pubdate.strftime("%Y-%m-%d")
+
         a_dict = {'doi': a.doi,
-                  'pubdate': a.pubdate.strftime("%Y-%m-%d"),
+                  'pubdate': pubdate_str,
                   'state': a.current_state.name,
                   'si_guid': a.si_guid,
                   'md5': a.md5,
@@ -444,8 +475,14 @@ class TransactionErrorset(BaseTransaction):
         print self.payload
 
         try:
-            i = resolve_choice_index(ERROR_SET_SOURCES, self.payload['source'])
-            if not i:
+            self.article = Article.objects.get(doi=self.doi)
+        except Article.DoesNotExist:
+            print "That article doesn't exist"
+            return False
+
+        try:
+            self.source_i = resolve_choice_index(ERROR_SET_SOURCES, self.payload['source'])
+            if not self.source_i:
                 print "Source doesn't exist"
                 return False
         except KeyError:
@@ -462,6 +499,14 @@ class TransactionErrorset(BaseTransaction):
         
     def control(self):
         print "start control"
+        es = ErrorSet(source=self.source_i,
+                      article=self.article)
+        es.save()
+        for error, level in separate_errors(self.payload['errors']):
+            e = Error(message=error,
+                      level=level,
+                      error_set=es)
+            e.save()
         
 
     def put(self, request, *args, **kwargs):
@@ -472,8 +517,9 @@ class TransactionErrorset(BaseTransaction):
         if fail:
             return response
 
+        self.control()
         return self.response(self.payload)
 
 
     def get(self, request, *args, **kwargs):
-        return self.response("yoyoyoy")
+        return self.error_response("Not Implemented")

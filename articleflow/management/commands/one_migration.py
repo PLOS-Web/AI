@@ -21,10 +21,7 @@ def date_from_string(s):
 def separate_errors(e):
     if not e:
         return []
-    #if e == '\n':
-    #    return []
     errors = e.strip().splitlines(False)
-    #print errors
     return errors
 
 class GrabAT():    
