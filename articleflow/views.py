@@ -10,12 +10,13 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.auth.models import Group
 
 import simplejson
-
+import re
 import django_filters
 
 import transitionrules
 
-from articleflow.models import Article, ArticleState, State, Transition, Journal
+from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio
+from articleflow.forms import AssignmentForm
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL
 
@@ -326,19 +327,101 @@ class AssignToMe(View):
                 }
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
 
+class AssignRatiosMain(View):
+    template_name = 'articleflow/assign_ratios_main.html'
+
+    def get_context_data(self, kwargs):
+        assignment_states = State.objects.filter(auto_assign__gte=2).all()
+        return {'assignment_states': assignment_states}
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(kwargs)        
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+    
+
 class AssignRatios(View):
-        template_name = 'articleflow/assign_ratios.html'
+    template_name = 'articleflow/assign_ratios.html'
+    
+    def get_context_data(self, kwargs):
+        try:
+            state = State.objects.get(pk=kwargs['state_pk'])
+        except ValueError, State.DoesNotExist:
+            raise Http404
 
-        def get_context_data(self, kwargs):
-            assignment_states = State.objects.filter(auto_assign__gte=2).all()
-            for state in assignment_states:
-                states = {
-                    'state': state,
-                    }
-            return {
-                'assignment_states' : states
-                }
+        users = state.possible_assignees()
+        u_ratios = []
 
-        def get(self, request, *args, **kwargs):
-            context = self.get_context_data(kwargs)
-            return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+        for u in users:
+            try:
+                a_r = AssignmentRatio.objects.get(user=u, state=state)
+            except AssignmentRatio.DoesNotExist:
+                a_r = None
+                
+            u_ratios += [{'user': u,
+                          'assignment_ratio': a_r}]    
+                    
+        ctx = {
+            'state': state,
+            'form': AssignmentForm(u_ratios, state.pk)
+            }
+        
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(kwargs)
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated():
+            return HttpResponse("You need to log in dummy")
+        
+        try:
+            state = State.objects.get(pk=kwargs['state_pk'])
+        except ValueError, State.DoesNotExist:
+            raise Http404
+
+        users = state.possible_assignees()
+        u_ratios = []
+
+        for u in users:
+            try:
+                a_r = AssignmentRatio.objects.get(user=u, state=state)
+            except AssignmentRatio.DoesNotExist:
+                a_r = None
+                
+            u_ratios += [{'user': u,
+                          'assignment_ratio': a_r}]    
+
+        form = AssignmentForm(u_ratios=u_ratios, state_pk=state.pk, data=request.POST)
+
+        if form.is_valid():
+            print "request"
+            print request.POST
+            print "form fields"
+            print form.fields
+
+            state = State.objects.get(pk=request.POST['state'])
+
+            for key, val in request.POST.iteritems():
+                if key in ('state', 'csrfmiddlewaretoken', 'submit'):
+                    continue
+                    #pass
+                
+                print "key: %s" % key
+                username = re.search('(?<=user_).*', key).group(0)
+                print "username: %s" % username
+                user = User.objects.get(username=username)
+
+                a_s, new = AssignmentRatio.objects.get_or_create(user=user, state=state)
+                a_s.weight = val
+                a_s.save()
+                
+        else:
+            ctx = self.get_context_data(kwargs)
+            ctx['form'] = form
+            return render_to_response(self.template_name, ctx, context_instance=RequestContext(request))
+
+        ctx = self.get_context_data(kwargs)
+        return render_to_response(self.template_name, ctx, context_instance=RequestContext(request))
+
+

@@ -1,14 +1,19 @@
 {% extends "base.html" %}
 
-{% block sub_title %} - Assignments{% endblock %}
+{% load crispy_forms_tags %}
+
+{% block sub_title %} - Assignment Ratios: {{ state.name }}{% endblock %}
 
 {% block content %}
-<h2>Assignment Ratios</h2>
-{% for state in assignment_states %}
-<h3>{{ state.name }}</h3>
-  {% for group in state.worker_groups.all %}
-  <h4>{{ group.name }}</h4>
-  {% endfor %}
-{% endfor %}
+<h2>Assignment Ratios: {{ state.name }}</h2>
+<form action="." method="post" class="form form-horizontal">
+{% csrf_token %}
+{{ form|crispy }}
+<div class="control-group">
+  <div class="controls">
+    <input type="submit" name="submit" value="Submit">
+  </div>
+</div>
+</form>
 
 {% endblock %}

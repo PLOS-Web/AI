@@ -2,4 +2,10 @@
 
 {% block sub_title %} - Assignments{% endblock %}
 
+{{ assignment_states }}
+{% for a_state in assignment_states %}
+lala
+<h3>{{ a_state.state.name }}</h3>
+{% endfor %}
+
 <p>stuff</p>

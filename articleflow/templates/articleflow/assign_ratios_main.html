@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block sub_title %} - Autoassign States{% endblock %}
+
+{% block content %}
+<h2>Autoassign States</h2>
+
+<ul>
+{% for state in assignment_states %}
+<li>
+  <a href='{% url assign_ratios state.pk %}'>{{ state.name }}</a>
+</li>
+</ul>
+{% endfor %}
+{% endblock %}

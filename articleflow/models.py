@@ -193,7 +193,7 @@ class AssignmentHistory(models.Model):
 class AssignmentRatio(models.Model):
     user = models.ForeignKey(User, related_name='assignment_weights')
     state = models.ForeignKey('State', related_name='assignment_weights')
-    weight = models.IntegerField()
+    weight = models.IntegerField(null=True, blank=True, default=None)
 
     # bookkeeping
     created = models.DateTimeField(auto_now_add=True)
