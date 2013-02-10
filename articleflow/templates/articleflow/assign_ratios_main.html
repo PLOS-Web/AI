@@ -5,11 +5,30 @@
 {% block content %}
 <h2>Autoassign States</h2>
 
-<ul>
-{% for state in assignment_states %}
-<li>
-  <a href='{% url assign_ratios state.pk %}'>{{ state.name }}</a>
-</li>
-</ul>
+<table class="table">
+  <thead>
+    <tr>
+      <th>
+	State
+      </th>
+      <th>
+	Worker Groups
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for state in assignment_states %}
+    <tr>
+      <td>
+	<a href='{% url assign_weight_detail state.pk %}'>{{ state.name }}</a>
+      </td>
+      <td>
+	{% for g in state.worker_groups.all %}
+	{{ g.name }}{% if not forloop.last %}, {% endif %}
+	{% endfor %}
+      </td>
+    </tr>
+  </tbody>
+</table>
 {% endfor %}
 {% endblock %}
