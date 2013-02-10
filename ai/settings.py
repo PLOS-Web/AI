@@ -12,6 +12,7 @@ TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
      ('Jack LaBarba', 'jlabarba@plos.org'),
+     ('dweebit', 'brakit@gmail.com'),
 )
 
 MANAGERS = ADMINS
@@ -212,8 +213,14 @@ logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.DEBUG)
 
 # EMAIL config
-EMAIL_HOST = "sfexch02.plos.org"
-EMAIL_HOST_USER = "ai"
-EMAIL_HOST_PASSWORD = ""
+#EMAIL_HOST = "sfexch02.plos.org"
+#EMAIL_HOST_USER = "ai"
+#EMAIL_HOST_PASSWORD = ""
 
-SERVER_EMAIL = "ai@plos.org"
+#SERVER_EMAIL = "ai@plos.org"
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'ai.root.dispatch@gmail.com'
+EMAIL_HOST_PASSWORD = 'thisisghetto'
