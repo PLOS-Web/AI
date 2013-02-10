@@ -16,9 +16,11 @@ class State(models.Model):
     worker_groups = models.ManyToManyField(Group, related_name="state_assignments")
     auto_assign = models.IntegerField(default=1, choices=AUTO_ASSIGN)
 
-
     def __unicode__(self):
         return self.name
+
+    def possible_assignees(self):
+        return User.objects.filter(groups__state_assignments=self)
 
 class ArticleState(models.Model):
     """
@@ -188,7 +190,7 @@ class AssignmentHistory(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     last_modified = models.DateTimeField(auto_now=True)
 
-class AssignmentRatios(models.Model):
+class AssignmentRatio(models.Model):
     user = models.ForeignKey(User, related_name='assignment_weights')
     state = models.ForeignKey('State', related_name='assignment_weights')
     weight = models.IntegerField()
