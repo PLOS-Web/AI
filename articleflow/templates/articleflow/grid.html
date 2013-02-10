@@ -2,6 +2,7 @@
 
 {% load crispy_forms_tags %}
 {% load grid %}
+{% load assignment %}
 
 {% block head %}
 <link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
@@ -115,6 +116,12 @@
 	    {% endif %}
 	{% elif col == "State" %}
 	    {{ article.current_state.name }}
+	{% elif col == "Assigned" %}
+	    {% if article.current_articlestate.assignee.username %}
+	    {{ article.current_articlestate.assignee.username }}
+	    {% elif user.is_authenticated %}
+	    {% render_assign_to_me_button article user %}
+	    {% endif %}
 	{% else %}
 	  {{ value }}
 	{% endif %}

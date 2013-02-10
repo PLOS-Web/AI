@@ -13,11 +13,17 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 import simplejson
 import re
 
+from django.contrib.auth.models import Group
+
+
+import simplejson
+import re
 import django_filters
 
 import transitionrules
 
-from articleflow.models import Article, ArticleState, State, Transition, Journal
+from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio
+from articleflow.forms import AssignmentForm
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
 
@@ -34,6 +40,7 @@ COLUMN_CHOICES = (
     (3, 'Issues'),
     (4, 'Errors'),
     (5, 'State'),
+    (6, 'Assigned'),
     )
 
 def get_journal_from_doi(doi):
@@ -102,6 +109,10 @@ class ColumnOrder():
     @staticmethod
     def errors(a, type):
         return a.order_by(ColumnOrder.parse_type(type) + 'article_extras__num_errors_total')
+
+    @staticmethod
+    def assigned(a, type):
+        return a.order_by(ColumnOrder.parse_type(type) + 'current_articlestate__assignee__username')
     
 ORDER_CHOICES = {
     'DOI': ColumnOrder.doi,
@@ -110,6 +121,7 @@ ORDER_CHOICES = {
     'Issues' : ColumnOrder.issues,
     'Errors' : ColumnOrder.errors,
     'State' : ColumnOrder.state,
+    'Assigned' : ColumnOrder.assigned,
 }
 
 
@@ -117,12 +129,14 @@ class ArticleFilter(django_filters.FilterSet):
     
     doi = django_filters.CharFilter(name='doi', label='DOI')
 
+
     datepicker_widget = forms.DateInput(attrs={'class': 'datepicker'})
     pubdate_gte = django_filters.DateFilter(name='pubdate', label='Pubdate on or after', lookup_type='gte', widget=datepicker_widget) 
     pubdate_lte = django_filters.DateFilter(name='pubdate', label='Pubdate on or before', lookup_type='lte', widget=datepicker_widget) 
 
     journal = django_filters.ModelMultipleChoiceFilter(name='journal', label='Journal', queryset=Journal.objects.all())
     current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_state', label='Article state', queryset=State.objects.all())
+    current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_articlestate__assignee', label='Assigned', queryset=User.objects.all())
     
     class Meta:
         model = Article
@@ -139,7 +153,7 @@ class ArticleGrid(View):
 
     def get_selected_cols(self):
         if not self.request.GET.getlist('cols'):
-            requested_cols = range(0,6) #default columns
+            requested_cols = range(0,7) #default columns
         else:
             requested_cols = [0] #make sure DOI is always included
             requested_cols += self.request.GET.getlist('cols')
@@ -257,9 +271,29 @@ class ArticleDetailTransition(View):
         if request.is_ajax():
             article = Article.objects.get(pk=request.POST['article_pk'])
             transition = Transition.objects.get(pk=request.POST['requested_transition_pk'])
-            # @TODO, fix this shit!
-            user = User.objects.get(pk=1)
+            user = request.user
 
+            # Make sure user is in appropriate group to make transition
+            auth_legal = False
+
+            admin_group = Group.objects.get(name='admin')
+            if admin_group in user.groups.all():
+                auth_legal = True
+            else:
+                for group in user.groups.all():
+                    if group in transition.allowed_groups:
+                        auth_legal = True
+                        break
+
+            if not auth_legal:
+                to_json = {
+                    'not_allowed_error': {
+                        'allowed_groups': []
+                        }
+                    }                
+                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')    
+            
+            # Make sure open errors and issues are in correct state
             if transition.disallow_open_items:
                 open_items = transitionrules.article_count_open_items(article)
                 if (open_items['open_issues'] > 0 or open_items['open_errors'] > 0):
@@ -592,3 +626,137 @@ class TransactionTransition(BaseTransaction):
         return self.response({"possible_transitions": t_names})
 
         
+
+class AssignToMe(View):
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated():
+            to_json = {
+                'error': 'Need to login'
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+        if request.is_ajax():
+            article = Article.objects.get(pk=request.POST['article_pk'])
+            user = request.user
+
+            # Make sure user is in appropriate group to make assignment
+            if not article.current_state.worker_groups.filter(user=user):
+                to_json = {
+                    'error': "You're not allowed to make this assignment"
+                    }
+                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+            
+            # Make sure nobody else grabbed the article
+            other_assignee = article.current_articlestate.assignee
+            if other_assignee:
+                to_json = {
+                    'other_assignee': other_assignee.username
+                    }
+                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+            # Make assignment
+            article.current_articlestate.assign_user(request.user)
+
+            to_json = {
+                'redirect_url': reverse('detail_main', args=[article.doi])
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+class AssignRatiosMain(View):
+    template_name = 'articleflow/assign_ratios_main.html'
+
+    def get_context_data(self, kwargs):
+        assignment_states = State.objects.filter(auto_assign__gte=2).all()
+        return {'assignment_states': assignment_states}
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(kwargs)        
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+    
+
+class AssignRatios(View):
+    template_name = 'articleflow/assign_ratios.html'
+    
+    def get_context_data(self, kwargs):
+        try:
+            state = State.objects.get(pk=kwargs['state_pk'])
+        except ValueError, State.DoesNotExist:
+            raise Http404
+
+        users = state.possible_assignees()
+        u_ratios = []
+
+        for u in users:
+            try:
+                a_r = AssignmentRatio.objects.get(user=u, state=state)
+            except AssignmentRatio.DoesNotExist:
+                a_r = None
+                
+            u_ratios += [{'user': u,
+                          'assignment_ratio': a_r}]    
+                    
+        ctx = {
+            'state': state,
+            'form': AssignmentForm(u_ratios, state.pk)
+            }
+        
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(kwargs)
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated():
+            return HttpResponse("You need to log in dummy")
+        
+        try:
+            state = State.objects.get(pk=kwargs['state_pk'])
+        except ValueError, State.DoesNotExist:
+            raise Http404
+
+        users = state.possible_assignees()
+        u_ratios = []
+
+        for u in users:
+            try:
+                a_r = AssignmentRatio.objects.get(user=u, state=state)
+            except AssignmentRatio.DoesNotExist:
+                a_r = None
+                
+            u_ratios += [{'user': u,
+                          'assignment_ratio': a_r}]    
+
+        form = AssignmentForm(u_ratios=u_ratios, state_pk=state.pk, data=request.POST)
+
+        if form.is_valid():
+            print "request"
+            print request.POST
+            print "form fields"
+            print form.fields
+
+            state = State.objects.get(pk=request.POST['state'])
+
+            for key, val in request.POST.iteritems():
+                if key in ('state', 'csrfmiddlewaretoken', 'submit'):
+                    continue
+                    #pass
+                
+                print "key: %s" % key
+                username = re.search('(?<=user_).*', key).group(0)
+                print "username: %s" % username
+                user = User.objects.get(username=username)
+
+                a_s, new = AssignmentRatio.objects.get_or_create(user=user, state=state)
+                a_s.weight = val
+                a_s.save()
+                
+        else:
+            ctx = self.get_context_data(kwargs)
+            ctx['form'] = form
+            return render_to_response(self.template_name, ctx, context_instance=RequestContext(request))
+
+        ctx = self.get_context_data(kwargs)
+        return render_to_response(self.template_name, ctx, context_instance=RequestContext(request))
+
+
+

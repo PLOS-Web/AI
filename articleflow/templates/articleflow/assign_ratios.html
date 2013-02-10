@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block sub_title %} - Assignment Ratios: {{ state.name }}{% endblock %}
+
+{% block content %}
+<h2>Assignment Weights: {{ state.name }}</h2>
+<form action="." method="post" class="form form-horizontal">
+{% csrf_token %}
+{{ form|crispy }}
+<div class="control-group">
+  <div class="controls">
+    <input type="submit" name="submit" value="Submit">
+  </div>
+</div>
+</form>
+
+<a href="{% url assign_weight_main %}"><< Autoassign States</a>
+
+{% endblock %}
