@@ -1,0 +1,17 @@
+{% extends "articleflow/article_detail_base.html" %}
+
+{% load comments %}
+{% load ajax_comments %}
+{% load ajax_issues %}
+
+{% block detail_nav %}
+{% include "articleflow/includes/detail_nav.html" with active_tab='detail_history' %}
+{% endblock %}
+
+{% block sub_title %} - {{ article.doi }} - Issues{% endblock %}
+
+{% block sub_header %}Issues{% endblock %}
+
+{% block article_detail_content %}
+{% render_issues article %}
+{% endblock %}
