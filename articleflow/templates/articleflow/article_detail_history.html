@@ -1,0 +1,55 @@
+{% extends "articleflow/article_detail_base.html" %}
+
+{% block detail_nav %}
+{% include "articleflow/includes/detail_nav.html" with active_tab='detail_history' %}
+{% endblock %}
+
+{% block sub_title %} - {{ article.doi }} - State History{% endblock %}
+
+{% block sub_header %}State History{% endblock %}
+
+{% block article_detail_content %}
+
+<table class='table'>
+  <thead>
+    <tr>
+      <th>
+	State
+      </th>
+      <th>
+	Time
+      </th>
+      <th>
+	Assigned User
+      </th>
+      <th>
+	From Transition
+      </th>
+      <th>
+	Transition User
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a_s in states %}
+    <tr>
+      <td>
+	{{ a_s.state.name }}
+      </td>
+      <td>
+	{{ a_s.created }}
+      </td>
+      <td>
+	{{ a_s.assignee|default_if_none:"" }}
+      </td>
+      <td>
+	{{ a_s.from_transition.name|default_if_none:"" }}
+      <td>
+	{{ a_s.from_transition_user.username|default_if_none:"" }}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

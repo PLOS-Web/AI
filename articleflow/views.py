@@ -1,5 +1,5 @@
 from django.http import HttpResponse, Http404, HttpResponseRedirect
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.views.generic import ListView, DetailView
 from django.views.generic.base import View
 from django.views.decorators.csrf import csrf_exempt
@@ -322,6 +322,19 @@ class ArticleDetailTransition(View):
 
             #return HttpResponseRedirect(request.META.get('HTTP_REFERER', reverse('home')))
         #return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
+class ArticleDetailHistory(View):
+    template_name = 'articleflow/article_detail_history.html'
+
+    def get_context_data(self, kwargs):
+        ctx = {}
+        ctx['article'] = get_object_or_404(Article, doi=kwargs['doi'])
+        ctx['states'] = ArticleState.objects.filter(article=ctx['article']).order_by('created')
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(kwargs)
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
 
 class ArticleDetailIssues(View):
 
