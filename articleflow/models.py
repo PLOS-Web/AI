@@ -18,7 +18,7 @@ class State(models.Model):
     """
     name = models.CharField(max_length=100)
     last_modified = models.DateTimeField(auto_now=True)
-    worker_groups = models.ManyToManyField(Group, related_name="state_assignments")
+    worker_groups = models.ManyToManyField(Group, related_name="state_assignments", null=True, blank=True, default=None)
     auto_assign = models.IntegerField(default=1, choices=AUTO_ASSIGN)
 
     def __unicode__(self):
