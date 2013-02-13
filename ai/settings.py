@@ -160,6 +160,17 @@ COMMENTS_APP = 'crispycomments'
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'debugging': {
+            'format': '%(levelname)s\t%(module)s:%(funcName)s\t%(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
@@ -169,15 +180,35 @@ LOGGING = {
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
-        }
+            'class': 'django.utils.log.AdminEmailHandler',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+            },
+        'debugging': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'debugging',
+            },
+        'debugging-info': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'debugging',
+            },
     },
     'loggers': {
         'django.request': {
             'handlers': ['mail_admins'],
             'level': 'ERROR',
             'propagate': True,
-        },
+            },
+        'articleflow.management.commands.one_migration': {
+            'handlers': ['debugging'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
     }
 }
 

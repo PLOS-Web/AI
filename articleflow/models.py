@@ -1,4 +1,5 @@
 import datetime
+from django.utils.timezone import utc
 
 from django.db import models
 from django.contrib.auth.models import User, Group
@@ -38,7 +39,8 @@ class ArticleState(models.Model):
     assignee = models.ForeignKey(User,null=True, blank=True, default=None)
     from_transition = models.ForeignKey('Transition', related_name='articlestates_created' , null=True, blank=True, default=None)
     from_transition_user = models.ForeignKey(User, related_name='articlestates_created',null=True, blank=True, default=None)
-    created = models.DateTimeField(auto_now_add=True)
+
+    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
@@ -93,7 +95,7 @@ class Article(models.Model):
     current_state = models.ForeignKey('State', related_name="current_articles", null=True, blank=True, default=None)
     article_extras = models.ForeignKey('ArticleExtras', related_name="article_dont_use", null=True, blank=True, default=None)
 
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
@@ -150,7 +152,7 @@ class ArticleExtras(models.Model):
     num_warnings = models.IntegerField(default=0)
 
     # Bookkeeping
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
@@ -209,7 +211,7 @@ class AssignmentHistory(models.Model):
     user = models.ForeignKey(User, related_name='assignment_histories')
     article_state = models.ForeignKey('ArticleState', related_name='assignment_histories')
     
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
@@ -221,7 +223,7 @@ class AssignmentRatio(models.Model):
     weight = models.IntegerField(null=True, blank=True, default=None)
 
     # bookkeeping
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)
 
     class Meta:

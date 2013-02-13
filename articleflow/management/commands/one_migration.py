@@ -1,3 +1,4 @@
+import pytz
 import re
 
 from django.core.management.base import BaseCommand, CommandError
@@ -6,9 +7,15 @@ from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
 
 from articleflow.models import Article, ArticleState, State, Journal
 from errors.models import Error, ErrorSet
+from issues.models import Issue, Category
 
 import MySQLdb
 from datetime import datetime
+
+import logging
+logger = logging.getLogger(__name__)
+
+PAC = pytz.timezone('US/Pacific')
 
 #s_host = "sfo-db01.int.plos.org"
 #s_user = "article_tracker"
@@ -20,12 +27,28 @@ s_user = "ai_leg"
 s_passwd = ""
 s_db = "ai_leg"
 
+def toUTCc(d):
+    if not d:
+        return None
+
+    logger.debug("Ensuring datetime is UTC: %s" % d)
+    if d.tzinfo == pytz.utc:
+        logger.debug("Datetime already UTC")
+        return d
+    else:
+        d_utc = PAC.normalize(PAC.localize(d)).astimezone(pytz.utc)
+        logger.debug("Datetime converted to: %s" % d_utc)
+        return d_utc
+
 def get_or_create_user(username):
     if not username:
+        logger.debug("Given null username")
         return None
     try:
         u = User.objects.get(username=username)
+        logger.debug("Found user: %s" % u.username)
     except User.DoesNotExist:
+        logger.debug("Creating user for: %s" % username)
         u = User(username=username, password='veryinsecurepassword')
         u.save()
     return u
@@ -44,7 +67,7 @@ def get_journal_from_doi(doi):
         raise ValueError("doi prefix, %s, does not match any known journal" % short_name)
 
 def date_from_string(s):
-    print "ATTEMPTING TO CONVERT %s" % s
+    logger.debug("Attempting to convert %s to date" % s)
     try:
         return datetime.strptime(s, "%m/%d/%Y")
     except ValueError:
@@ -54,23 +77,25 @@ def date_from_string(s):
             try:
                 return datetime.strptime(s, "%Y-%m-%d %H:%M:%S")
             except ValueError, e:
-                print e
+                logger.error(e)
                 return None
             
-    except TypeError:
+    except TypeError, e:
+        logger.error(e)
         return None
 
 def datetime_from_string(s):
+    logger.debug("Attempting to convert %s to datetime" % s)
     try:
         return datetime.strptime(s, "%Y-%m-%d %H:%M:%S")
     except ValueError:
         try:
             return datetime.strptime(s, "%Y/%m/%d %H:%M:%S")
-        except ValueError:
+        except ValueError, e:
+            logger.error(e)
             return None
-            print s
     except TypeError, e:
-        print e
+        logger.error(e)
         return None
 
 def separate_errors(e):
@@ -81,13 +106,13 @@ def separate_errors(e):
     errors=[]
     for error in errors_raw:
         error_tuple = (error, 1)
-        #print "Raw: %s" % error
+        logger.debug("Finding level for: %s" % error)
         for i, level in ERROR_LEVEL:
             
             p = re.compile('(?<=%s:).*' % level, re.IGNORECASE)
             m = p.search(error) 
             if m:
-                #print "Match: %s" % m.group(0)
+                logger.debug("Match: %s" % m.group(0))
                 error_tuple = (m.group(0).strip(), i)
                 break
 
@@ -115,6 +140,7 @@ class GhettoState(object):
         return "timestamp: %s, state_name: %s, effecting_user: %s, assigned_user: %s" % (self.timestamp, self.state_name, self.effecting_user, self.assigned_user)
 
     def save(self, article=None):
+        logger.info("SAVING STATE %s" % unicode(self))
         if not article:
             article = Article.objects.get(doi=self.doi)
        
@@ -128,7 +154,10 @@ class GhettoState(object):
                                                      from_transition_user=e_user,
                                                      state=state) 
         if new:
+            logger.info("New record. saving...")
             a_s.save()
+        else:
+            logger.info("Old record found. Doing nothing.")
         
 
 class GhettoIssue(object):
@@ -139,6 +168,26 @@ class GhettoIssue(object):
 
     def __unicode__(self):
         return "timestamp: %s, user: %s, feedback: %s" % (self.timestamp, self.user, self.feedback)
+
+    def save(self, article=None):
+        logger.info("SAVING ISSUE %s" % unicode(self))
+        if not article:
+            article = Article.objects.get(doi=self.doi)
+        
+        category, n = Category.objects.get_or_create(name='Legacy')
+        user = get_or_create_user(self.user)
+        
+        i, new = Issue.objects.get_or_create(article=article,
+                                             category=category,
+                                             description=self.feedback,
+                                             submitter=user,
+                                             created=self.timestamp)
+        if new:
+            logger.info("New record. saving...")
+            i.save()
+        else:
+            logger.info("Old record found. Doing nothing.")
+
 
 class GhettoNote(object):
     def __init__(self, doi, timestamp, user, note):
@@ -160,6 +209,7 @@ class MigrateDOI(DBBase):
         self.si_guid = None
         self.feedback = []
         self.notes = []
+        self.created = None
 
     def grab_pulls(self):
         self.at_c.execute(
@@ -181,13 +231,23 @@ class MigrateDOI(DBBase):
         pulls = self.at_c.fetchall()
         
         for pull in pulls:
-            self.states += [(pull['pulltime'], GhettoState(self.doi, pull['pulltime'], 'Pulled', effecting_user=pull['user']))]
-            pull['pubdate'] = date_from_string(pull['pubdate'])
-            if pull['pubdate']:
-                self.pubdate = pull['pubdate']
-            pull['errors'] = separate_errors(pull['errors'])
+            pull['pulltime'] = toUTCc(pull['pulltime'])
+            pull['pubdate'] = toUTCc(date_from_string(pull['pubdate']))
+
             self.md5 = pull['md5']
             self.si_guid = pull['si_guid']
+
+            if not self.created or pull['pulltime'] < self.created :
+                logger.debug("Updating article creation time: %s" % pull['pulltime'])
+                self.created = pull['pulltime']
+
+            # use pubdate from most recent ariesPull
+            if pull['pubdate']:
+                self.pubdate = pull['pubdate']
+
+            self.states += [(pull['pulltime'], GhettoState(self.doi, pull['pulltime'], 'Pulled', effecting_user=pull['user']))]
+            pull['errors'] = separate_errors(pull['errors'])
+
             
         self.errorsets = pulls
 
@@ -203,6 +263,7 @@ class MigrateDOI(DBBase):
         assigns = self.at_c.fetchall()
 
         for assign in assigns:
+            assign['time'] = toUTCc(assign['time'])
             self.states += [(assign['time'], GhettoState(self.doi, assign['time'], 'Ready for QC (CW)', assigned_user=assign['assigned']))]
 
     def grab_production_feedback(self):
@@ -217,7 +278,11 @@ class MigrateDOI(DBBase):
         feedback = self.at_c.fetchall()
         
         for f in feedback:
-            self.feedback += [(f['time'], GhettoIssue(self.doi, f['time'], f['user'], f['feedback']))]
+            f['time'] = toUTCc(f['time'])
+            logger.debug("Before decode: %s" % f['feedback'])
+            f['feedback'] = f['feedback'].decode('utf-8')
+            logger.debug("After decode: %s" % f['feedback'])
+            self.feedback += [(toUTCc(f['time']), GhettoIssue(self.doi, toUTCc(f['time']), f['user'], f['feedback']))]
 
     def grab_web_assigned(self):
         self.at_c.execute(
@@ -231,7 +296,7 @@ class MigrateDOI(DBBase):
         assigned = self.at_c.fetchall()
 
         for a in assigned:
-            print a
+            a['time'] = toUTCc(a['time'])
             if a['assigned'] != 'OK':
                 self.states += [(a['time'], GhettoState(self.doi, a['time'], 'Needs Web Corrections (CW)', assigned_user=a['assigned'], effecting_user=a['user']))]
             else:
@@ -249,6 +314,7 @@ class MigrateDOI(DBBase):
         notes = self.at_c.fetchall()
         
         for n in notes:
+            n['time'] = toUTCc(n['time'])
             self.notes += [(n['time'], GhettoNote(self.doi, n['time'], n['user'], n['notes']))]
 
     def grab_web_qc_pubbed_stage(self):
@@ -263,6 +329,7 @@ class MigrateDOI(DBBase):
         pubs = self.at_c.fetchall()
         
         for p in pubs:
+            p['time'] = toUTCc(p['time'])
             self.states += [(p['time'], GhettoState(self.doi, p['time'], 'Published on Stage', effecting_user=p['user']))]
 
     def read_from_legacy(self):
@@ -273,26 +340,11 @@ class MigrateDOI(DBBase):
         self.grab_web_notes()
         self.grab_web_qc_pubbed_stage()
 
-        print "STATES:"
-        for state in self.states:
-            print "state:"
-            print state[1]
-        print "ERRORSETS:"
-        for e in self.errorsets:
-            print e
-
-        print "FEEDBACK:"
-        for f in self.feedback:
-            print f[1]
-
-        print "NOTES:"
-        for n in self.notes:
-            print n[1]
-
     def write_article(self):
         journal = get_journal_from_doi(self.doi)
-        a, new = Article.objects.get_or_create(doi=self.doi, journal=journal)
-        print self.pubdate
+        a, new = Article.objects.get_or_create(doi=self.doi,
+                                               journal=journal)
+        
         if self.pubdate:
             a.pubdate = self.pubdate
         else:
@@ -300,17 +352,19 @@ class MigrateDOI(DBBase):
         a.si_guid = self.si_guid
         a.md5 = self.md5
 
+        logger.info("SAVING ARTICLE: %s" % a)
         a.save()
 
         return a
 
     def write_to_current(self):
-        print "BEGIN WRITE"
-        self.feedback = self.feedback.sort(key=lambda r: r[0])
         self.notes = self.notes.sort(key=lambda r: r[0])
 
         a = self.write_article()
         for d, s in sorted(self.states, key=lambda i: i[0]):
+            s.save(a)
+
+        for d, s in sorted(self.feedback, key=lambda i: i[0]):
             s.save(a)
         
 
@@ -321,15 +375,17 @@ class MigrateDOI(DBBase):
         
 
 class GrabAT(DBBase):
-    def get_distinct_dois(self):
-        self.at_c.execute(
-            """
+    def get_distinct_dois(self, num=None):
+        e = """
             SELECT
               DISTINCT(ap.doi)
-            FROM article_pulls AS ap
-            ORDER BY ap.pull_time desc
-            Limit 100;
-            """)
+            FROM prod_assigned AS ap
+            ORDER BY ap.time desc
+            """
+        if num >= 0:
+            e += "Limit %d" % num
+        
+        self.at_c.execute(e)
         
         dois = [i['doi'] for i in self.at_c.fetchall()]
         return dois
@@ -360,19 +416,21 @@ class GrabAT(DBBase):
 
 def main():
     g = GrabAT()
-    dois = g.get_distinct_dois()
+    dois = g.get_distinct_dois(100)
+    #dois = ['pbio.1001194']
     for doi in dois:
         print "###DOI: %s" % doi
         m = MigrateDOI(doi)
-        m.migrate()        
+        m.migrate()
     #m = MigrateDOI('pone.0016714')
     #m = MigrateDOI('pone.0029752')
     #m.migrate()
     #g.get_pull_dois()
 
 if __name__ == '__main__':
-    main()
+    main()    
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
+        #test_timezone()
         main()

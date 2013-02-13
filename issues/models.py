@@ -1,3 +1,8 @@
+import datetime
+from django.utils.timezone import utc
+now = datetime.datetime.utcnow().replace(tzinfo=utc)
+
+
 from django.db import models
 from django.contrib.auth.models import User
 from articleflow.models import Article, ArticleExtras
@@ -28,7 +33,7 @@ class Issue(models.Model):
     error = models.IntegerField(null=True, blank=True, default=None)
     current_status = models.ForeignKey('IssueStatus', related_name='current_status_of', null=True, blank=True, default=None)
     
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -50,7 +55,7 @@ class Issue(models.Model):
             ret = super(Issue, self).save(*args, **kwargs)
             
             a_extras, new = ArticleExtras.objects.get_or_create(article=self.article)
-
+            print "A_EXTRAS"
             print a_extras
             
             #bad hardcoding for issue counts in articleextras
@@ -78,7 +83,7 @@ class IssueStatus(models.Model):
     
     issue = models.ForeignKey('Issue', related_name='statuses')
 
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
@@ -100,8 +105,8 @@ class Category(models.Model):
     """
     Table of available issue categories
     """
-    name = models.CharField(max_length=50)
-    created = models.DateTimeField(auto_now_add=True)
+    name = models.CharField(max_length=50, unique=True)
+    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)
     
     def __unicode__(self):
