@@ -75,6 +75,8 @@ def post_issue(request):
             if form.is_valid():
                 logger.debug(form)
                 issue = form.save()
+                issue.submitter = request.user
+                issue.save()
                 issue_html = issue_block(request, issue.pk)
                 form = IssueForm(initial={'article': request.POST['article'], 'submitter': request.user})
                 print form
