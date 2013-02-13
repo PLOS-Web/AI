@@ -209,6 +209,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
             },
+        'issues.views': {
+            'handlers': ['debugging'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
     }
 }
 

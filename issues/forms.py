@@ -35,7 +35,7 @@ class IssueForm(ModelForm):
         
     class Meta:
         model = Issue
-        exclude = ('error','status','submitter', 'current_status')
+        exclude = ('error','status','submitter', 'current_status', 'created')
         widgets = {
             'article' : forms.HiddenInput(),
             'description': forms.Textarea(),

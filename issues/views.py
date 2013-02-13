@@ -13,6 +13,9 @@ from django.conf import settings
 from issues.models import Issue, IssueStatus, STATUS_CODES
 from issues.forms import IssueForm
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def comment_list(request, id):
     """
@@ -70,6 +73,7 @@ def post_issue(request):
         if request.is_ajax():
             # ajax and valid
             if form.is_valid():
+                logger.debug(form)
                 issue = form.save()
                 issue_html = issue_block(request, issue.pk)
                 form = IssueForm(initial={'article': request.POST['article'], 'submitter': request.user})
@@ -89,6 +93,7 @@ def post_issue(request):
                 return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
             # ajax and not valid
             else:
+                logger.debug('Invalid form: %s' % form)
                 form_html = render_to_response(
                     'issues/issue_form.html',
                     {
