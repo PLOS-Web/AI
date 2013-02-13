@@ -7,7 +7,7 @@ import os.path
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -205,6 +205,11 @@ LOGGING = {
             'propagate': True,
             },
         'articleflow.management.commands.one_migration': {
+            'handlers': ['debugging'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
+        'issues.views': {
             'handlers': ['debugging'],
             'level': 'DEBUG',
             'propagate': True,
