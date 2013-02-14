@@ -219,6 +219,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
             },
+        'articleflow.models': {
+            'handlers': ['debugging'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
     }
 }
 
