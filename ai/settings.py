@@ -197,6 +197,11 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'debugging',
             },
+        'debugging-error': {
+            'level': 'ERROR',
+            'class': 'logging.StreamHandler',
+            'formatter': 'debugging',
+            },
     },
     'loggers': {
         'django.request': {

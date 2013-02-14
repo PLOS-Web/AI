@@ -222,9 +222,7 @@ class MigrateDOI(DBBase):
               ap.md5 as 'md5',
               ap.si_guid as 'si_guid'
             FROM article_pulls as ap
-            WHERE ap.errors is not Null
-              AND ap.errors not like ''
-              AND ap.doi = '%s'
+            WHERE ap.doi = '%s'
             ORDER BY ap.pull_time desc
             """ % self.doi)
 
@@ -244,11 +242,12 @@ class MigrateDOI(DBBase):
             # use pubdate from most recent ariesPull
             if pull['pubdate']:
                 self.pubdate = pull['pubdate']
+            else:
+                logger.debug("No pubdate found in pull!")
 
             self.states += [(pull['pulltime'], GhettoState(self.doi, pull['pulltime'], 'Pulled', effecting_user=pull['user']))]
             pull['errors'] = separate_errors(pull['errors'])
 
-            
         self.errorsets = pulls
 
     def grab_production_assigned(self):
@@ -348,6 +347,7 @@ class MigrateDOI(DBBase):
         if self.pubdate:
             a.pubdate = self.pubdate
         else:
+            logger.info('No pubdate found')
             a.pubdate = '1900-01-01'
         a.si_guid = self.si_guid
         a.md5 = self.md5
@@ -367,12 +367,9 @@ class MigrateDOI(DBBase):
         for d, s in sorted(self.feedback, key=lambda i: i[0]):
             s.save(a)
         
-
     def migrate(self):
         self.read_from_legacy()
-        self.write_to_current()
-        
-        
+        self.write_to_current()        
 
 class GrabAT(DBBase):
     def get_distinct_dois(self, num=None):
