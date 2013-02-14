@@ -7,6 +7,9 @@ from django.contrib.auth.models import User, Group
 from django.db.models import Sum, Max
 ###import autoassign
 
+import logging
+logger = logging.getLogger(__name__)
+
 AUTO_ASSIGN = (
     (1, 'No'),
     (2, 'Yes'),
@@ -46,6 +49,9 @@ class ArticleState(models.Model):
     def __unicode__(self):
         return u'%s: %s' % (self.article, self.state)
     
+    def verbose_unicode(self):
+        return "article: %s, state: %s, from_transition: %s, from_transition_user: %s, created: %s" % (self.article, self.state, self.from_transition, self.from_transition_user, self.created)
+    
     def assign_user(self, user):
         self.assignee = user
         ah = AssignmentHistory(user=user, article_state=self)
@@ -54,7 +60,8 @@ class ArticleState(models.Model):
 
     def save(self, *args, **kwargs):
         insert = not self.pk
-        
+        logger.debug("SAVING ARTICLESTATE: %s" % self.verbose_unicode())
+
         ret = super(ArticleState, self).save(*args, **kwargs)
         art = self.article
 
@@ -101,6 +108,9 @@ class Article(models.Model):
     def __unicode__(self):
         return self.doi
     
+    def verbose_unicode(self):
+        return "doi: %s, pubdate: %s, journal: %s, si_guid: %s, md5: %s, created: %s" % (self.doi, self.pubdate, self.journal.short_name, self.si_guid, self.md5, self.created)
+    
     # Return the possible transitions that this object can do based on its current state
     def possible_transitions(self, user=None):
         if user:
@@ -113,12 +123,15 @@ class Article(models.Model):
 
     def save(self, *args, **kwargs):
         insert = not self.pk
+        logger.info("SAVING ARTICLE: %s" % self.verbose_unicode())
         ret = super(Article, self).save(*args, **kwargs)
 
         # Create a blank articleextras row
         if insert:
             # create new state
-            s = ArticleState(article=self, state=State.objects.get(name="New"))
+            logger.info("INSERTING NEW ARTICLE: %s" % self.doi)
+            logger.debug("ABOUT TO CREATE A \"NEW\" ArticleState: %s" % self.verbose_unicode())
+            s = ArticleState(article=self, state=State.objects.get(name="New"), created=self.created)
             s.save()
             
             if not self.article_extras:
@@ -128,9 +141,12 @@ class Article(models.Model):
                 self.save()
 
             if not self.current_articlestate:
+                logger.error("WHY AM I RUNNING")
                 a_as = ArticleState(article=self)
                 a_as.state, new = State.objects.get_or_create(name="New")
                 a_as.save()
+        else:
+            logger.info("UPDATING EXISTING ARTICLE: %s" % self.doi)
 
 class ArticleExtras(models.Model):
     """
