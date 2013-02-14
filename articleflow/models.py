@@ -161,6 +161,7 @@ class ArticleExtras(models.Model):
     num_issues_pdf = models.IntegerField(default=0)
     num_issues_xmlpdf = models.IntegerField(default=0)
     num_issues_si = models.IntegerField(default=0)
+    num_issues_legacy = models.IntegerField(default=0)
     
     # Error counts
     num_errors_total = models.IntegerField(default=0)
