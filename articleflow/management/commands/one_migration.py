@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
 
 from articleflow.models import Article, ArticleState, State, Journal
-from errors.models import Error, ErrorSet
 from issues.models import Issue, Category
 
 import MySQLdb
@@ -51,8 +50,7 @@ def get_or_create_user(username):
         logger.debug("Creating user for: %s" % username)
         u = User(username=username, password='veryinsecurepassword')
         u.save()
-    return u
-        
+    return u        
 
 def get_journal_from_doi(doi):
     match = re.match('.*(?=\.)', doi)
@@ -360,6 +358,27 @@ class MigrateDOI(DBBase):
 
         return a
 
+    @staticmethod
+    def write_errorset(errorset, article):
+        es, new = ErrorSet.objects.get_or_create(source=1, #ariesPull
+                                                 article=article,
+                                                 created=errorset['pulltime'])
+
+        if not new:
+            return False
+        es.save()
+        
+        for error in errorset['errors']:
+            e = Error(message=error[0],
+                      level=1,
+                      error_set=es,
+                      created=errorset['pulltime'])
+            e.save()
+
+    def write_errorsets(self, article):
+        for es in self.errorsets:
+            MigrateDOI.write_errorset(es, article)
+        
     def write_to_current(self):
         self.notes = self.notes.sort(key=lambda r: r[0])
 
@@ -369,6 +388,8 @@ class MigrateDOI(DBBase):
 
         for d, s in sorted(self.feedback, key=lambda i: i[0]):
             s.save(a)
+
+        self.write_errorsets(a)
         
     def migrate(self):
         self.read_from_legacy()
@@ -417,7 +438,7 @@ class GrabAT(DBBase):
 def main():
     g = GrabAT()
     dois = g.get_distinct_dois(10)
-    dois = ['pntd.0002076']
+    #dois = ['pntd.0002076']
     for doi in dois:
         print "###DOI: %s" % doi
         m = MigrateDOI(doi)
