@@ -1,3 +1,6 @@
+import datetime
+from django.utils.timezone import utc
+
 from django.db import models
 from articleflow.models import Article, ArticleExtras
 
@@ -31,7 +34,7 @@ class Error(models.Model):
     current_status = models.ForeignKey('ErrorStatus', related_name='current_status_of', null=True, blank=True, default=None)
 
     # Bookkeeping
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
@@ -71,7 +74,7 @@ class ErrorStatus(models.Model):
     error = models.ForeignKey('Error', related_name='statuses')
 
     # Bookkeeping
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
@@ -94,7 +97,7 @@ class ErrorSet(models.Model):
     article = models.ForeignKey(Article, related_name='error_sets')
 
     # Bookkeeping
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
