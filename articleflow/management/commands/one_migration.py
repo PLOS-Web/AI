@@ -401,7 +401,7 @@ class GrabAT(DBBase):
             SELECT
               DISTINCT(ap.doi)
             FROM prod_assigned AS ap
-            ORDER BY ap.time desc
+            ORDER BY ap.time asc
             """
         if num >= 0:
             e += "Limit %d" % num
@@ -437,8 +437,8 @@ class GrabAT(DBBase):
 
 def main():
     g = GrabAT()
-    dois = g.get_distinct_dois(10)
-    #dois = ['pntd.0002076']
+    dois = g.get_distinct_dois(100)
+    #dois = ['pone.0056162']
     for doi in dois:
         print "###DOI: %s" % doi
         m = MigrateDOI(doi)
