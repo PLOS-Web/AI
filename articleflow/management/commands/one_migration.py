@@ -1,6 +1,9 @@
 import pytz
 import re
 
+from django.contrib.sites.models import Site
+from django.contrib.comments.models import Comment
+from django.contrib.contenttypes.models import ContentType
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth.models import User
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
@@ -196,6 +199,27 @@ class GhettoNote(object):
     def __unicode__(self):
         return "timestamp: %s, user: %s, note: %s" % (self.timestamp, self.user, self.note)
 
+    def save(self, article=None):
+        logger.info("SAVING NOTE %s" % unicode(self))
+        
+        content_type = ContentType.objects.get(app_label="articleflow", model="article")
+
+        site =  Site.objects.get(pk=1)
+        user = get_or_create_user(self.user)
+        pk = article.pk
+        c, new = Comment.objects.get_or_create(content_type_id=content_type.pk,
+                                               site=site,
+                                               object_pk=pk,
+                                               user=user,
+                                               comment=self.note,
+                                               submit_date=self.timestamp)
+
+        if new:
+            logger.info("NEW NOTE. INSERTING")
+            c.save()
+        else:
+            logger.info("FOUND NOTE. INGNORING")
+        
 class MigrateDOI(DBBase):
     def __init__(self, doi):
         super(MigrateDOI, self).__init__()
@@ -378,9 +402,9 @@ class MigrateDOI(DBBase):
     def write_errorsets(self, article):
         for es in self.errorsets:
             MigrateDOI.write_errorset(es, article)
-        
+    
     def write_to_current(self):
-        self.notes = self.notes.sort(key=lambda r: r[0])
+        
 
         a = self.write_article()
         for d, s in sorted(self.states, key=lambda i: i[0]):
@@ -390,6 +414,9 @@ class MigrateDOI(DBBase):
             s.save(a)
 
         self.write_errorsets(a)
+        
+        for d, n in sorted(self.notes, key=lambda i: i[0]):
+            n.save(a)
         
     def migrate(self):
         self.read_from_legacy()
@@ -438,7 +465,7 @@ class GrabAT(DBBase):
 def main():
     g = GrabAT()
     dois = g.get_distinct_dois(100)
-    #dois = ['pone.0056162']
+    dois = ['pone.0056162']
     for doi in dois:
         print "###DOI: %s" % doi
         m = MigrateDOI(doi)
