@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
 
 from articleflow.models import Article, ArticleState, State, Journal
-from errors.models import Error, ErrorSet
 from issues.models import Issue, Category
 
 import MySQLdb
@@ -51,8 +50,7 @@ def get_or_create_user(username):
         logger.debug("Creating user for: %s" % username)
         u = User(username=username, password='veryinsecurepassword')
         u.save()
-    return u
-        
+    return u        
 
 def get_journal_from_doi(doi):
     match = re.match('.*(?=\.)', doi)
@@ -222,9 +220,7 @@ class MigrateDOI(DBBase):
               ap.md5 as 'md5',
               ap.si_guid as 'si_guid'
             FROM article_pulls as ap
-            WHERE ap.errors is not Null
-              AND ap.errors not like ''
-              AND ap.doi = '%s'
+            WHERE ap.doi = '%s'
             ORDER BY ap.pull_time desc
             """ % self.doi)
 
@@ -244,11 +240,12 @@ class MigrateDOI(DBBase):
             # use pubdate from most recent ariesPull
             if pull['pubdate']:
                 self.pubdate = pull['pubdate']
+            else:
+                logger.debug("No pubdate found in pull!")
 
             self.states += [(pull['pulltime'], GhettoState(self.doi, pull['pulltime'], 'Pulled', effecting_user=pull['user']))]
             pull['errors'] = separate_errors(pull['errors'])
 
-            
         self.errorsets = pulls
 
     def grab_production_assigned(self):
@@ -342,21 +339,46 @@ class MigrateDOI(DBBase):
 
     def write_article(self):
         journal = get_journal_from_doi(self.doi)
+        logger.debug("TRANSFORMING ARTICLE: (created: %s)" % self.created)
         a, new = Article.objects.get_or_create(doi=self.doi,
-                                               journal=journal)
+                                               journal=journal,
+                                               created=self.created)
         
         if self.pubdate:
             a.pubdate = self.pubdate
         else:
+            logger.info('No pubdate found')
             a.pubdate = '1900-01-01'
         a.si_guid = self.si_guid
         a.md5 = self.md5
+        a.created = self.created
 
-        logger.info("SAVING ARTICLE: %s" % a)
+        logger.info("SAVING ARTICLE: %s" % a.verbose_unicode())
         a.save()
 
         return a
 
+    @staticmethod
+    def write_errorset(errorset, article):
+        es, new = ErrorSet.objects.get_or_create(source=1, #ariesPull
+                                                 article=article,
+                                                 created=errorset['pulltime'])
+
+        if not new:
+            return False
+        es.save()
+        
+        for error in errorset['errors']:
+            e = Error(message=error[0],
+                      level=1,
+                      error_set=es,
+                      created=errorset['pulltime'])
+            e.save()
+
+    def write_errorsets(self, article):
+        for es in self.errorsets:
+            MigrateDOI.write_errorset(es, article)
+        
     def write_to_current(self):
         self.notes = self.notes.sort(key=lambda r: r[0])
 
@@ -366,13 +388,12 @@ class MigrateDOI(DBBase):
 
         for d, s in sorted(self.feedback, key=lambda i: i[0]):
             s.save(a)
-        
 
+        self.write_errorsets(a)
+        
     def migrate(self):
         self.read_from_legacy()
-        self.write_to_current()
-        
-        
+        self.write_to_current()        
 
 class GrabAT(DBBase):
     def get_distinct_dois(self, num=None):
@@ -380,7 +401,7 @@ class GrabAT(DBBase):
             SELECT
               DISTINCT(ap.doi)
             FROM prod_assigned AS ap
-            ORDER BY ap.time desc
+            ORDER BY ap.time asc
             """
         if num >= 0:
             e += "Limit %d" % num
@@ -417,7 +438,7 @@ class GrabAT(DBBase):
 def main():
     g = GrabAT()
     dois = g.get_distinct_dois(100)
-    #dois = ['pbio.1001194']
+    #dois = ['pone.0056162']
     for doi in dois:
         print "###DOI: %s" % doi
         m = MigrateDOI(doi)
@@ -428,7 +449,7 @@ def main():
     #g.get_pull_dois()
 
 if __name__ == '__main__':
-    main()    
+    main()
 
 class Command(BaseCommand):
     def handle(self, *args, **options):

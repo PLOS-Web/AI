@@ -197,6 +197,11 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'debugging',
             },
+        'debugging-error': {
+            'level': 'ERROR',
+            'class': 'logging.StreamHandler',
+            'formatter': 'debugging',
+            },
     },
     'loggers': {
         'django.request': {
@@ -210,6 +215,11 @@ LOGGING = {
             'propagate': True,
             },
         'issues.views': {
+            'handlers': ['debugging'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
+        'articleflow.models': {
             'handlers': ['debugging'],
             'level': 'DEBUG',
             'propagate': True,

@@ -107,6 +107,9 @@
 	  {% if article.article_extras.num_issues_si %}
 	    <span href="#" rel="tooltip" title="SI issues: {{ article.article_extras.num_issues_si }}" class="label label-SI">{{ article.article_extras.num_issues_si }}</span>
 	  {% endif %}  
+	  {% if article.article_extras.num_issues_legacy %}
+	    <span href="#" rel="tooltip" title="Legacy issues: {{ article.article_extras.num_issues_legacy }}" class="label label-Legacy">{{ article.article_extras.num_issues_legacy }}</span>
+	  {% endif %}  
 	{% elif col == "Errors" %}
 	    {% if article.article_extras.num_errors %}
 	    <span class="label">Errors: {{ article.article_extras.num_errors }}</span>

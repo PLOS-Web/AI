@@ -68,6 +68,8 @@ class Issue(models.Model):
                 a_extras.num_issues_xmlpdf += 1
             elif self.category.name == "SI":
                 a_extras.num_issues_si += 1
+            elif self.category.name == "Legacy":
+                a_extras.num_issues_legacy += 1
             else:
                 print "Encountered category unknown to articleextras"
 
