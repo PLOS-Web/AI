@@ -365,8 +365,7 @@ class MigrateDOI(DBBase):
         journal = get_journal_from_doi(self.doi)
         logger.debug("TRANSFORMING ARTICLE: (created: %s)" % self.created)
         a, new = Article.objects.get_or_create(doi=self.doi,
-                                               journal=journal,
-                                               created=self.created)
+                                               journal=journal)
         
         if self.pubdate:
             a.pubdate = self.pubdate
@@ -375,7 +374,8 @@ class MigrateDOI(DBBase):
             a.pubdate = '1900-01-01'
         a.si_guid = self.si_guid
         a.md5 = self.md5
-        a.created = self.created
+        if a.created:
+            a.created = self.created
 
         logger.info("SAVING ARTICLE: %s" % a.verbose_unicode())
         a.save()
@@ -464,8 +464,9 @@ class GrabAT(DBBase):
 
 def main():
     g = GrabAT()
-    dois = g.get_distinct_dois(100)
-    dois = ['pone.0014828']
+    dois = g.get_distinct_dois()
+    #dois = ['pone.0014831']
+    #dois = ['pone.0014828']
     for doi in dois:
         print "###DOI: %s" % doi
         m = MigrateDOI(doi)
