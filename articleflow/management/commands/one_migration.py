@@ -427,8 +427,8 @@ class GrabAT(DBBase):
         e = """
             SELECT
               DISTINCT(ap.doi)
-            FROM prod_assigned AS ap
-            ORDER BY ap.time asc
+            FROM article_pulls AS ap
+            ORDER BY ap.time desc
             """
         if num >= 0:
             e += "Limit %d" % num
