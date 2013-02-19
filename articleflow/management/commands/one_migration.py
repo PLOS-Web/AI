@@ -364,7 +364,8 @@ class MigrateDOI(DBBase):
         journal = get_journal_from_doi(self.doi)
         logger.debug("TRANSFORMING ARTICLE: (created: %s)" % self.created)
         a, new = Article.objects.get_or_create(doi=self.doi,
-                                               journal=journal)
+                                               journal=journal,
+                                               created=self.created)
         
         if self.pubdate:
             a.pubdate = self.pubdate
