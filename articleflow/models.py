@@ -32,6 +32,9 @@ class State(models.Model):
     def possible_assignees(self):
         return User.objects.filter(groups__state_assignments=self)
 
+    class Meta:
+        ordering = ['progress_index']
+
 
 class ArticleState(models.Model):
     """
