@@ -466,7 +466,9 @@ def main():
     dois = g.get_distinct_dois()
     #dois = ['pone.0014831']
     #dois = ['pone.0014828']
-    dois = ['pone.0022227']
+    #dois = ['pone.0022227']
+    dois = ['pone.0046376']
+
     for doi in dois:
         print "###DOI: %s" % doi
         m = MigrateDOI(doi)
