@@ -100,7 +100,7 @@ class ColumnOrder():
 
     @staticmethod
     def state(a, type):
-        return a.order_by(ColumnOrder.parse_type(type) + 'current_state')
+        return a.order_by(ColumnOrder.parse_type(type) + 'current_state__progress_index')
 
     @staticmethod
     def issues(a, type):
