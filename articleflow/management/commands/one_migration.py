@@ -113,10 +113,9 @@ def separate_errors(e):
             p = re.compile('(?<=%s:).*' % level, re.IGNORECASE)
             m = p.search(error) 
             if m:
-                logger.debug("Match: %s" % m.group(0))
                 error_tuple = (m.group(0).strip(), i)
+                logger.debug("Match: (%s, %s)" % (error_tuple[0], error_tuple[1]))
                 break
-
         errors += [error_tuple]
     
     return errors
@@ -365,7 +364,8 @@ class MigrateDOI(DBBase):
         journal = get_journal_from_doi(self.doi)
         logger.debug("TRANSFORMING ARTICLE: (created: %s)" % self.created)
         a, new = Article.objects.get_or_create(doi=self.doi,
-                                               journal=journal)
+                                               journal=journal,
+                                               created=self.created)
         
         if self.pubdate:
             a.pubdate = self.pubdate
@@ -394,7 +394,7 @@ class MigrateDOI(DBBase):
         
         for error in errorset['errors']:
             e = Error(message=error[0],
-                      level=1,
+                      level=error[1],
                       error_set=es,
                       created=errorset['pulltime'])
             e.save()
@@ -467,6 +467,9 @@ def main():
     dois = g.get_distinct_dois()
     #dois = ['pone.0014831']
     #dois = ['pone.0014828']
+    #dois = ['pone.0022227']
+    dois = ['pone.0046376']
+
     for doi in dois:
         print "###DOI: %s" % doi
         m = MigrateDOI(doi)
