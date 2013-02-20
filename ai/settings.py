@@ -224,6 +224,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
             },
+        'articleflow.templatetags.transitions': {
+            'handlers': ['debugging'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
     }
 }
 

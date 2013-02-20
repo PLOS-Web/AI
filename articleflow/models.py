@@ -119,8 +119,8 @@ class Article(models.Model):
     def possible_transitions(self, user=None):
         if user:
             raw_transitions = self.current_state.possible_transitions.all()
-            return raw_transitions.filter(allowed_groups__user=user)
-        return self.current_state.possible_transitions
+            return raw_transitions.filter(allowed_groups__user=user).distinct()
+        return self.current_state.possible_transitions.distinct()
 
     def execute_transition(self, transition, user):
         return transition.execute_transition(self, user)

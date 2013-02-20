@@ -2,13 +2,16 @@ from django import template
 
 from articleflow.models import Article
 
+import logging
+logger = logging.getLogger(__name__)
+
 register = template.Library()
 
 @register.inclusion_tag('articleflow/state_control.html', takes_context=True)
 def render_article_state_control(context, article, user):
     transitions = article.possible_transitions(user)
-    print "transitions: "
     for t in transitions.all():
+        logger.debug("Identified possible transition: %s" % t)
         if t.preference_weight < 25:
             setattr(t,'level', 'btn-danger')
         elif t.preference_weight < 50:
