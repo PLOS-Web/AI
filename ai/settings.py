@@ -210,8 +210,8 @@ LOGGING = {
             'propagate': True,
             },
         'articleflow.management.commands.one_migration': {
-            'handlers': ['debugging'],
-            'level': 'DEBUG',
+            'handlers': ['debugging-info', 'mail_admins'],
+            'level': 'INFO',
             'propagate': True,
             },
         'issues.views': {
