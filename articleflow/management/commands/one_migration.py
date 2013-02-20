@@ -428,6 +428,7 @@ class GrabAT(DBBase):
             SELECT
               DISTINCT(ap.doi)
             FROM article_pulls AS ap
+            WHERE ap.doi IS NOT NULL
             ORDER BY ap.time desc
             """
         if num >= 0:
