@@ -250,6 +250,8 @@ class AssignmentRatio(models.Model):
     class Meta:
         unique_together = ("user", "state")
 
+    def __unicode__(self):
+        return u"state: %s, user: %s, weight: %s" % (self.state.name, self.user.username, self.weight)
 
 class AutoAssign():
     @staticmethod
