@@ -157,8 +157,7 @@ class GhettoState(object):
             logger.info("New record. saving...")
             a_s.save()
         else:
-            logger.info("Old record found. Doing nothing.")
-        
+            logger.info("Old record found. Doing nothing.")        
 
 class GhettoIssue(object):
     def __init__(self, doi, timestamp, user, feedback):

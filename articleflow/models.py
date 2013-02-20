@@ -119,8 +119,8 @@ class Article(models.Model):
     def possible_transitions(self, user=None):
         if user:
             raw_transitions = self.current_state.possible_transitions.all()
-            return raw_transitions.filter(allowed_groups__user=user)
-        return self.current_state.possible_transitions
+            return raw_transitions.filter(allowed_groups__user=user).distinct()
+        return self.current_state.possible_transitions.distinct()
 
     def execute_transition(self, transition, user):
         return transition.execute_transition(self, user)
@@ -250,6 +250,8 @@ class AssignmentRatio(models.Model):
     class Meta:
         unique_together = ("user", "state")
 
+    def __unicode__(self):
+        return u"state: %s, user: %s, weight: %s" % (self.state.name, self.user.username, self.weight)
 
 class AutoAssign():
     @staticmethod
@@ -284,7 +286,7 @@ class AutoAssign():
             pass
 
         # if there are no weights defined, don't assign
-        if total_weight == 0:
+        if not total_weight:
             print "No weights defined"
             return None
 
