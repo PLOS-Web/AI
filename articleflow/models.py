@@ -24,12 +24,16 @@ class State(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
     worker_groups = models.ManyToManyField(Group, related_name="state_assignments", null=True, blank=True, default=None)
     auto_assign = models.IntegerField(default=1, choices=AUTO_ASSIGN)
+    progress_index = models.IntegerField(default=0)
 
     def __unicode__(self):
         return self.name
 
     def possible_assignees(self):
         return User.objects.filter(groups__state_assignments=self)
+
+    class Meta:
+        ordering = ['progress_index']
 
 
 class ArticleState(models.Model):
