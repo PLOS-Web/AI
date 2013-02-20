@@ -286,7 +286,7 @@ class AutoAssign():
             pass
 
         # if there are no weights defined, don't assign
-        if total_weight == 0:
+        if not total_weight:
             print "No weights defined"
             return None
 
