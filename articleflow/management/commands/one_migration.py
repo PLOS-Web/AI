@@ -283,7 +283,11 @@ class MigrateDOI(DBBase):
 
         for assign in assigns:
             assign['time'] = toUTCc(assign['time'])
-            self.states += [(assign['time'], GhettoState(self.doi, assign['time'], 'Ready for QC (CW)', assigned_user=assign['assigned']))]
+            # Split up ready for qc into zyg pool and urgent
+            if assign['assigned']:
+                self.states += [(assign['time'], GhettoState(self.doi, assign['time'], 'Urgent QC (CW)', assigned_user=assign['assigned']))]
+            else:
+                self.states += [(assign['time'], GhettoState(self.doi, assign['time'], 'Ready for QC (CW)', assigned_user=assign['assigned']))]
 
     def grab_production_feedback(self):
         self.at_c.execute(
