@@ -1,4 +1,6 @@
 # Django settings for ai project.
+import djcelery
+djcelery.setup_loader()
 import ldap
 from django_auth_ldap.config import LDAPSearch
 
@@ -140,6 +142,7 @@ INSTALLED_APPS = (
     'crispy_forms',
     'django_filters',
     'south',
+    'djcelery',
 
     'articleflow',
     'issues',
@@ -241,7 +244,6 @@ AUTHENTICATION_BACKENDS = (
 AUTH_LDAP_SERVER_URI = "ldap://ldap.plos.org"
 
 AUTH_LDAP_BIND_DN = "ldap_ad"
-#needs password
 AUTH_LDAP_BIND_PASSWORD = "G@mar@!"
 AUTH_LDAP_USER_SEARCH = LDAPSearch("OU=PLoS,DC=plos,DC=org",
     ldap.SCOPE_SUBTREE, "(sAMAccountName=%(user)s)")
