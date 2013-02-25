@@ -143,6 +143,7 @@ INSTALLED_APPS = (
     'django_filters',
     'south',
     'djcelery',
+    'kombu.transport.django',
 
     'articleflow',
     'issues',
@@ -277,3 +278,6 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'ai.root.dispatch@gmail.com'
 EMAIL_HOST_PASSWORD = 'thisisghetto'
+
+# Broker setup
+BROKER_URL = 'django://'
