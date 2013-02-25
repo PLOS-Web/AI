@@ -29,14 +29,32 @@ DATABASES = {
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
         },
     'EM': {
-        'ENGINE': 'sqlserver_ado', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'ENGINE': 'sql_server.pyodbc', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'pone',                      # Or path to database file if using sqlite3.
         'USER': 'speedy',                      # Not used with sqlite3.
         'PASSWORD': 'gonzales',                  # Not used with sqlite3.
         'HOST': '198.115.92.150',         # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '1433',                      # Set to empty string for default. Not used with sqlite3.
+        'PORT': '1433',# Set to empty string for default. Not used with sqlite3.
+        'DATABASE_OPTIONS': {
+            'driver': 'SQL Native Client',
+            'MARS_Connection': True,
+            }
         }
     }
+
+EM_DATABASE = {
+     'ENGINE': 'sql_server.pyodbc', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+     'NAME': 'pone',                      # Or path to database file if using sqlite3.
+     'USER': 'speedy',                      # Not used with sqlite3.
+     'PASSWORD': 'gonzales',                  # Not used with sqlite3.
+     'HOST': '198.115.92.150',         # Set to empty string for localhost. Not used with sqlite3.
+     'PORT': '1433',# Set to empty string for default. Not used with sqlite3.
+     'DATABASE_OPTIONS': {
+         'driver': 'SQL Native Client',
+         'MARS_Connection': True,
+         }
+     }
+
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
