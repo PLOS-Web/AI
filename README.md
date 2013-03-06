@@ -19,10 +19,10 @@ libmysqlclient-dev python-dev libldap2-dev libsasl2-dev libssl-dev unixodbc-dev
 2.	`cd .. ; virtualenv --no-site-packages env`
 3.	`source env/bin/activate`
 4.	`cd ai ; pip install -r requirements.txt`
-5.	Setup mysql db if not already and configure django to use it in ai/settings.py.
+5.	Create local_settings.py (see local_settings_sample.py for a boilerplate)
 6.	`python manage.py syncdb`
-7.	(optional) `python manage.py loaddata < seed.json`
-8.	`python manage.py runserver`
+7.	`python manage.py migrate`
+8.	`python manage.py runserver --insecure`
 
 
 ## Testing

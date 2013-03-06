@@ -5,55 +5,15 @@ import ldap
 from django_auth_ldap.config import LDAPSearch
 
 import os.path
+from local_settings import *
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
-ADMINS = (
-     ('Jack LaBarba', 'jlabarba@plos.org'),
-     ('dweebit', 'brakit@gmail.com'),
-)
-
 MANAGERS = ADMINS
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'ai_dev',                      # Or path to database file if using sqlite3.
-        'USER': 'ai_dev',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
-        'HOST': '',         # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
-        },
-    'EM': {
-        'ENGINE': 'sql_server.pyodbc', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': 'pone',                      # Or path to database file if using sqlite3.
-        'USER': 'speedy',                      # Not used with sqlite3.
-        'PASSWORD': 'gonzales',                  # Not used with sqlite3.
-        'HOST': '198.115.92.150',         # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '1433',# Set to empty string for default. Not used with sqlite3.
-        'DATABASE_OPTIONS': {
-            'driver': 'SQL Native Client',
-            'MARS_Connection': True,
-            }
-        }
-    }
-
-EM_DATABASE = {
-     'ENGINE': 'sql_server.pyodbc', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
-     'NAME': 'pone',                      # Or path to database file if using sqlite3.
-     'USER': 'speedy',                      # Not used with sqlite3.
-     'PASSWORD': 'gonzales',                  # Not used with sqlite3.
-     'HOST': '198.115.92.150',         # Set to empty string for localhost. Not used with sqlite3.
-     'PORT': '1433',# Set to empty string for default. Not used with sqlite3.
-     'DATABASE_OPTIONS': {
-         'driver': 'SQL Native Client',
-         'MARS_Connection': True,
-         }
-     }
 
 
 # Local time zone for this installation. Choices can be found here:
@@ -111,9 +71,6 @@ STATICFILES_FINDERS = (
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = '8odqed_i2qhzdxzw-d38dpdprzgt#@-tb(iszgn9w3#uvth1h&amp;'
-
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
@@ -159,11 +116,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.comments',
-    # Uncomment the next line to enable the admin:
-     'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
-    # Project Apps
+    'django.contrib.admin',
+
     'debug_toolbar',
     'crispy_forms',
     'django_filters',
@@ -268,13 +222,6 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-AUTH_LDAP_SERVER_URI = "ldap://ldap.plos.org"
-
-AUTH_LDAP_BIND_DN = "ldap_ad"
-AUTH_LDAP_BIND_PASSWORD = "G@mar@!"
-AUTH_LDAP_USER_SEARCH = LDAPSearch("OU=PLoS,DC=plos,DC=org",
-    ldap.SCOPE_SUBTREE, "(sAMAccountName=%(user)s)")
-
 AUTH_LDAP_USER_ATTR_MAP = {
     "first_name": "givenName", 
     "last_name": "sn",
@@ -292,18 +239,6 @@ logger = logging.getLogger('django_auth_ldap')
 logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.DEBUG)
 
-# EMAIL config
-#EMAIL_HOST = "sfexch02.plos.org"
-#EMAIL_HOST_USER = "ai"
-#EMAIL_HOST_PASSWORD = ""
-
-#SERVER_EMAIL = "ai@plos.org"
-
-EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'ai.root.dispatch@gmail.com'
-EMAIL_HOST_PASSWORD = 'thisisghetto'
-
 # Broker setup
 BROKER_URL = 'django://'
+
