@@ -127,8 +127,8 @@ ORDER_CHOICES = {
 
 class ArticleFilter(django_filters.FilterSet):
     
-    doi = django_filters.CharFilter(name='doi', label='DOI')
-
+    doi_widget = forms.TextInput(attrs={'placeholder': 'pone.0012345'})
+    doi = django_filters.CharFilter(name='doi', label='DOI', widget=doi_widget)
 
     datepicker_widget = forms.DateInput(attrs={'class': 'datepicker'})
     pubdate_gte = django_filters.DateFilter(name='pubdate', label='From', lookup_type='gte', widget=datepicker_widget) 
