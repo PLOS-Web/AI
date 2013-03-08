@@ -6,7 +6,7 @@
   {% render_comment_list for article %}
 </div>
 {% if user.is_authenticated %}
-<span data-toggle="collapse" data-target="#article-note-form">
+<span class="accordion-toggle" data-toggle="collapse" data-target="#article-note-form">
   <a id="article-note-collapse-toggle" class="center monospace">[+]</a>
   <a>Add a note</a>
 </span>

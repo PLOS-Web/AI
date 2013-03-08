@@ -25,7 +25,7 @@ class IssueForm(ModelForm):
         self.helper.layout = Layout(
             Field('article'),
             Field('category', css_class='btn dropdown-toggle', selected='category'),
-            Field('description', rows="1", css_class='span5'),
+            Field('description', rows="1", css_class='span5', placeholder='Add description'),
             Submit('submit', 'Submit', css_class='btn-primary'),
             )
         
