@@ -20,6 +20,5 @@ python-ldap==2.4.10
 pytz==2012j
 requests==1.1.0
 simplejson==2.6.2
-sql-server.pyodbc==1.0
 uWSGI==1.4.4
 wsgiref==0.1.2
