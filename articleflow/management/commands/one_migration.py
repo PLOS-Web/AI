@@ -431,7 +431,7 @@ class GrabAT(DBBase):
             SELECT
               DISTINCT(ap.doi)
             FROM article_pulls AS ap
-            WHERE ap.doi IS NULL
+            WHERE ap.doi IS NOT NULL
             ORDER BY ap.time desc
             """
         if num >= 0:
@@ -469,10 +469,6 @@ class GrabAT(DBBase):
 def main():
     g = GrabAT()
     dois = g.get_distinct_dois()
-    #dois = ['pone.0014831']
-    #dois = ['pone.0014828']
-    #dois = ['pone.0022227']
-    #dois = ['']
 
     for doi in dois:
         print "###DOI: %s" % doi
@@ -481,15 +477,10 @@ def main():
             m.migrate()
         except Exception as e:
             logger.exception("DUMP DOI: %s %s" % (doi, e))
-    #m = MigrateDOI('pone.0016714')
-    #m = MigrateDOI('pone.0029752')
-    #m.migrate()
-    #g.get_pull_dois()
 
 if __name__ == '__main__':
     main()
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        #test_timezone()
         main()
