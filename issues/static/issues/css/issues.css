@@ -209,3 +209,7 @@ textarea.issue-textarea {
     border-top: 1px solid rgba(0, 0, 0, .1);
     background-color: #EFEFEF;
 }
+
+#div_id_description label {
+    display: none;
+}
