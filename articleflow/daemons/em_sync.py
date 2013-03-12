@@ -1,6 +1,8 @@
 import re
 from datetime import datetime
 
+from celery.task import task
+
 import em_query
 from em_query import EMQueryConnection
 from articleflow.models import Article, State
@@ -11,7 +13,6 @@ logger = get_task_logger(__name__)
 def get_live_articles():
     # will throw State.DoesNotExist error if no 'Published Live' state
     cutoff_state_index = State.objects.get(name='Published Live').progress_index
-    # cutoff_state_index = State.objects.get(name='Ready to Publish').progress_index
     return Article.objects.filter(current_state__progress_index__lt=cutoff_state_index).order_by('journal')
     
 def sync_live_pubdates():
@@ -33,11 +34,13 @@ def sync_live_pubdates():
             except ValueError, e:
                 logger.error(e)
 
+@task
 def sync_all_pubdates():
     with EMQueryConnection() as eqc:
         pubdates = eqc.get_all_pubdates()
         short_doi_prog = re.compile('(?<=10\.1371\/journal\.).*')
         for a in pubdates:
+            # only update AI's pubdate if EM has a non-null value
             if a[1]:
                 try:
                     short_doi = short_doi_prog.search(a[0]).group(0)
@@ -49,6 +52,11 @@ def sync_all_pubdates():
                     logger.info("Pubdate update couldn't find doi, %s, in AI" % short_doi)
             else:
                 logger.info("EM provided a null pubdate for %s. Not updating." % a[0])
+
+@task
+def cron_test():
+    logger.info("Cron test activated")
+    return True
     
 def main():
     sync_all_pubdates()
