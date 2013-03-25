@@ -7,6 +7,32 @@ logger = get_task_logger(__name__)
 
 from celery.task import task
 
+def is_ingested(doi, ambra_c):
+        ambra_c.execute(
+            """"
+            SELECT
+               a.doi
+            FROM article as a
+            WHERE a.state = 1
+            """)
+        res = ambra_c.fetchall()
+        if res:
+            return True
+        return False
+
+def is_published(doi, ambra_c):
+        ambra_c.execute(
+            """"
+            SELECT
+               a.doi
+            FROM article as a
+            WHERE a.state = 0
+            """)
+        res = ambra_c.fetchall()
+        if res:
+            return True
+        return False
+
 def add_workdays(start_date, delta_days, whichdays=(0,1,2,3,4)):
     new_date = start_date
     d = delta_days
@@ -59,6 +85,20 @@ def assign_urgent():
     for article in non_urgent_qc:
         if article.pubdate < add_workdays(datetime.today, urgent_threshold):
             logger.info("Moving %s to Urgent QC (CW)" % article.doi)
+
+def verify_published(ambra_c):
+    '''
+    a_connection is cursor to an ambra database
+    '''
+    ready_to_publish_state = State.objects.get(name='Ready to Publish')
+    ready_to_publish = Articles.objects.filter(current_state=ready_to_publish_state)
+    
+    for a in ready_to_publish:
+        ambra_c.execute(
+            """"
+            SELECT
+               a.doi
+            FROM
 
 def main():
     assign_urgent()
