@@ -72,6 +72,7 @@ def assign_ready_for_qc():
                                from_transition=None,
                                from_transition_user=None,
                                )
+            a_s.save()
         
 
 def assign_urgent():
@@ -92,13 +93,17 @@ def verify_published(ambra_c):
     '''
     ready_to_publish_state = State.objects.get(name='Ready to Publish')
     ready_to_publish = Articles.objects.filter(current_state=ready_to_publish_state)
+    published_on_stage_state = State.objects.get(name='Published on Stage')
     
     for a in ready_to_publish:
-        ambra_c.execute(
-            """"
-            SELECT
-               a.doi
-            FROM
+        if is_published(a.doi, ambra_c):
+            a_s = ArticleState(article=a,
+                               state=published_on_stage_state,
+                               assignee=None,
+                               from_transition=None,
+                               from_transition_user=None,
+                               )
+            a_s.save()            
 
 def main():
     assign_urgent()
