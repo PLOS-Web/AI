@@ -21,6 +21,14 @@ DATABASES = {
     }
 }
 
+# Settings for the EM reporting datasource
+EM_REPORTING_DATABASE = {
+    'USER': '',
+    'PASSWORD': '',
+    'HOST': '',
+    'PORT': '',
+}
+
 # generate one here 
 # http://www.miniwebtool.com/django-secret-key-generator/
 SECRET_KEY = ''

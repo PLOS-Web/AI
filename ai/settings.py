@@ -1,4 +1,6 @@
 # Django settings for ai project.
+import djcelery
+djcelery.setup_loader()
 import ldap
 from django_auth_ldap.config import LDAPSearch
 
@@ -12,6 +14,7 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 MANAGERS = ADMINS
+
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -119,6 +122,8 @@ INSTALLED_APPS = (
     'crispy_forms',
     'django_filters',
     'south',
+    'djcelery',
+    'kombu.transport.django',
 
     'articleflow',
     'issues',
@@ -208,6 +213,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
             },
+        'celery': {
+            'handlers': ['debugging'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
     }
 }
 
@@ -233,4 +243,7 @@ import logging
 logger = logging.getLogger('django_auth_ldap')
 logger.addHandler(logging.StreamHandler())
 logger.setLevel(logging.DEBUG)
+
+# Broker setup
+BROKER_URL = 'django://'
 

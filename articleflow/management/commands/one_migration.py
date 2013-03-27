@@ -287,7 +287,7 @@ class MigrateDOI(DBBase):
             if assign['assigned']:
                 self.states += [(assign['time'], GhettoState(self.doi, assign['time'], 'Urgent QC (CW)', assigned_user=assign['assigned']))]
             else:
-                self.states += [(assign['time'], GhettoState(self.doi, assign['time'], 'Ready for QC (CW)', assigned_user=assign['assigned']))]
+                raise ValueError("Null assignee for %s" % assigns['doi'])
 
     def grab_production_feedback(self):
         self.at_c.execute(
