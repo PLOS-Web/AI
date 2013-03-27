@@ -23,6 +23,7 @@ libmysqlclient-dev python-dev libldap2-dev libsasl2-dev libssl-dev unixodbc-dev
 6.	`python manage.py syncdb`
 7.	`python manage.py migrate`
 8.	`python manage.py runserver --insecure`
+9.	To start the syncing workers `python ./manage.py celeryd -v 2 -B -s celery -E -l INFO`
 
 
 ## Testing
