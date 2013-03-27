@@ -1,7 +1,7 @@
 <uwsgi>
   <socket>127.0.0.1:8000</socket>
-  <chdir>/home/ai/ai</chdir>
-  <home>/home/ai/ai/env</home>
+  <chdir>/home/jlabarba/workarea/ai/ai/</chdir>
+  <home>/home/jlabarba/workarea/ai/env/</home>
   <module>django_wsgi</module>
-  <buffer-size>40960</buffer-size>
+  <buffer-size>20480</buffer-size>
 </uwsgi>

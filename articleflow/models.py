@@ -89,6 +89,9 @@ class Journal(models.Model):
     full_name = models.CharField(max_length=200)
     short_name = models.CharField(max_length=200)
     em_name = models.CharField(max_length=200)
+    em_url_name = models.CharField(max_length=200)
+    
+    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)    
 
     def __unicode__(self):
