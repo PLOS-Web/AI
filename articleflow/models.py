@@ -105,6 +105,10 @@ class Article(models.Model):
     current_articlestate = models.ForeignKey('ArticleState', related_name='current_article', null=True, blank=True, default=None)
     current_state = models.ForeignKey('State', related_name="current_articles", null=True, blank=True, default=None)
     article_extras = models.ForeignKey('ArticleExtras', related_name="article_dont_use", null=True, blank=True, default=None)
+    em_pk = models.IntegerField(null=True, blank=True, default=None)
+    em_ms_number = models.CharField(max_length=50, null=True, blank=True, default=None)
+    em_max_revision = models.IntegerField(null=True, blank=True, default=None)
+    
 
     created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)
