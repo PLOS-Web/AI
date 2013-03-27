@@ -68,9 +68,14 @@ class EMQueryConnection(EMConnection):
             """
             SELECT 
                doi,
-               actual_online_pub_date as 'pubdate'
+               actual_online_pub_date as 'pubdate',
+               documentid,
+               pubdnumber,
+               rev_max
             FROM document d
             WHERE d.doi is not null
+              AND d.revision =
+              (SELECT MAX(d_sub.revision) as rev_max FROM document d_sub WHERE d_sub.documentid = d.documentid) 
             """)
         
         r = self.cursor.fetchall()
