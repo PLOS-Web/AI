@@ -81,9 +81,7 @@ class EMQueryConnection(EMConnection):
                   AND d.revision =
                   (SELECT MAX(d_sub.revision) as rev_max FROM document d_sub WHERE d_sub.documentid = d.documentid) 
                 """)
-        
-             r += self.cursor.fetchall()
-        
+            r += self.cursor.fetchall()
         return r
 
 def main():
