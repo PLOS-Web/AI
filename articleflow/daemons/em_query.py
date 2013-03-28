@@ -64,21 +64,25 @@ class EMQueryConnection(EMConnection):
         return r[0][0]
 
     def get_all_pubdates(self):
-        self.cursor.execute(
-            """
-            SELECT 
-               doi,
-               actual_online_pub_date as 'pubdate',
-               documentid,
-               pubdnumber,
-               rev_max
-            FROM document d
-            WHERE d.doi is not null
-              AND d.revision =
-              (SELECT MAX(d_sub.revision) as rev_max FROM document d_sub WHERE d_sub.documentid = d.documentid) 
-            """)
+        journals = Journal.objects.all()
+        r = []
+        for journal in journals():
+            self.cursor.execute('USE %s' % journal.em_db_name)
+            self.cursor.execute(
+                """
+                SELECT
+                  doi,
+                  actual_online_pub_date as 'pubdate',
+                  documentid,
+                  pubdnumber,
+                  rev_max
+                FROM document d
+                WHERE d.doi is not null
+                  AND d.revision =
+                  (SELECT MAX(d_sub.revision) as rev_max FROM document d_sub WHERE d_sub.documentid = d.documentid) 
+                """)
         
-        r = self.cursor.fetchall()
+             r += self.cursor.fetchall()
         
         return r
 
