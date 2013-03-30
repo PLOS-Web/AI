@@ -483,5 +483,4 @@ if __name__ == '__main__':
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        #test_timezone()
         main()
