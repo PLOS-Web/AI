@@ -8,6 +8,7 @@ urlpatterns = patterns('',
                        url(r'^$', direct_to_template, {
             "template": "homepage.html",
             }, name="home"),
+                       url(r'^favicon\.ico$', 'django.views.generic.simple.redirect_to', {'url': '/static/img/favicon.ico'}),
                        url(r'^admin/', include(admin.site.urls)),
                        url(r'^', include('articleflow.urls')),
                        url(r'^auth/', include('fancyauth.urls')),
