@@ -87,7 +87,12 @@ class ArticleState(models.Model):
 
 class Journal(models.Model):
     full_name = models.CharField(max_length=200)
-    short_name = models.CharField(max_length=200)
+    short_name = models.CharField(max_length=200) #the common acronym/shortening of the journal's name
+    em_db_name = models.CharField(max_length=200) #the name of the journal's db in the EM MSSQL DB
+    em_url_prefix = models.CharField(max_length=200) #the journal name modifier for EM's url scheme
+    em_ambra_stage_prefix = models.CharField(max_length=200) #the journal name modifier for stage Ambra's URL scheme
+    
+    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)    
 
     def __unicode__(self):
@@ -105,6 +110,10 @@ class Article(models.Model):
     current_articlestate = models.ForeignKey('ArticleState', related_name='current_article', null=True, blank=True, default=None)
     current_state = models.ForeignKey('State', related_name="current_articles", null=True, blank=True, default=None)
     article_extras = models.ForeignKey('ArticleExtras', related_name="article_dont_use", null=True, blank=True, default=None)
+    em_pk = models.IntegerField(null=True, blank=True, default=None)
+    em_ms_number = models.CharField(max_length=50, null=True, blank=True, default=None)
+    em_max_revision = models.IntegerField(null=True, blank=True, default=None)
+    
 
     created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)

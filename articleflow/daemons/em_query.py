@@ -39,13 +39,14 @@ class EMConnection(MSSQLConnection):
             port=settings.EM_REPORTING_DATABASE['PORT'],
             user=settings.EM_REPORTING_DATABASE['USER'],
             password=settings.EM_REPORTING_DATABASE['PASSWORD'])
+        self.cursor.execute('USE %s' % 'PONE')
         
 class EMQueryConnection(EMConnection):
     def get_pubdate(self, doi):
         # will throw ValueError if can't figure out journal from DOI
         # will throw LookupError if EM doesn't return good data
         journal = get_journal_from_doi(doi)
-        self.cursor.execute('USE %s' % journal.short_name)
+        #self.cursor.execute('USE %s' % journal.em_name)
         self.cursor.execute(
             """
             SELECT actual_online_pub_date
@@ -61,6 +62,27 @@ class EMQueryConnection(EMConnection):
             raise LookupError("Multiple entries found for DOI: %s" % doi)
         
         return r[0][0]
+
+    def get_all_pubdates(self):
+        journals = Journal.objects.all()
+        r = []
+        for journal in journals():
+            self.cursor.execute('USE %s' % journal.em_db_name)
+            self.cursor.execute(
+                """
+                SELECT
+                  doi,
+                  actual_online_pub_date as 'pubdate',
+                  documentid,
+                  pubdnumber,
+                  rev_max
+                FROM document d
+                WHERE d.doi is not null
+                  AND d.revision =
+                  (SELECT MAX(d_sub.revision) as rev_max FROM document d_sub WHERE d_sub.documentid = d.documentid) 
+                """)
+            r += self.cursor.fetchall()
+        return r
 
 def main():
     with EMQueryConnection() as emq:
