@@ -27,9 +27,11 @@
       <span id="comment-count-{{ issue.pk }}" class="greyed"> {{ comment_count }} comments</span>
     </span>
   </div>
+  {% if user.is_authenticated %}
   <div id="issue-status-control-{{ issue.pk }}" class="issue-status-control">
       {% render_issue_status_control issue %}
   </div>
+  {% endif %}
   <div class="clear"></div>
   <div id="issue-collapse-{{ issue.pk }}" class="collapse bar-side">
     {% render_comment_block issue %}
