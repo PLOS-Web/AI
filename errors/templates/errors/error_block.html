@@ -57,9 +57,11 @@
       <span id="comment-count-{{ error.pk }}" class="greyed"> {{ comment_count }} comments</span>
     </span>
   </div>
+  {% if user.is_authenticated %}
   <div id="error-status-control-{{ error.pk }}" class="issue-status-control">
     {% render_error_status_control error %}
   </div>
+  {% endif %}
   <div class="clear"></div>
   <div id="error-collapse-{{ error.pk }}" class="collapse bar-side">
     {% render_comment_block error %}
