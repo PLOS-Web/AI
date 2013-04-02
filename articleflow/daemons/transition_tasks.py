@@ -1,11 +1,28 @@
+import sys
+
 from datetime import datetime, timedelta
 
-from articleflow.models import Article, State, ArticleState
+from articleflow.models import Article, State, ArticleState, Transition
 
 from celery.utils.log import get_task_logger
 logger = get_task_logger(__name__)
 
 from celery.task import task
+
+daemon_name_fmt = "Daemon: %s"
+
+def get_or_create_user(username):
+    if not username:
+        logger.debug("Given null username")
+        return None
+    try:
+        u = User.objects.get(username=username)
+        logger.debug("Found user: %s" % u.username)
+    except User.DoesNotExist:
+        logger.debug("Creating user for: %s" % username)
+        u = User(username=username, password='Well this is a fun way to do things')
+        u.save()
+    return u
 
 def is_ingested(doi, ambra_c):
         ambra_c.execute(
@@ -41,7 +58,22 @@ def add_workdays(start_date, delta_days, whichdays=(0,1,2,3,4)):
         if new_date.weekday() in whichdays:
             d -= 1
     return new_date
+
+def assign_ingested_doi(art, stage_conn):
+    pulled_state = State.objects.get(name='Pulled')
+    if art.current_state == pulled_state and stage_conn.doi_ingested(art.doi):
+        daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
+        ingest_transition = Transition.objects.get(name="Ingest")
+	art.execute_transition(ingest_transition, daemon_user)
+        
     
+def assign_ingested():
+    '''
+    Find all pulled articles, see if they're pubbed on stage, advance
+    to Ingested if so
+    '''
+    pass
+
 def assign_ready_for_qc():
     '''
     Find all ingested articles,
@@ -73,7 +105,6 @@ def assign_ready_for_qc():
                                from_transition_user=None,
                                )
             a_s.save()
-        
 
 def assign_urgent():
     logger.info("Am I doing anything?")
