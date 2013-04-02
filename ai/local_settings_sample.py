@@ -2,6 +2,7 @@
 #  (then don't ever commit me)
 
 import ldap
+import sys
 from django_auth_ldap.config import LDAPSearch
 
 # email to send 500 stack traces to
@@ -21,6 +22,12 @@ DATABASES = {
     }
 }
 
+if 'test' in sys.argv:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'test_db'
+        }
+    
 # Settings for the EM reporting datasource
 EM_REPORTING_DATABASE = {
     'USER': '',
