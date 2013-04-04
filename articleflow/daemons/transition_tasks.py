@@ -2,6 +2,7 @@ import sys
 
 from datetime import datetime, timedelta
 
+from django.contrib.auth.models import User
 from articleflow.models import Article, State, ArticleState, Transition
 
 from celery.utils.log import get_task_logger
@@ -9,7 +10,7 @@ logger = get_task_logger(__name__)
 
 from celery.task import task
 
-daemon_name_fmt = "Daemon: %s"
+daemon_name_format = "Daemon: %s"
 
 def get_or_create_user(username):
     if not username:
@@ -59,20 +60,28 @@ def add_workdays(start_date, delta_days, whichdays=(0,1,2,3,4)):
             d -= 1
     return new_date
 
-def assign_ingested_doi(art, stage_conn):
+def assign_ingested_article(art, stage_conn):
+    logger.info("Checking article, %s, to see if it needs to be changed to 'Ingested'" % art.doi)
     pulled_state = State.objects.get(name='Pulled')
-    if art.current_state == pulled_state and stage_conn.doi_ingested(art.doi):
+    pulled = (art.current_state == pulled_state)
+    ingested = stage_conn.doi_ingested(art.doi)
+    logger.info("Article %s:  {pulled: %s, ingested: %s}" % (art.doi, pulled, ingested)) 
+    if pulled and ingested:
+        logger.info("Article, %s, moving to 'Ingested'" % art.doi)
         daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
         ingest_transition = Transition.objects.get(name="Ingest")
 	art.execute_transition(ingest_transition, daemon_user)
         
     
-def assign_ingested():
+def assign_ingested(stage_conn):
     '''
     Find all pulled articles, see if they're pubbed on stage, advance
     to Ingested if so
     '''
-    pass
+    pulled_state = State.objects.get(name='Pulled')
+    pulled_articles = Article.objects.filter(current_state=pulled_state).all()
+    for a in pulled_articles:
+        assign_ingested_article(a, stage_conn)
 
 def assign_ready_for_qc():
     '''
