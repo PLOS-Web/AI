@@ -1,6 +1,6 @@
 import sys
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 
 from django.contrib.auth.models import User
 from articleflow.models import Article, State, ArticleState, Transition
@@ -83,6 +83,35 @@ def assign_ingested(stage_conn):
     for a in pulled_articles:
         assign_ingested_article(a, stage_conn)
 
+def assign_ready_for_qc_article(art):
+    logger.info("Checking article, %s, to see if it needs to be changed to 'Ready for QC (CW)'" % art.doi)
+    ingested_state = State.objects.get(name='Ingested')
+    ingested = (art.current_state == ingested_state)    
+    if not ingested:
+        logger.info("Article, %s, not 'Ingested' is '%s' instead.  Aborting transition to Ready for QC" % (art.doi, art.current_state))        
+        return False
+    ready_for_qc_state = State.objects.get(name='Ready for QC (CW)')
+    ingested_state_index = ingested_state.progress_index
+    try:
+        last_advanced_state = ArticleState.objects.filter(article=art).filter(state__progress_index__gt=ingested_state_index).latest('created')
+        # return article to last advanced state
+        a_s = ArticleState(article=art,
+                           state=last_advanced_state.state,
+                           assignee=last_advanced_state.assignee,
+                           from_transition=None,
+                           from_transition_user=None,
+                           )
+        a_s.save()
+    except ArticleState.DoesNotExist, e:
+        # move article to ready for qc state
+        a_s = ArticleState(article=art,
+                           state=ready_for_qc_state,
+                           assignee=None,
+                           from_transition=None,
+                           from_transition_user=None,
+                           )
+        a_s.save()
+
 def assign_ready_for_qc():
     '''
     Find all ingested articles,
@@ -90,42 +119,37 @@ def assign_ready_for_qc():
     If not, put in ready for qc pool
     '''
     ingested_state = State.objects.get(name='Ingested')
-    ingested_state_index = ingested_state.progress_index
     ingested = Article.objects.filter(current_state=ingested_state)
-    ready_for_qc_state = State.objects.get(name='Ready for QC (CW)')
+    logger.info("Starting assign_ready_for_qc.  Identified %s articles in 'Ingested' state." % ingested.count())
     
     for a in ingested:
-        last_advanced_state = ArticleState.objects.filter(article=a).filter(state__progress_index__gt=ingested_state_index).latest('created')
-        if last_advanced_state:
-            #return article to last advanced state
-            a_s = ArticleState(article=a,
-                               state=last_advanced_state.state,
-                               assignee=last_advanced_state.assignee,
-                               from_transition=None,
-                               from_transition_user=None,
-                               )
-            a_s.save()
-        else:
-            #move article to non-urgent qc
-            a_s = ArticleState(article=a,
-                               state=ready_for_qc_state,
-                               assignee=None,
-                               from_transition=None,
-                               from_transition_user=None,
-                               )
-            a_s.save()
+        assign_ready_for_qc_article(a)
 
-def assign_urgent():
-    logger.info("Am I doing anything?")
-    urgent_threshold = 3
+def assign_urgent_article(art, urgent_threshold):
+    logger.info("Checking article, %s, to see if it needs to be changed to 'Urgent QC (CW). Pubdate: %s'" % (art.doi, art.pubdate))
     non_urgent_qc_state = State.objects.get(name='Ready for QC (CW)')
-    print(non_urgent_qc_state)
+    if art.current_state != non_urgent_qc_state:
+        logger.info("Article, %s, not 'Ready for QC (CW)' is '%s' instead.  Aborting transition to Urgent QC" % (art.doi, art.current_state))        
+        return False
+
+    urgent_qc_state = State.objects.get(name='Urgent QC (CW)')
+    if art.pubdate < add_workdays(date.today(), urgent_threshold):
+        logger.info("Moving %s to Urgent QC (CW)" % art.doi)
+        daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
+        a_s = ArticleState(article=art,
+                           state=urgent_qc_state,
+                           assignee=None,
+                           from_transition=None,
+                           from_transition_user=daemon_user,
+                           )
+        a_s.save()        
+        
+def assign_urgent(urgent_threshold):
+    non_urgent_qc_state = State.objects.get(name='Ready for QC (CW)') 
     non_urgent_qc = Article.objects.filter(current_state=non_urgent_qc_state)
-    print(len(non_urgent_qc))
 
     for article in non_urgent_qc:
-        if article.pubdate < add_workdays(datetime.today, urgent_threshold):
-            logger.info("Moving %s to Urgent QC (CW)" % article.doi)
+        assign_urgent_article(article, urgent_threshold)
 
 def verify_published(ambra_c):
     '''
@@ -137,11 +161,12 @@ def verify_published(ambra_c):
     
     for a in ready_to_publish:
         if is_published(a.doi, ambra_c):
+            daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
             a_s = ArticleState(article=a,
                                state=published_on_stage_state,
                                assignee=None,
                                from_transition=None,
-                               from_transition_user=None,
+                               from_transition_user=daemon_user,
                                )
             a_s.save()            
 
