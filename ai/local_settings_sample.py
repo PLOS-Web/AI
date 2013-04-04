@@ -27,6 +27,7 @@ if 'test' in sys.argv:
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': 'test_db'
         }
+    SOUTH_TESTS_MIGRATE = False
     
 # Settings for the EM reporting datasource
 EM_REPORTING_DATABASE = {
