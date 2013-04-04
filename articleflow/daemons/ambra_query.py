@@ -1,7 +1,7 @@
 import MySQLdb
 from ai import settings
 
-def make_full_doi(short_doi):
+def make_full_doi(doi):
     return "info:doi/10.1371/journal.%s" % doi
 
 class MYSQLConnection(object):
@@ -23,7 +23,7 @@ class MYSQLConnection(object):
         self.c.close()
         
 class AmbraConnection(MYSQLConnection):
-    def doi_ingested(doi):
+    def doi_ingested(self, doi):
         self.c.execute(
             """
             SELECT a.state
@@ -41,7 +41,7 @@ class AmbraConnection(MYSQLConnection):
 
         return (r[0]['state'] in (1, 2) )
 
-    def doi_published(doi):
+    def doi_published(self, doi):
         self.c.execute(
             """
             SELECT a.state
@@ -58,27 +58,27 @@ class AmbraConnection(MYSQLConnection):
 
 
         return (r[0]['state'] == 0)
-        
-def AmbraStageConnection(AmbraConnection):
+
+class AmbraStageConnection(AmbraConnection):
     def __init__(self):
         super(AmbraStageConnection, self).__init__(\
             host=settings.AMBRA_STAGE_DATABASE['HOST'],
             user=settings.AMBRA_STAGE_DATABASE['USER'],
-            passwd=settings.AMBRA_STAGE_DATABASE['PASSWORD'],
-            db=settings.AMBRA_STAGE_DATABASE['NAME'])
+            password=settings.AMBRA_STAGE_DATABASE['PASSWORD'],
+            database=settings.AMBRA_STAGE_DATABASE['NAME'])
 
-def AmbraProdConnection(AmbraConnection):
+class AmbraProdConnection(AmbraConnection):
     def __init__(self):
-        super(AmbraStageConnection, self).__init__(\
+        super(AmbraProdConnection, self).__init__(\
             host=settings.AMBRA_PROD_DATABASE['HOST'],
             user=settings.AMBRA_PROD_DATABASE['USER'],
-            passwd=settings.AMBRA_PROD_DATABASE['PASSWORD'],
-            db=settings.AMBRA_STAGE_DATABASE['NAME'])
+            password=settings.AMBRA_PROD_DATABASE['PASSWORD'],
+            database=settings.AMBRA_PROD_DATABASE['NAME'])
 
 def main():
-    a = AmbraStageConnection()
     with AmbraStageConnection() as asc:
         pubbed = asc.doi_published('pone.0059827')
+        print pubbed
         
 if __name__ == '__main__':
     main()
