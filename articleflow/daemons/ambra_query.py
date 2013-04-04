@@ -39,7 +39,7 @@ class AmbraConnection(MYSQLConnection):
             raise LookupError("Multiple entries found for DOI: %s" % doi)
 
 
-        return (r[0]['state'] in (1, 2) )
+        return (r[0]['state'] in (0, 1) )
 
     def doi_published(self, doi):
         self.c.execute(
