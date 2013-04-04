@@ -83,6 +83,36 @@ def assign_ingested(stage_conn):
     for a in pulled_articles:
         assign_ingested_article(a, stage_conn)
 
+def assign_ready_for_qc_article(art):
+    logger.info("Checking article, %s, to see if it needs to be changed to 'Ready for QC (CW)'" % art.doi)
+    ingested_state = State.objects.get(name='Ingested')
+    ingested = (art.current_state == ingested_state)    
+    if not ingested:
+        
+        logger.info("Article, %s, not 'Ingested' is '%s' instead.  Aborting transition to Ready for QC" % (art.doi, art.current_state))        
+        return False
+    ready_for_qc_state = State.objects.get(name='Ready for QC (CW)')
+    ingested_state_index = ingested_state.progress_index
+    try:
+        last_advanced_state = ArticleState.objects.filter(article=art).filter(state__progress_index__gt=ingested_state_index).latest('created')
+        # return article to last advanced state
+        a_s = ArticleState(article=art,
+                           state=last_advanced_state.state,
+                           assignee=last_advanced_state.assignee,
+                           from_transition=None,
+                           from_transition_user=None,
+                           )
+        a_s.save()
+    except ArticleState.DoesNotExist, e:
+        # move article to ready for qc state
+        a_s = ArticleState(article=art,
+                           state=ready_for_qc_state,
+                           assignee=None,
+                           from_transition=None,
+                           from_transition_user=None,
+                           )
+        a_s.save()
+
 def assign_ready_for_qc():
     '''
     Find all ingested articles,
@@ -90,31 +120,12 @@ def assign_ready_for_qc():
     If not, put in ready for qc pool
     '''
     ingested_state = State.objects.get(name='Ingested')
-    ingested_state_index = ingested_state.progress_index
     ingested = Article.objects.filter(current_state=ingested_state)
-    ready_for_qc_state = State.objects.get(name='Ready for QC (CW)')
+    logger.info("Starting assign_ready_for_qc.  Identified %s articles in 'Ingested' state." % ingested.count())
     
     for a in ingested:
-        last_advanced_state = ArticleState.objects.filter(article=a).filter(state__progress_index__gt=ingested_state_index).latest('created')
-        if last_advanced_state:
-            #return article to last advanced state
-            a_s = ArticleState(article=a,
-                               state=last_advanced_state.state,
-                               assignee=last_advanced_state.assignee,
-                               from_transition=None,
-                               from_transition_user=None,
-                               )
-            a_s.save()
-        else:
-            #move article to non-urgent qc
-            a_s = ArticleState(article=a,
-                               state=ready_for_qc_state,
-                               assignee=None,
-                               from_transition=None,
-                               from_transition_user=None,
-                               )
-            a_s.save()
-
+        assign_ready_for_qc_article(a)
+        
 def assign_urgent():
     logger.info("Am I doing anything?")
     urgent_threshold = 3
