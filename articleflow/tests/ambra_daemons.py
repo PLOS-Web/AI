@@ -26,7 +26,8 @@ class TransitionTasksTestCase(TestCase):
             Ready for QC. Pubdate = 4 days from now
     art 9:  pone.06
             Ready for QC. Pubdate = yesterday
-            
+    art 10: pone.0059893
+            Ready to publish. Pubbed on stage            
     
     '''
     
@@ -167,4 +168,15 @@ class TransitionTasksTestCase(TestCase):
 
         art_9 = Article.objects.get(doi='pone.06')
         self.assertEqual(art_9.current_state, urgent_state)
-        
+
+    def test_published_stage_article(self):        
+        art_10 = Article.objects.get(doi='pone.0059893')
+        assign_published_stage_article(art_10, self.stage_c)
+        published_on_stage_state = State.objects.get(name='Published on Stage')
+        self.assertEqual(art_10.current_state, published_on_stage_state)
+
+    def test_published_stage(self):
+        assign_published_stage(self.stage_c)
+        published_on_stage_state = State.objects.get(name='Published on Stage')
+        art_10 = Article.objects.get(doi='pone.0059893')
+        self.assertEqual(art_10.current_state, published_on_stage_state)

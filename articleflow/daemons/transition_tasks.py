@@ -151,24 +151,32 @@ def assign_urgent(urgent_threshold):
     for article in non_urgent_qc:
         assign_urgent_article(article, urgent_threshold)
 
-def verify_published(ambra_c):
-    '''
-    a_connection is cursor to an ambra database
-    '''
+def assign_published_stage_article(art, stage_c):
+    logger.info("Checking article, %s, to see if it's pubbed on stage" % art.doi)
     ready_to_publish_state = State.objects.get(name='Ready to Publish')
-    ready_to_publish = Articles.objects.filter(current_state=ready_to_publish_state)
-    published_on_stage_state = State.objects.get(name='Published on Stage')
-    
+    if art.current_state != ready_to_publish_state:
+        logger.info("Article, %s, not 'Ready to publish' is '%s' instead.  Aborting transition to 'Published on stage'" % (art.doi, art.current_state))
+        return False
+    if stage_c.doi_published(art.doi):
+        published_on_stage_state = State.objects.get(name='Published on Stage')
+        logger.info("Article, %s, is published on stage. Moving to 'Published on Stage'" % art.doi)
+        daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
+        a_s = ArticleState(article=art,
+                           state=published_on_stage_state,
+                           assignee=None,
+                           from_transition=None,
+                           from_transition_user=daemon_user,
+                           )
+        a_s.save()               
+
+def assign_published_stage(stage_c):
+    ready_to_publish_state = State.objects.get(name='Ready to Publish') 
+    ready_to_publish = Article.objects.filter(current_state=ready_to_publish_state)
+
+    logger.info("Starting assign_published_stage.  Identified %s articles in 'Ingested' state." % ready_to_publish.count())
     for a in ready_to_publish:
-        if is_published(a.doi, ambra_c):
-            daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
-            a_s = ArticleState(article=a,
-                               state=published_on_stage_state,
-                               assignee=None,
-                               from_transition=None,
-                               from_transition_user=daemon_user,
-                               )
-            a_s.save()            
+        assign_published_stage_article(a, stage_c)
+        
 
 def main():
     assign_urgent()
