@@ -8,32 +8,56 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding model 'Issue'
+        db.create_table('issues_issue', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('category', self.gf('django.db.models.fields.related.ForeignKey')(related_name='issues', to=orm['issues.Category'])),
+            ('description', self.gf('django.db.models.fields.TextField')()),
+            ('article', self.gf('django.db.models.fields.related.ForeignKey')(related_name='issues', to=orm['articleflow.Article'])),
+            ('submitter', self.gf('django.db.models.fields.related.ForeignKey')(default=None, related_name='issues_submitted', null=True, blank=True, to=orm['auth.User'])),
+            ('error', self.gf('django.db.models.fields.IntegerField')(default=None, null=True, blank=True)),
+            ('current_status', self.gf('django.db.models.fields.related.ForeignKey')(default=None, related_name='current_status_of', null=True, blank=True, to=orm['issues.IssueStatus'])),
+            ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2013, 4, 4, 0, 0))),
+            ('last_modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+        ))
+        db.send_create_signal('issues', ['Issue'])
 
-        # Changing field 'ErrorSet.created'
-        db.alter_column('errors_errorset', 'created', self.gf('django.db.models.fields.DateTimeField')())
+        # Adding model 'IssueStatus'
+        db.create_table('issues_issuestatus', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('status', self.gf('django.db.models.fields.IntegerField')()),
+            ('issue', self.gf('django.db.models.fields.related.ForeignKey')(related_name='statuses', to=orm['issues.Issue'])),
+            ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2013, 4, 4, 0, 0))),
+            ('last_modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+        ))
+        db.send_create_signal('issues', ['IssueStatus'])
 
-        # Changing field 'Error.created'
-        db.alter_column('errors_error', 'created', self.gf('django.db.models.fields.DateTimeField')())
+        # Adding model 'Category'
+        db.create_table('issues_category', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('name', self.gf('django.db.models.fields.CharField')(unique=True, max_length=50)),
+            ('created', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime(2013, 4, 4, 0, 0))),
+            ('last_modified', self.gf('django.db.models.fields.DateTimeField')(auto_now=True, blank=True)),
+        ))
+        db.send_create_signal('issues', ['Category'])
 
-        # Changing field 'ErrorStatus.created'
-        db.alter_column('errors_errorstatus', 'created', self.gf('django.db.models.fields.DateTimeField')())
 
     def backwards(self, orm):
+        # Deleting model 'Issue'
+        db.delete_table('issues_issue')
 
-        # Changing field 'ErrorSet.created'
-        db.alter_column('errors_errorset', 'created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True))
+        # Deleting model 'IssueStatus'
+        db.delete_table('issues_issuestatus')
 
-        # Changing field 'Error.created'
-        db.alter_column('errors_error', 'created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True))
+        # Deleting model 'Category'
+        db.delete_table('issues_category')
 
-        # Changing field 'ErrorStatus.created'
-        db.alter_column('errors_errorstatus', 'created', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True))
 
     models = {
         'articleflow.article': {
             'Meta': {'object_name': 'Article'},
             'article_extras': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'related_name': "'article_dont_use'", 'null': 'True', 'blank': 'True', 'to': "orm['articleflow.ArticleExtras']"}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 2, 14, 0, 0)'}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 4, 4, 0, 0)'}),
             'current_articlestate': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'related_name': "'current_article'", 'null': 'True', 'blank': 'True', 'to': "orm['articleflow.ArticleState']"}),
             'current_state': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'related_name': "'current_articles'", 'null': 'True', 'blank': 'True', 'to': "orm['articleflow.State']"}),
             'doi': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '50'}),
@@ -47,7 +71,7 @@ class Migration(SchemaMigration):
         'articleflow.articleextras': {
             'Meta': {'object_name': 'ArticleExtras'},
             'article': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'article_extras_dont_use'", 'to': "orm['articleflow.Article']"}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 2, 14, 0, 0)'}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 4, 4, 0, 0)'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'num_errors': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
@@ -64,7 +88,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'ArticleState'},
             'article': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'article_states'", 'to': "orm['articleflow.Article']"}),
             'assignee': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'to': "orm['auth.User']", 'null': 'True', 'blank': 'True'}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 2, 14, 0, 0)'}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 4, 4, 0, 0)'}),
             'from_transition': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'related_name': "'articlestates_created'", 'null': 'True', 'blank': 'True', 'to': "orm['articleflow.Transition']"}),
             'from_transition_user': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'related_name': "'articlestates_created'", 'null': 'True', 'blank': 'True', 'to': "orm['auth.User']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
@@ -79,11 +103,12 @@ class Migration(SchemaMigration):
             'short_name': ('django.db.models.fields.CharField', [], {'max_length': '200'})
         },
         'articleflow.state': {
-            'Meta': {'object_name': 'State'},
+            'Meta': {'ordering': "['progress_index']", 'object_name': 'State'},
             'auto_assign': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'progress_index': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'worker_groups': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'state_assignments'", 'default': 'None', 'to': "orm['auth.Group']", 'blank': 'True', 'symmetrical': 'False', 'null': 'True'})
         },
         'articleflow.transition': {
@@ -133,33 +158,33 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
-        'errors.error': {
-            'Meta': {'object_name': 'Error'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 2, 14, 0, 0)'}),
-            'current_status': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'related_name': "'current_status_of'", 'null': 'True', 'blank': 'True', 'to': "orm['errors.ErrorStatus']"}),
-            'error_set': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'errors'", 'to': "orm['errors.ErrorSet']"}),
+        'issues.category': {
+            'Meta': {'object_name': 'Category'},
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 4, 4, 0, 0)'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'level': ('django.db.models.fields.IntegerField', [], {}),
-            'message': ('django.db.models.fields.CharField', [], {'max_length': '600'}),
-            'old_error': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'related_name': "'new_error'", 'null': 'True', 'blank': 'True', 'to': "orm['errors.Error']"})
+            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '50'})
         },
-        'errors.errorset': {
-            'Meta': {'object_name': 'ErrorSet'},
-            'article': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'error_sets'", 'to': "orm['articleflow.Article']"}),
-            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 2, 14, 0, 0)'}),
+        'issues.issue': {
+            'Meta': {'ordering': "['created']", 'object_name': 'Issue'},
+            'article': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'issues'", 'to': "orm['articleflow.Article']"}),
+            'category': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'issues'", 'to': "orm['issues.Category']"}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 4, 4, 0, 0)'}),
+            'current_status': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'related_name': "'current_status_of'", 'null': 'True', 'blank': 'True', 'to': "orm['issues.IssueStatus']"}),
+            'description': ('django.db.models.fields.TextField', [], {}),
+            'error': ('django.db.models.fields.IntegerField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'source': ('django.db.models.fields.IntegerField', [], {})
+            'submitter': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'related_name': "'issues_submitted'", 'null': 'True', 'blank': 'True', 'to': "orm['auth.User']"})
         },
-        'errors.errorstatus': {
-            'Meta': {'object_name': 'ErrorStatus'},
-            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 2, 14, 0, 0)'}),
-            'error': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'statuses'", 'to': "orm['errors.Error']"}),
+        'issues.issuestatus': {
+            'Meta': {'object_name': 'IssueStatus'},
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 4, 4, 0, 0)'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'issue': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'statuses'", 'to': "orm['issues.Issue']"}),
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
-            'state': ('django.db.models.fields.IntegerField', [], {})
+            'status': ('django.db.models.fields.IntegerField', [], {})
         }
     }
 
-    complete_apps = ['errors']
+    complete_apps = ['issues']
