@@ -29,10 +29,10 @@ class Issue(models.Model):
     article = models.ForeignKey(Article, related_name='issues')
     #status = models.IntegerField(default=1, choices=STATUS_CODES)
     submitter = models.ForeignKey(User, related_name='issues_submitted', null=True, blank=True, default=None)
-    # @TODO change to actual FK
     error = models.IntegerField(null=True, blank=True, default=None)
     current_status = models.ForeignKey('IssueStatus', related_name='current_status_of', null=True, blank=True, default=None)
-    
+
+    #Bookkeeping
     created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)
 
@@ -85,6 +85,7 @@ class IssueStatus(models.Model):
     
     issue = models.ForeignKey('Issue', related_name='statuses')
 
+    #Bookkeeping
     created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)
 
@@ -108,6 +109,8 @@ class Category(models.Model):
     Table of available issue categories
     """
     name = models.CharField(max_length=50, unique=True)
+
+    #Bookkeeping
     created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
     last_modified = models.DateTimeField(auto_now=True)
     

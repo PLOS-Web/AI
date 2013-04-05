@@ -46,6 +46,9 @@ def sync_all_pubdates():
                     short_doi = short_doi_prog.search(a[0]).group(0)
                     article = Article.objects.get(doi=short_doi)
                     article.pubdate = a[1]
+                    article.em_pk = a[2]
+                    article.em_ms_number = a[3]
+                    article.em_max_revision = a[4]
                     logger.info("Updating %s with pubdate, %s" % (article, a[1]))
                     article.save()
                 except Article.DoesNotExist, e:

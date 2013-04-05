@@ -127,15 +127,16 @@ ORDER_CHOICES = {
 
 class ArticleFilter(django_filters.FilterSet):
     
-    doi = django_filters.CharFilter(name='doi', label='DOI')
-
+    doi_widget = forms.TextInput(attrs={'placeholder': 'pone.0012345'})
+    doi = django_filters.CharFilter(name='doi', label='DOI', widget=doi_widget)
 
     datepicker_widget = forms.DateInput(attrs={'class': 'datepicker'})
-    pubdate_gte = django_filters.DateFilter(name='pubdate', label='Pubdate on or after', lookup_type='gte', widget=datepicker_widget) 
-    pubdate_lte = django_filters.DateFilter(name='pubdate', label='Pubdate on or before', lookup_type='lte', widget=datepicker_widget) 
+    pubdate_gte = django_filters.DateFilter(name='pubdate', label='From', lookup_type='gte', widget=datepicker_widget) 
+    pubdate_lte = django_filters.DateFilter(name='pubdate', label='To', lookup_type='lte', widget=datepicker_widget) 
 
-    journal = django_filters.ModelMultipleChoiceFilter(name='journal', label='Journal', queryset=Journal.objects.all())
-    current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_state', label='Article state', queryset=State.objects.all())
+    checkbox_widget = forms.CheckboxSelectMultiple()
+    journal = django_filters.ModelMultipleChoiceFilter(name='journal', label='Journal', queryset=Journal.objects.all(), widget=checkbox_widget)
+    current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_state', label='Article state', queryset=State.objects.all(), widget=checkbox_widget)
     current_assignee = django_filters.ModelMultipleChoiceFilter(name='current_articlestate__assignee', label='Assigned', queryset=User.objects.all())
     
     class Meta:
