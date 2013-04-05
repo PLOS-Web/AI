@@ -61,6 +61,9 @@ class Migration(SchemaMigration):
             'current_articlestate': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'related_name': "'current_article'", 'null': 'True', 'blank': 'True', 'to': "orm['articleflow.ArticleState']"}),
             'current_state': ('django.db.models.fields.related.ForeignKey', [], {'default': 'None', 'related_name': "'current_articles'", 'null': 'True', 'blank': 'True', 'to': "orm['articleflow.State']"}),
             'doi': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '50'}),
+            'em_max_revision': ('django.db.models.fields.IntegerField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
+            'em_ms_number': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '50', 'null': 'True', 'blank': 'True'}),
+            'em_pk': ('django.db.models.fields.IntegerField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'journal': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['articleflow.Journal']"}),
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
@@ -97,6 +100,10 @@ class Migration(SchemaMigration):
         },
         'articleflow.journal': {
             'Meta': {'object_name': 'Journal'},
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 4, 4, 0, 0)'}),
+            'em_ambra_stage_prefix': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'em_db_name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
+            'em_url_prefix': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'full_name': ('django.db.models.fields.CharField', [], {'max_length': '200'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
@@ -105,6 +112,7 @@ class Migration(SchemaMigration):
         'articleflow.state': {
             'Meta': {'ordering': "['progress_index']", 'object_name': 'State'},
             'auto_assign': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 4, 4, 0, 0)'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_modified': ('django.db.models.fields.DateTimeField', [], {'auto_now': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
@@ -114,6 +122,7 @@ class Migration(SchemaMigration):
         'articleflow.transition': {
             'Meta': {'object_name': 'Transition'},
             'allowed_groups': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'allowed_transitions'", 'symmetrical': 'False', 'to': "orm['auth.Group']"}),
+            'created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2013, 4, 4, 0, 0)'}),
             'disallow_open_items': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'from_state': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'possible_transitions'", 'to': "orm['articleflow.State']"}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
