@@ -282,7 +282,7 @@ class ArticleDetailTransition(View):
                 auth_legal = True
             else:
                 for group in user.groups.all():
-                    if group in transition.allowed_groups:
+                    if group in transition.allowed_groups.all():
                         auth_legal = True
                         break
 
