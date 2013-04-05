@@ -1,3 +1,4 @@
+import MySQLdb
 import datetime
 
 from django.test import TestCase
@@ -28,15 +29,16 @@ class TransitionTasksTestCase(TestCase):
             Ready for QC. Pubdate = yesterday
     art 10: pone.0059893
             Ready to publish. Pubbed on stage            
+    art 11: pone.0051000
+            Published on Stage. Pubbed on stage
+    art 12: pone.0051001
+            Published on Stage. Pubbed on stage
     
     '''
     
     fixtures = ['initial_data.json', 'transitions_testdata.json']
 
     def setUp(self):
-        arts = Article.objects.all()
-        for a in arts:
-            print(a.doi)
         self.stage_c = AmbraStageConnection()
         today = datetime.date.today()
         self.urgent_threshold = 3
@@ -52,11 +54,11 @@ class TransitionTasksTestCase(TestCase):
         self.art_7.save()
         self.art_8.save()
         self.art_9.save()
-        #self.live_c = AmbraProdConnection()
-
+        self.live_c = AmbraProdConnection()
+        
     def tearDown(self):
         del self.stage_c
-        #del self.live_c
+        del self.live_c
 
     def test_add_workdays(self):
         a_monday = datetime.date(year=2013,month=4,day=1)
@@ -180,3 +182,17 @@ class TransitionTasksTestCase(TestCase):
         published_on_stage_state = State.objects.get(name='Published on Stage')
         art_10 = Article.objects.get(doi='pone.0059893')
         self.assertEqual(art_10.current_state, published_on_stage_state)
+
+    def test_published_live_article(self):        
+        art_11 = Article.objects.get(doi='pone.0051000')
+        assign_published_live_article(art_11, self.live_c)
+        published_on_live_state = State.objects.get(name='Published Live')
+        self.assertEqual(art_11.current_state, published_on_live_state)
+
+    def test_published_live(self):
+        assign_published_live(self.live_c)
+        published_on_live_state = State.objects.get(name='Published Live')
+        art_11 = Article.objects.get(doi='pone.0051000')
+        self.assertEqual(art_11.current_state, published_on_live_state)
+        art_12 = Article.objects.get(doi='pone.0051001')
+        self.assertEqual(art_12.current_state, published_on_live_state)

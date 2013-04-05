@@ -34,7 +34,7 @@ class AmbraConnection(MYSQLConnection):
         r = self.c.fetchall()
 
         if len(r) == 0:
-            raise LookupError("DOI: %s not found in EM" % doi)
+            return False
         if len(r) > 1:
             raise LookupError("Multiple entries found for DOI: %s" % doi)
 
@@ -52,7 +52,7 @@ class AmbraConnection(MYSQLConnection):
         r = self.c.fetchall()
 
         if len(r) == 0:
-            raise LookupError("DOI: %s not found in EM" % doi)
+            return False
         if len(r) > 1:
             raise LookupError("Multiple entries found for DOI: %s" % doi)
 
@@ -63,6 +63,7 @@ class AmbraStageConnection(AmbraConnection):
     def __init__(self):
         super(AmbraStageConnection, self).__init__(\
             host=settings.AMBRA_STAGE_DATABASE['HOST'],
+            port=settings.AMBRA_STAGE_DATABASE['PORT'],
             user=settings.AMBRA_STAGE_DATABASE['USER'],
             password=settings.AMBRA_STAGE_DATABASE['PASSWORD'],
             database=settings.AMBRA_STAGE_DATABASE['NAME'])
@@ -71,6 +72,7 @@ class AmbraProdConnection(AmbraConnection):
     def __init__(self):
         super(AmbraProdConnection, self).__init__(\
             host=settings.AMBRA_PROD_DATABASE['HOST'],
+            port=settings.AMBRA_PROD_DATABASE['PORT'],
             user=settings.AMBRA_PROD_DATABASE['USER'],
             password=settings.AMBRA_PROD_DATABASE['PASSWORD'],
             database=settings.AMBRA_PROD_DATABASE['NAME'])
