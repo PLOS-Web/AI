@@ -26,7 +26,7 @@ def article_count_open_items(article):
     try:
         latest_errorset = article.error_sets.latest('created')
         for e in latest_errorset.errors.all():
-            if not ready_to_ignore(i):
+            if not ready_to_ignore(e):
                 open_errors += 1
     except ErrorSet.DoesNotExist, e:
         open_errors = 0
