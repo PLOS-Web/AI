@@ -38,6 +38,6 @@ def article_count_open_items(article):
 
 def article_no_open_items(article):
     items = article_count_open_items(article)
-    if (items.open_issues == 0):
+    if (items.open_issues == 0 and items.open_errors == 0):
         return True
     return False
