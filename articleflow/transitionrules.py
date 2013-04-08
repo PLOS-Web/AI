@@ -16,7 +16,7 @@ def ready_to_ignore(item):
             return True
         if (item.current_status.state == 1 and item.level == 2):
             return True
-        return True
+        return False
 
 def article_count_open_items(article):
     open_errors = 0
@@ -29,8 +29,9 @@ def article_count_open_items(article):
 
     try:
         latest_errorset = article.error_sets.latest('created')
+        logger.info("%s: Found latest errorset with %s items." % (article.doi, latest_errorset.errors.count()))
         for e in latest_errorset.errors.all():
-            if not ready_to_ignore(i):
+            if not ready_to_ignore(e):
                 open_errors += 1
         logger.info("Found %s open errors for %s" % (open_errors, article.doi))
     except ErrorSet.DoesNotExist, e:
