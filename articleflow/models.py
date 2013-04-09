@@ -77,11 +77,23 @@ class ArticleState(models.Model):
         if insert:
             if self.assignee:
                 self.assign_user(self.assignee)
-            elif self.state.auto_assign > 1:
-                print "Finding worker ..."
-                a_user = AutoAssign.pick_worker(self.article, self.state, datetime.date.today())
-                if a_user:
-                    self.assign_user(a_user)
+            else:
+                # Check to see if a previous assignee should be assigned
+                if self.state.reassign_previous:
+                    try:
+                        logger.info("Found previous same state for %s")
+                        latest_same_articlestate = ArticleState.objects.filter(article=self.article,state=self.state).latest('created')
+                        if latest_same_articlestate.assignee:
+                            logger.info("Found previous same state assignee for %s. Reassigning %s" % (self.article.doi ,latest_same_articlestate.assignee))
+                            self.assign_user(latest_same_articlestate.assignee)
+                    except ArticleState.DoesNotExist, e:
+                        logger.info("No previous same state for %s found" % self.article.doi)
+                # Use the autoassigner if applicable
+                if not self.assignee and self.state.auto_assign > 1:
+                    print "Finding worker ..."
+                    a_user = AutoAssign.pick_worker(self.article, self.state, datetime.date.today())
+                    if a_user:
+                        self.assign_user(a_user)
 
         if art:
             art.current_articlestate = self
