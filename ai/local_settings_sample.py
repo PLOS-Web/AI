@@ -37,6 +37,22 @@ EM_REPORTING_DATABASE = {
     'PORT': '',
 }
 
+AMBRA_STAGE_DATABASE = {
+    'USER': '',
+    'PASSWORD': '',
+    'HOST': '',
+    'PORT': 1337,
+    'NAME': '',
+}
+
+AMBRA_PROD_DATABASE = {
+    'USER': '',
+    'PASSWORD': '',
+    'HOST': '',
+    'PORT': 1337,
+    'NAME': '',
+}
+
 # generate one here 
 # http://www.miniwebtool.com/django-secret-key-generator/
 SECRET_KEY = ''
