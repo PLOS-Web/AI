@@ -2,7 +2,7 @@ from django.test import TestCase
 from articleflow.models import *
 
 class TransitionTestCase(TestCase):
-    fixtures = ['articleflow_models_testdata.json']
+    fixtures = ['initial_data.json', 'transitions_testdata.json']
 
     def test_current_articlestate(self):
         a = Article.objects.get(pk=1)
