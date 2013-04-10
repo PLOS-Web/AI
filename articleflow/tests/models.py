@@ -1,44 +1,27 @@
 from django.test import TestCase
 from articleflow.models import *
+from django.contrib.auth.models import User
+
+import logging
+logger = logging.getLogger(__name__)
 
 class TransitionTestCase(TestCase):
     fixtures = ['initial_data.json', 'transitions_testdata.json']
 
-    def test_current_articlestate(self):
-        a = Article.objects.get(pk=1)
-        c_as = a.current_articlestate
-        manual_c_as = ArticleState.objects.get(pk=6)
-        self.assertEqual(c_as,manual_c_as)
+    '''
+    art1: pone.10
+          Ready for QC (CW) 'zyg_test' -> 'Web Corrections'
 
-    def test_possible_transitions(self):
-        a = Article.objects.get(pk=1)
-        pts = a.possible_transitions()
-        # should only be one possible transition here
-        t = pts.get()
-        manual_t = Transition.objects.get(pk=1)
-        self.assertEqual(t, manual_t)
+    '''
 
     def test_transition(self):
-        a = Article.objects.get(pk=1)
-
-        # Make sure the article is in the correct state before starting
-        s0 = a.current_articlestate.state
-        manual_s0 = ArticleState.objects.get(pk=6).state
-        self.assertEqual(s0,manual_s0)
-
-        # execute transition
-        pts = a.possible_transitions()
-        # should only be one
-        t = pts.get()
-        # make fake user object
-        user = User.objects.get(pk=1)
-        a.execute_transition(t,user)
+        logger_func_name = 'test_transition'
+        art1 = Article.objects.get(doi='pone.10')
         
-        # Correct finishing state?
-        s_f = a.current_articlestate.state
-        manual_s_f = State.objects.get(pk=4)
-        self.assertEqual(s_f, manual_s_f)
-
-        # Made a transition
-        t = a.articletransitions.get()
-        self.assertTrue(t)
+        new_state = State.objects.get(name='Ready for QC (CW)')
+        new_as = ArticleState(article=art1,
+                              state=new_state)
+        new_as.save()
+        expected_assignee = User.objects.get(username='zyg_test')
+        logger.info("%s: New articlestate: %s" % (logger_func_name, new_as))
+        self.assertEqual(new_as.assignee, expected_assignee)

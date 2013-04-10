@@ -1,6 +1,7 @@
 import MySQLdb
 import datetime
 
+from ai import settings
 from django.test import TestCase
 from articleflow.daemons.transition_tasks import *
 from articleflow.models import *
@@ -39,6 +40,7 @@ class TransitionTasksTestCase(TestCase):
     fixtures = ['initial_data.json', 'transitions_testdata.json']
 
     def setUp(self):
+        print settings.AMBRA_STAGE_DATABASE
         self.stage_c = AmbraStageConnection()
         today = datetime.date.today()
         self.urgent_threshold = 3
