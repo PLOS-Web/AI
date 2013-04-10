@@ -356,8 +356,8 @@ class ArticleDetailIssues(View):
 
 
 class Help(View):
-    template_name = '404.html'
-    #template_name = 'articleflow/help.html'
+    #template_name = '404.html'
+    template_name = 'articleflow/help.html'
 
     def get(self, request, *args, **kwargs):
         context = {}
