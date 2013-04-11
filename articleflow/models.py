@@ -25,7 +25,6 @@ class State(models.Model):
     worker_groups = models.ManyToManyField(Group, related_name="state_assignments", null=True, blank=True, default=None)
     auto_assign = models.IntegerField(default=1, choices=AUTO_ASSIGN)
     reassign_previous = models.BooleanField(default=True)
-    assign_creator = models.BooleanField(default=False)
     progress_index = models.IntegerField(default=0)
 
     #Bookkeeping 
@@ -235,6 +234,7 @@ class Transition(models.Model):
     to_state = models.ForeignKey('State', related_name='possible_last_transitions')
     disallow_open_items = models.BooleanField(default=False)
     allowed_groups = models.ManyToManyField(Group, related_name="allowed_transitions")
+    assign_transition_user = models.BooleanField(default=False)
     preference_weight = models.IntegerField()
 
     #Bookkeeping 
@@ -254,6 +254,8 @@ class Transition(models.Model):
             s = art.article_states.create(state=self.to_state,
                                           from_transition=self,
                                           from_transition_user=user)
+            if self.assign_transition_user:
+                s.assignee = user
             
             return s
         else:
