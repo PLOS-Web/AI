@@ -11,10 +11,12 @@ class TransitionTestCase(TestCase):
     '''
     art1: pone.10
           Ready for QC (CW) 'zyg_test' -> 'Web Corrections'
+    art2: pone.10
+          Ready for QC (CW) None -> 'At CW'
 
     '''
 
-    def test_transition(self):
+    def test_reassignment_transition(self):
         logger_func_name = 'test_transition'
         art1 = Article.objects.get(doi='pone.10')
         
@@ -25,3 +27,11 @@ class TransitionTestCase(TestCase):
         expected_assignee = User.objects.get(username='zyg_test')
         logger.info("%s: New articlestate: %s" % (logger_func_name, new_as))
         self.assertEqual(new_as.assignee, expected_assignee)
+
+        art2 = Article.objects.get(doi='pone.11')
+        new_as = ArticleState(article=art2,
+                              state=new_state)
+        new_as.save()
+        self.assertEqual(new_as.assignee, None)
+
+        
