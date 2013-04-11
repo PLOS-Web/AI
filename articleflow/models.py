@@ -221,8 +221,7 @@ class ArticleExtras(models.Model):
         except Article.DoesNotExist:
             pass
 
-        return "Article_extras: (doi: %s)" % doi
-        
+        return "Article_extras: (doi: %s)" % doi        
             
 class Transition(models.Model):
     """
@@ -243,6 +242,9 @@ class Transition(models.Model):
     
     def __unicode__(self):
         return u'%s: %s to %s' % (self.name, self.from_state, self.to_state)
+
+    def verbose_unicode(self):
+        return u'{pk: %s, name: %s,from_state: %s, to_state: %s, disallow_open_items: %s, assign_transition_user: %s, preference_weight: %s , created: %s, last_modified: %s}' % (self.pk, self.name, self.from_state, self.to_state, self.disallow_open_items, self.assign_transition_user, self.preference_weight, self.created, self.last_modified)
     
     def execute_transition(self, art, user):
         """
@@ -250,11 +252,12 @@ class Transition(models.Model):
         to describe what happened
         """
         if (art.current_articlestate.state == self.from_state):
-            # create new state
+            logger.debug("Creating articlestate for transition")
             s = art.article_states.create(state=self.to_state,
                                           from_transition=self,
                                           from_transition_user=user)
             if self.assign_transition_user:
+                logger.error("Assign_transition_user: true")
                 s.assignee = user
             
             return s

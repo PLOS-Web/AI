@@ -219,6 +219,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
             },
+        'articleflow.tests': {
+            'handlers': ['debugging'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
         'celery': {
             'handlers': ['debugging'],
             'level': 'DEBUG',
