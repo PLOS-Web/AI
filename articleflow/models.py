@@ -24,6 +24,7 @@ class State(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
     worker_groups = models.ManyToManyField(Group, related_name="state_assignments", null=True, blank=True, default=None)
     auto_assign = models.IntegerField(default=1, choices=AUTO_ASSIGN)
+    reassign_previous = models.BooleanField(default=True)
     progress_index = models.IntegerField(default=0)
 
     #Bookkeeping 
@@ -58,7 +59,7 @@ class ArticleState(models.Model):
         return u'%s: %s' % (self.article, self.state)
     
     def verbose_unicode(self):
-        return "article: %s, state: %s, from_transition: %s, from_transition_user: %s, created: %s" % (self.article, self.state, self.from_transition, self.from_transition_user, self.created)
+        return "{pk: %s, article: %s, assignee: %s, state: %s, from_transition: %s, from_transition_user: %s, created: %s}" % (self.pk, self.article, self.assignee, self.state, self.from_transition, self.from_transition_user, self.created)
     
     def assign_user(self, user):
         self.assignee = user
@@ -76,11 +77,23 @@ class ArticleState(models.Model):
         if insert:
             if self.assignee:
                 self.assign_user(self.assignee)
-            elif self.state.auto_assign > 1:
-                print "Finding worker ..."
-                a_user = AutoAssign.pick_worker(self.article, self.state, datetime.date.today())
-                if a_user:
-                    self.assign_user(a_user)
+            else:
+                # Check to see if a previous assignee should be assigned
+                if self.state.reassign_previous:
+                    try:
+                        latest_same_articlestate = ArticleState.objects.filter(article=self.article,state=self.state,created__lt=self.created).latest('created')
+                        logger.debug("Found previous same state for %s: %s" % (art.doi, latest_same_articlestate.verbose_unicode()))
+                        if latest_same_articlestate.assignee:
+                            logger.info("Found previous same state assignee for %s. Reassigning %s" % (self.article.doi ,latest_same_articlestate.assignee))
+                            self.assign_user(latest_same_articlestate.assignee)
+                    except ArticleState.DoesNotExist, e:
+                        logger.info("No previous same state for %s found" % self.article.doi)
+                # Use the autoassigner if applicable
+                if not self.assignee and self.state.auto_assign > 1:
+                    print "Finding worker ..."
+                    a_user = AutoAssign.pick_worker(self.article, self.state, datetime.date.today())
+                    if a_user:
+                        self.assign_user(a_user)
 
         if art:
             art.current_articlestate = self
