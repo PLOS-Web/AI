@@ -47,4 +47,5 @@ class TransitionTestCase(TestCase):
     
         art3.execute_transition(trans, user)
         art3 = Article.objects.get(doi='pone.20')
+        logger.debug("ART 3 article state: %s" % art3.current_articlestate.verbose_unicode())
         self.assertEqual(art3.current_articlestate.assignee, user)
