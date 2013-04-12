@@ -21,7 +21,6 @@ class IssueForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()
-        self.form_class = 'tesssssst'
         self.helper.layout = Layout(
             Field('article'),
             Field('category', css_class='btn dropdown-toggle', selected='category'),
