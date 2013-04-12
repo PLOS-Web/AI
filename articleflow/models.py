@@ -150,7 +150,9 @@ class Article(models.Model):
         return self.current_state.possible_transitions.distinct()
 
     def execute_transition(self, transition, user):
-        return transition.execute_transition(self, user)
+        s = transition.execute_transition(self, user)
+        s.save()
+        return s
 
     def save(self, *args, **kwargs):
         insert = not self.pk
@@ -221,8 +223,7 @@ class ArticleExtras(models.Model):
         except Article.DoesNotExist:
             pass
 
-        return "Article_extras: (doi: %s)" % doi
-        
+        return "Article_extras: (doi: %s)" % doi        
             
 class Transition(models.Model):
     """
@@ -234,6 +235,7 @@ class Transition(models.Model):
     to_state = models.ForeignKey('State', related_name='possible_last_transitions')
     disallow_open_items = models.BooleanField(default=False)
     allowed_groups = models.ManyToManyField(Group, related_name="allowed_transitions")
+    assign_transition_user = models.BooleanField(default=False)
     preference_weight = models.IntegerField()
 
     #Bookkeeping 
@@ -242,6 +244,9 @@ class Transition(models.Model):
     
     def __unicode__(self):
         return u'%s: %s to %s' % (self.name, self.from_state, self.to_state)
+
+    def verbose_unicode(self):
+        return u'{pk: %s, name: %s,from_state: %s, to_state: %s, disallow_open_items: %s, assign_transition_user: %s, preference_weight: %s , created: %s, last_modified: %s}' % (self.pk, self.name, self.from_state, self.to_state, self.disallow_open_items, self.assign_transition_user, self.preference_weight, self.created, self.last_modified)
     
     def execute_transition(self, art, user):
         """
@@ -249,11 +254,15 @@ class Transition(models.Model):
         to describe what happened
         """
         if (art.current_articlestate.state == self.from_state):
-            # create new state
+            logger.debug("Creating articlestate for transition %s" % self.verbose_unicode())
             s = art.article_states.create(state=self.to_state,
                                           from_transition=self,
                                           from_transition_user=user)
+            if self.assign_transition_user:
+                logger.debug("Assign_transition_user = true, assigning %s to %s" % (user, s))
+                s.assignee = user
             
+            logger.debug("Execute transition is returing this state: %s" % s.verbose_unicode())
             return s
         else:
             return False

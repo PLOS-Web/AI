@@ -11,8 +11,10 @@ class TransitionTestCase(TestCase):
     '''
     art1: pone.10
           Ready for QC (CW) 'zyg_test' -> 'Web Corrections'
-    art2: pone.10
+    art2: pone.11
           Ready for QC (CW) None -> 'At CW'
+    art3: pone.20
+          Needs Web Corrections (CW)
 
     '''
 
@@ -34,4 +36,16 @@ class TransitionTestCase(TestCase):
         new_as.save()
         self.assertEqual(new_as.assignee, None)
 
-        
+    def test_assign_creator_transition(self):
+        art3 = Article.objects.get(doi='pone.20')
+        p_trans = art3.possible_transitions()
+        logger.debug("LALALALALAL: Possible transitions:")
+        for pt in p_trans:
+            logger.debug("Possible Transition: %s" % pt.verbose_unicode())
+        trans = Transition.objects.get(pk=71)
+        user = User.objects.get(username='web_test')
+    
+        art3.execute_transition(trans, user)
+        art3 = Article.objects.get(doi='pone.20')
+        logger.debug("ART 3 article state: %s" % art3.current_articlestate.verbose_unicode())
+        self.assertEqual(art3.current_articlestate.assignee, user)
