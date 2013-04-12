@@ -150,7 +150,9 @@ class Article(models.Model):
         return self.current_state.possible_transitions.distinct()
 
     def execute_transition(self, transition, user):
-        return transition.execute_transition(self, user)
+        s = transition.execute_transition(self, user)
+        s.save()
+        return s
 
     def save(self, *args, **kwargs):
         insert = not self.pk
@@ -252,14 +254,15 @@ class Transition(models.Model):
         to describe what happened
         """
         if (art.current_articlestate.state == self.from_state):
-            logger.debug("Creating articlestate for transition")
+            logger.debug("Creating articlestate for transition %s" % self.verbose_unicode())
             s = art.article_states.create(state=self.to_state,
                                           from_transition=self,
                                           from_transition_user=user)
             if self.assign_transition_user:
-                logger.error("Assign_transition_user: true")
+                logger.debug("Assign_transition_user = true, assigning %s to %s" % (user, s))
                 s.assignee = user
             
+            logger.debug("Execute transition is returing this state: %s" % s.verbose_unicode())
             return s
         else:
             return False
