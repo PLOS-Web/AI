@@ -252,5 +252,16 @@ def one_time_pubbed_live_clean():
     live_c = AmbraProdConnection()
     cleanup_published_live(live_c)
 
+def migration_sync():
+    stage_c = AmbraStageConnection()
+    live_c = AmbraProdConnection()
+    
+    assign_ingested(stage_c)
+    assign_ready_for_qc()
+    assign_urgent(3)
+    assign_published_stage(stage_c)
+    assign_published_live(live_c)
+    cleanup_published_live(live_c)
+
 if __name__ == "__main__":
     main()
