@@ -31,6 +31,7 @@ class IssueForm(ModelForm):
         super(IssueForm, self).__init__(*args, **kwargs)
         self.fields['category'].empty_label = 'Select Category'
         self.fields['category'].label = ""
+        self.fields['category'].queryset = Category.objects.filter(user_selectable=True)
         
     class Meta:
         model = Issue
