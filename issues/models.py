@@ -109,6 +109,7 @@ class Category(models.Model):
     Table of available issue categories
     """
     name = models.CharField(max_length=50, unique=True)
+    user_selectable = models.BooleanField(default=True)
 
     #Bookkeeping
     created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
