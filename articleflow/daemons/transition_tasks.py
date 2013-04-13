@@ -204,10 +204,10 @@ def assign_published_stage(stage_c):
     for a in ready_to_publish:
         assign_published_stage_article(a, stage_c)
 
-def assign_published_live_article(art, live_c):
+def assign_published_live_article(art, live_c, force_any_state=False):
     logger.info("Checking article, %s, to see if it's pubbed on live" % art.doi)
     pubbed_stage_state = State.objects.get(name='Published on Stage')
-    if art.current_state != pubbed_stage_state:
+    if art.current_state != pubbed_stage_state and not force_any_state:
         logger.info("Article, %s, not 'Published on Stage' is '%s' instead.  Aborting transition to 'Published Live'" % (art.doi, art.current_state))
         return False
     if live_c.doi_published(art.doi):
@@ -229,7 +229,14 @@ def assign_published_live(live_c):
     logger.info("Starting assign_published_live.  Identified %s articles in 'Published on Stage' state." % pubbed_on_stage.count())
     for a in pubbed_on_stage:
         assign_published_live_article(a, live_c)
-        
+
+def cleanup_published_live(live_c):
+    pubbed_live_state = State.objects.get(name='Published Live')
+    pubbed_live = Article.objects.exclude(current_state=pubbed_live_state)    
+    logger.info("Starting exclude_published_live.  Identified %s articles in everything except 'Published on Stage' state." % pubbed_live.count())
+    for a in pubbed_live:
+        assign_published_live_article(a, live_c, force_any_state=True)
+
 
 def main():
     stage_c = AmbraStageConnection()
@@ -240,6 +247,21 @@ def main():
     assign_urgent(3)
     assign_published_stage(stage_c)
     assign_published_live(live_c)
+
+def one_time_pubbed_live_clean():
+    live_c = AmbraProdConnection()
+    cleanup_published_live(live_c)
+
+def migration_sync():
+    stage_c = AmbraStageConnection()
+    live_c = AmbraProdConnection()
+    
+    assign_ingested(stage_c)
+    assign_ready_for_qc()
+    assign_urgent(3)
+    assign_published_stage(stage_c)
+    assign_published_live(live_c)
+    cleanup_published_live(live_c)
 
 if __name__ == "__main__":
     main()

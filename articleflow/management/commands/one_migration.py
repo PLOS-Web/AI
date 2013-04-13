@@ -10,6 +10,7 @@ from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
 
 from articleflow.models import Article, ArticleState, State, Journal
 from issues.models import Issue, Category
+from articleflow.transition_tasks import migration_sync
 
 import MySQLdb
 from datetime import datetime
@@ -477,6 +478,9 @@ def main():
             m.migrate()
         except Exception as e:
             logger.exception("DUMP DOI: %s %s" % (doi, e))
+
+    # Sync with ambra
+    migration_sync()
 
 if __name__ == '__main__':
     main()
