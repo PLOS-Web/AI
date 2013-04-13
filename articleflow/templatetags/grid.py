@@ -50,7 +50,7 @@ def preconfigured_grid(user):
 
     zyg_group = Group.objects.get(name='zyg')
     if zyg_group in user_groups:
-        return reverse('grid') + '?doi=&pubdate_gte=&pubdate_lte=&current_articlestate=63&page_size=25&submit=Search'
+        return reverse('grid') + '?doi=&pubdate_gte=&pubdate_lte=&journal=1&current_articlestate=63&page_size=25&submit=Search'
 
     return reverse('grid')
     
