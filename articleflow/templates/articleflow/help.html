@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block main_nav %}
@@ -7,6 +8,124 @@
 {% block sub_title %} - {{ article.doi }}{% endblock %}
 
 {% block content %}
-<h2>Help</h2>
-<p>This is the bit that nina will fill in!</p>
+<h1>Welcome to A.I. 2.0!</h1>
+<ul>
+<li>If you are with Zyg, <a href="#zyg">click here</a>.</li>
+<li>If you are with PLOS Production, <a href="#prod">click here</a>.</li>
+</ul>
+<h2 id="zyg">Zyg Instructions</h2>
+<p>Firstly, always login. Your login is the same as your username and password used to login  to your computer.</p>
+<p>Very simply A.I. consists of two pages &mdash; the <b>Homepage</b> and the <b>Grid</b>.</p>
+<p>The <b>Homepage</b> is a shortcut to all the articles that are unassigned and awaiting QC. Clicking on the A.I. logo in the upper left hand corner will take you to the Homepage. </p>
+
+<p>To begin QC, simply click on the "Assign to me" button and you will be taken directly to the article's <b>Workarea</b> page.</p>
+
+<p>The <b>Workarea</b>  page contains three sections: Issues, Errors, and Change Article State.</p>
+<p>In the grey box you will find an area dedicated to information about the article like  PubDate, Current State, who it's assigned to, a link to the article on stage, a link to the  EM File Inventory, and a link to the PDF on stage. This is also where you can leave a note.</p>
+<p>For a more specific view, you can click on the other tabs to see just <b>Issues</b>, <b>Errors</b> etc.</p>
+<p><b>Issues</b> is where you will report issues you find during QC. From the "Select Category" drop  down select the area where the issue occurs. This will either be in the PDF, XML, SI or PDF  and XML. Write a description of the issue and hit Submit.</p>
+<p><b>Errors</b>  is where you will see any errors found during article delivery from CW.</p>
+<p><b>Change Article State</b> is the last step in QC. Once you are finished QCing the article, you  have two options to remove the article from your queue. If you did not find any issues,  click "OK". If there are issues, click "Needs Web Corrections (CW)".</p>
+<p>Once you make your selection, the buttons will disappear and you will see the message "No  available transitions". In the grey box, "Assigned to" will be blanked out and the Current  state will change from Ready for QC (CW) to Needs Web Corrections (CW) or Ready to Publish.</p>
+<p>Click on the A.I. logo to go back to the homepage and assign yourself a new article to QC. </p>
+<p>The <b>Grid</b> is your go&ndash;to page to find out whatever you need to know about article history,  article deliveries, article pub list etc. By default, the <b>Grid</b> will display all the articles  that have published starting with the oldest. </p>
+<p>That said, you will almost always want to use [+] search to customize the articles you want  to see. Clicking on [+] search will display filters you can use to run your Search as well as  options to customize the way the Grid is displayed. </p>
+<p>Some common things you may want to know are: </p>
+<ul>
+  <li>I want to see articles that are pubbing on (fill in date here):</li>
+  <ul>
+    <li>Click on the box next to From and select a date </li>
+    <li>Click on the box next to To and select a date </li>
+    <li>Select a particular journal(s) </li>
+    <li>Select the Article State &mdash; in this case it would be "Published on Stage" </li>
+    <li>Hit Search.</li>
+  </ul>
+</ul>
+<ul>
+  <li>I want to see what’s going on with a particular article:</li>
+  <ul>
+    <li>Enter the DOI of the article (e.g. pone.0012345, pmed.1001234, pntd.0001234) </li>
+    <li>Hit Search.</li> </ul>
+</ul>
+<ul>
+  <li>I want to see the articles that have been delivered today:</li>
+<ul>
+<li>Click on the box next to From and select a date </li>
+<li> Click on the box next to To and select a date </li> 
+<li> Select the Article State &mdash; in this case it would be "Delivered" </li> 
+<li>Hit Search.</li> </ul>
+</ul>
+<ul>
+<li>I want to see the articles assigned to (person's name).</li>
+<ul>
+<li>
+From the Assigned scrollbox, select the person's name </li>
+<li>Hit Search.</li> </ul>
+</ul>
+<p>Your search will return a list with the following columns:</p>
+<ul>
+<li> <b> DOI </b> : the article digital object identifier. Clicking on the DOI takes you directly to the  article Workarea page </li>
+<li><b> PubDate</b> : the date the article will be published, according to EM </li>
+<li><b> Journal</b> : </li>
+<li><b> Issues</b> : the types of issues (PDF, XML, SI) </li>
+<li><b> Errors</b> : </li>
+<li><b> State</b> : the step in the production at which the article is currently in </li>
+<li><b> Assigned</b> : any related notes </li>
+</ul>
+<h2 id="prod">PLOS Production Instructions</h2>
+<p>Firstly, always login. Your login is the same as your username and password used to login  to your computer.</p>
+<p>Very simply A.I. consists of two pages &mdash; the <b>Homepage</b> and the <b>Grid</b>.</p>
+<p>The <b>Homepage</b> is a shortcut to all the articles that are assigned to you and awaiting QC. Clicking on the A.I. logo in the upper left hand corner will take you to the Homepage. The articles on your homepage will be sorted by PubDate with the article publishing the soonest  at the top.</p>
+<p>To begin QC, simply click on the DOI. This will take you to the article <b>Workarea</b> page.</p>
+<p>The <b>Workarea</b>  page contains three sections: Issues, Errors, and Change Article State.</p>
+<p>In the grey box you will find an area dedicated to information about the article like  PubDate, Current State, who it's assigned to, a link to the article on stage, a link to the  EM File Inventory, and a link to the PDF on stage. This is also where you can leave a note.</p>
+<p>For a more specific view, you can click on the other tabs to see just <b>Issues</b>, <b>Errors</b> etc.</p>
+<p><b>Issues</b> is where you will report issues you find during QC. From the "Select Category" drop  down select the area where the issue occurs. This will either be in the PDF, XML, SI or PDF  and XML. Write a description of the issue and hit Submit.</p>
+<p><b>Errors</b>  is where you will see any errors found during article delivery from CW.</p>
+<p><b>Change Article State</b> is the last step in QC. Once you are finished QCing the article, you  have two options to remove the article from your homepage. If you did not find any issues,  click "OK". If there are issues, click "Needs Web Corrections (CW)".</p>
+<p>Once you make your selection, the buttons will disappear and you will see the message "No  available transitions". In the grey box, "Assigned to" will be blanked out and the Current  state will change from Ready for QC (CW) to Needs Web Corrections (CW) or Ready to Publish.</p>
+<p>Click on the A.I. logo to go back to your homepage.</p>
+<p>The <b>Grid</b> is your go&ndash;to page to find out whatever you need to know about article history,  article deliveries, article pub list etc. By default, the <b>Grid</b> will display all the articles  that have published starting with the oldest. </p>
+<p>That said, you will almost always want to use [+] search to customize the articles you want  to see. Clicking on [+] search will display filters you can use to run your Search as well as  options to customize the way the Grid is displayed. </p>
+<p>Some common things you may want to know are: </p>
+<ul>
+<li>I want to see articles that are pubbing on (fill in date here):</li>
+<ul>
+<li>Click on the box next to From and select a date </li>
+<li>Click on the box next to To and select a date </li>
+<li>Select a particular journal(s) </li>
+<li>Select the Article State &mdash; in this case it would be "Published on Stage" </li>
+<li>Hit Search.</li> </ul>
+</ul>
+<ul>
+<li>I want to see what’s going on with a particular article:</li>
+<ul>
+<li>Enter the DOI of the article (e.g. pone.0012345, pmed.1001234, pntd.0001234) </li>
+<li>Hit Search.</li> </ul>
+</ul>
+<ul>
+<li>I want to see the articles that have been delivered today:</li>
+<ul>
+<li>Click on the box next to From and select a date </li>
+<li> Click on the box next to To and select a date </li> 
+<li> Select the Article State &mdash; in this case it would be "Delivered" </li> 
+<li>Hit Search.</li> </ul>
+</ul>
+<ul>
+<li>I want to see the articles assigned to (person's name).</li>
+<ul>
+<li>
+From the Assigned scrollbox, select the person's name </li>
+<li>Hit Search.</li> </ul>
+</ul>
+<p>Your search will return a list with the following columns:</p>
+<ul>
+<li> <b> DOI </b> : the article digital object identifier. Clicking on the DOI takes you directly to the  article Workarea page </li>
+<li><b> PubDate</b> : the date the article will be published, according to EM </li>
+<li><b> Journal</b> : </li>
+<li><b> Issues</b> : the types of issues (PDF, XML, SI) </li>
+<li><b> Errors</b> : </li>
+<li><b> State</b> : the step in the production at which the article is currently in </li>
+<li><b> Assigned</b> : any related notes </li>
+</ul>
 {% endblock %}

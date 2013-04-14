@@ -1,5 +1,7 @@
 from django import template
 from django.http import QueryDict
+from django.contrib.auth.models import User, Group
+from django.core.urlresolvers import reverse
 
 register = template.Library()
 
@@ -37,3 +39,18 @@ def render_ordering_arrows(context, column, base_qs):
                     'qs_asc': qs_asc.urlencode(),
                     'qs_desc': qs_desc.urlencode()})
     return context
+
+@register.simple_tag()
+def preconfigured_grid(user):
+    user_groups = user.groups.all()
+    prod_group = Group.objects.get(name='production')
+    web_group = Group.objects.get(name='web')
+    if (prod_group in user_groups or web_group in user_groups):
+        return reverse('grid') + ('?doi=&pubdate_gte=&pubdate_lte=&current_assignee=%s&page_size=25&submit=Search' % user.pk)
+
+    zyg_group = Group.objects.get(name='zyg')
+    if zyg_group in user_groups:
+        return reverse('grid') + '?doi=&pubdate_gte=&pubdate_lte=&journal=1&current_articlestate=63&page_size=25&submit=Search'
+
+    return reverse('grid')
+    

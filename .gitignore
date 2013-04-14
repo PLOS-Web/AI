@@ -20,3 +20,4 @@ lib64
 /env
 at_dump
 migration_seed.json
+site_media/

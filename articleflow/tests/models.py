@@ -1,44 +1,51 @@
 from django.test import TestCase
 from articleflow.models import *
+from django.contrib.auth.models import User
+
+import logging
+logger = logging.getLogger(__name__)
 
 class TransitionTestCase(TestCase):
-    fixtures = ['articleflow_models_testdata.json']
+    fixtures = ['initial_data.json', 'transitions_testdata.json']
 
-    def test_current_articlestate(self):
-        a = Article.objects.get(pk=1)
-        c_as = a.current_articlestate
-        manual_c_as = ArticleState.objects.get(pk=6)
-        self.assertEqual(c_as,manual_c_as)
+    '''
+    art1: pone.10
+          Ready for QC (CW) 'zyg_test' -> 'Web Corrections'
+    art2: pone.11
+          Ready for QC (CW) None -> 'At CW'
+    art3: pone.20
+          Needs Web Corrections (CW)
 
-    def test_possible_transitions(self):
-        a = Article.objects.get(pk=1)
-        pts = a.possible_transitions()
-        # should only be one possible transition here
-        t = pts.get()
-        manual_t = Transition.objects.get(pk=1)
-        self.assertEqual(t, manual_t)
+    '''
 
-    def test_transition(self):
-        a = Article.objects.get(pk=1)
-
-        # Make sure the article is in the correct state before starting
-        s0 = a.current_articlestate.state
-        manual_s0 = ArticleState.objects.get(pk=6).state
-        self.assertEqual(s0,manual_s0)
-
-        # execute transition
-        pts = a.possible_transitions()
-        # should only be one
-        t = pts.get()
-        # make fake user object
-        user = User.objects.get(pk=1)
-        a.execute_transition(t,user)
+    def test_reassignment_transition(self):
+        logger_func_name = 'test_transition'
+        art1 = Article.objects.get(doi='pone.10')
         
-        # Correct finishing state?
-        s_f = a.current_articlestate.state
-        manual_s_f = State.objects.get(pk=4)
-        self.assertEqual(s_f, manual_s_f)
+        new_state = State.objects.get(name='Ready for QC (CW)')
+        new_as = ArticleState(article=art1,
+                              state=new_state)
+        new_as.save()
+        expected_assignee = User.objects.get(username='zyg_test')
+        logger.info("%s: New articlestate: %s" % (logger_func_name, new_as))
+        self.assertEqual(new_as.assignee, expected_assignee)
 
-        # Made a transition
-        t = a.articletransitions.get()
-        self.assertTrue(t)
+        art2 = Article.objects.get(doi='pone.11')
+        new_as = ArticleState(article=art2,
+                              state=new_state)
+        new_as.save()
+        self.assertEqual(new_as.assignee, None)
+
+    def test_assign_creator_transition(self):
+        art3 = Article.objects.get(doi='pone.20')
+        p_trans = art3.possible_transitions()
+        logger.debug("LALALALALAL: Possible transitions:")
+        for pt in p_trans:
+            logger.debug("Possible Transition: %s" % pt.verbose_unicode())
+        trans = Transition.objects.get(pk=71)
+        user = User.objects.get(username='web_test')
+    
+        art3.execute_transition(trans, user)
+        art3 = Article.objects.get(doi='pone.20')
+        logger.debug("ART 3 article state: %s" % art3.current_articlestate.verbose_unicode())
+        self.assertEqual(art3.current_articlestate.assignee, user)

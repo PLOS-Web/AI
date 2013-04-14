@@ -282,7 +282,7 @@ class ArticleDetailTransition(View):
                 auth_legal = True
             else:
                 for group in user.groups.all():
-                    if group in transition.allowed_groups:
+                    if group in transition.allowed_groups.all():
                         auth_legal = True
                         break
 
@@ -356,8 +356,8 @@ class ArticleDetailIssues(View):
 
 
 class Help(View):
-    template_name = '404.html'
-    #template_name = 'articleflow/help.html'
+    #template_name = '404.html'
+    template_name = 'articleflow/help.html'
 
     def get(self, request, *args, **kwargs):
         context = {}

@@ -24,6 +24,7 @@ class State(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
     worker_groups = models.ManyToManyField(Group, related_name="state_assignments", null=True, blank=True, default=None)
     auto_assign = models.IntegerField(default=1, choices=AUTO_ASSIGN)
+    reassign_previous = models.BooleanField(default=True)
     progress_index = models.IntegerField(default=0)
 
     #Bookkeeping 
@@ -58,7 +59,7 @@ class ArticleState(models.Model):
         return u'%s: %s' % (self.article, self.state)
     
     def verbose_unicode(self):
-        return "article: %s, state: %s, from_transition: %s, from_transition_user: %s, created: %s" % (self.article, self.state, self.from_transition, self.from_transition_user, self.created)
+        return "{pk: %s, article: %s, assignee: %s, state: %s, from_transition: %s, from_transition_user: %s, created: %s}" % (self.pk, self.article, self.assignee, self.state, self.from_transition, self.from_transition_user, self.created)
     
     def assign_user(self, user):
         self.assignee = user
@@ -76,11 +77,23 @@ class ArticleState(models.Model):
         if insert:
             if self.assignee:
                 self.assign_user(self.assignee)
-            elif self.state.auto_assign > 1:
-                print "Finding worker ..."
-                a_user = AutoAssign.pick_worker(self.article, self.state, datetime.date.today())
-                if a_user:
-                    self.assign_user(a_user)
+            else:
+                # Check to see if a previous assignee should be assigned
+                if self.state.reassign_previous:
+                    try:
+                        latest_same_articlestate = ArticleState.objects.filter(article=self.article,state=self.state,created__lt=self.created).latest('created')
+                        logger.debug("Found previous same state for %s: %s" % (art.doi, latest_same_articlestate.verbose_unicode()))
+                        if latest_same_articlestate.assignee:
+                            logger.info("Found previous same state assignee for %s. Reassigning %s" % (self.article.doi ,latest_same_articlestate.assignee))
+                            self.assign_user(latest_same_articlestate.assignee)
+                    except ArticleState.DoesNotExist, e:
+                        logger.info("No previous same state for %s found" % self.article.doi)
+                # Use the autoassigner if applicable
+                if not self.assignee and self.state.auto_assign > 1:
+                    print "Finding worker ..."
+                    a_user = AutoAssign.pick_worker(self.article, self.state, datetime.date.today())
+                    if a_user:
+                        self.assign_user(a_user)
 
         if art:
             art.current_articlestate = self
@@ -137,7 +150,9 @@ class Article(models.Model):
         return self.current_state.possible_transitions.distinct()
 
     def execute_transition(self, transition, user):
-        return transition.execute_transition(self, user)
+        s = transition.execute_transition(self, user)
+        s.save()
+        return s
 
     def save(self, *args, **kwargs):
         insert = not self.pk
@@ -208,8 +223,7 @@ class ArticleExtras(models.Model):
         except Article.DoesNotExist:
             pass
 
-        return "Article_extras: (doi: %s)" % doi
-        
+        return "Article_extras: (doi: %s)" % doi        
             
 class Transition(models.Model):
     """
@@ -221,6 +235,7 @@ class Transition(models.Model):
     to_state = models.ForeignKey('State', related_name='possible_last_transitions')
     disallow_open_items = models.BooleanField(default=False)
     allowed_groups = models.ManyToManyField(Group, related_name="allowed_transitions")
+    assign_transition_user = models.BooleanField(default=False)
     preference_weight = models.IntegerField()
 
     #Bookkeeping 
@@ -229,6 +244,9 @@ class Transition(models.Model):
     
     def __unicode__(self):
         return u'%s: %s to %s' % (self.name, self.from_state, self.to_state)
+
+    def verbose_unicode(self):
+        return u'{pk: %s, name: %s,from_state: %s, to_state: %s, disallow_open_items: %s, assign_transition_user: %s, preference_weight: %s , created: %s, last_modified: %s}' % (self.pk, self.name, self.from_state, self.to_state, self.disallow_open_items, self.assign_transition_user, self.preference_weight, self.created, self.last_modified)
     
     def execute_transition(self, art, user):
         """
@@ -236,11 +254,15 @@ class Transition(models.Model):
         to describe what happened
         """
         if (art.current_articlestate.state == self.from_state):
-            # create new state
+            logger.debug("Creating articlestate for transition %s" % self.verbose_unicode())
             s = art.article_states.create(state=self.to_state,
                                           from_transition=self,
                                           from_transition_user=user)
+            if self.assign_transition_user:
+                logger.debug("Assign_transition_user = true, assigning %s to %s" % (user, s))
+                s.assignee = user
             
+            logger.debug("Execute transition is returing this state: %s" % s.verbose_unicode())
             return s
         else:
             return False
