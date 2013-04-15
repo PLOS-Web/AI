@@ -11,7 +11,7 @@ from local_settings import *
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 MANAGERS = ADMINS
@@ -274,6 +274,10 @@ CELERYBEAT_SCHEDULE = {
     #    },
     'em-sync': {
         'task': 'articleflow.daemons.em_sync.sync_all_pubdates',
-        'schedule': crontab(hour="*/1", minute="0", day_of_week="*")
+        'schedule': crontab(hour="*/2", minute="0", day_of_week="*")
+        },
+    'transitions-tasks': {
+        'task': 'articleflow.daemons.transition_tasks.ongoing_ambra_sync',
+        'schedule': crontab(minute="*/15", day_of_week="*")
         },
     }
