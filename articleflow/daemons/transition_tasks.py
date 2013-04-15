@@ -181,7 +181,7 @@ def assign_published_stage_article_active(art, stage_c):
     if stage_c.doi_published(art.doi):
         published_on_stage_state = State.objects.get(name='Published on Stage')
         logger.info("Article, %s, is published on stage. Moving to 'Published on Stage'" % art.doi)
-        daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
+        daemon_user = get_or_create_user(daemon_name_format % "publish_stage")
         a_s = ArticleState(article=art,
                            state=published_on_stage_state,
                            assignee=None,
@@ -196,7 +196,7 @@ def assign_published_stage_article_active(art, stage_c):
     if stage_c.doi_published(art.doi):
         published_on_stage_state = State.objects.get(name='Published on Stage')
         logger.info("Article, %s, is published on stage. Moving to 'Published on Stage'" % art.doi)
-        daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
+        daemon_user = get_or_create_user(daemon_name_format % "publish_stage_active")
         a_s = ArticleState(article=art,
                            state=published_on_stage_state,
                            assignee=None,
