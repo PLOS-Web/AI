@@ -20,15 +20,15 @@ logger = logging.getLogger(__name__)
 
 PAC = pytz.timezone('US/Pacific')
 
-#s_host = "sfo-db01.int.plos.org"
-#s_user = "article_tracker"
-#s_passwd = "pqeCKYxL"
-#s_db = "article_tracker"
+s_host = "sfo-db01.int.plos.org"
+s_user = "article_tracker"
+s_passwd = "pqeCKYxL"
+s_db = "article_tracker"
 
-s_host = ""
-s_user = "ai_leg"
-s_passwd = ""
-s_db = "ai_leg"
+#s_host = ""
+#s_user = "ai_leg"
+#s_passwd = ""
+#s_db = "ai_leg"
 
 def toUTCc(d):
     if not d:
@@ -443,6 +443,23 @@ class GrabAT(DBBase):
         dois = [i['doi'] for i in self.at_c.fetchall()]
         return dois
 
+    def get_distinct_dois_date(self, date, num=None):
+        e = ("""
+            SELECT
+              DISTINCT(ap.doi)
+            FROM article_pulls AS ap
+            WHERE ap.doi IS NOT NULL
+            AND  date(ap.time) = '%s'
+            ORDER BY ap.time desc
+            """ % date)
+        if num >= 0:
+            e += "Limit %d" % num
+        
+        self.at_c.execute(e)
+        
+        dois = [i['doi'] for i in self.at_c.fetchall()]
+        return dois    
+
     def get_pull_dois(self):
         self.at_c.execute(
             """
@@ -481,6 +498,21 @@ def main():
 
     # Sync with ambra
     migration_sync()
+
+def main_date(date):
+    g = GrabAT()
+    dois = g.get_distinct_dois_date(date)
+
+    for doi in dois:
+        print "###DOI: %s" % doi
+        try:
+            m = MigrateDOI(doi)
+            m.migrate()
+        except Exception as e:
+            logger.exception("DUMP DOI: %s %s" % (doi, e))
+
+    # Sync with ambra
+    #migration_sync()
 
 if __name__ == '__main__':
     main()
