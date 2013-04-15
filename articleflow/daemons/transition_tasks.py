@@ -214,6 +214,14 @@ def assign_published_stage(stage_c):
     for a in ready_to_publish:
         assign_published_stage_article(a, stage_c)
 
+def assign_published_stage_active(stage_c):
+    ready_to_publish_state = State.objects.get(name='Ready to Publish') 
+    ready_to_publish = Article.objects.filter(current_state=ready_to_publish_state)
+
+    logger.info("Starting assign_published_stage.  Identified %s articles in 'Ingested' state." % ready_to_publish.count())
+    for a in ready_to_publish:
+        assign_published_stage_article_active(a, stage_c)
+
 def assign_published_stage_article(art, stage_c):
     logger.info("Checking article, %s, to see if it's pubbed on stage" % art.doi)
     ready_to_publish_state = State.objects.get(name='Ready to Publish')
