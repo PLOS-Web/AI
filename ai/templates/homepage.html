@@ -3,6 +3,13 @@
 {% block sub_title %} - home{% endblock %}
 
 {% block content %}
-<h2>Home</h2>
-<p>There's not much to do here yet.</p>
+<h3>Welcome to the exciting world of AI 2.0!</h3>
+{% if user.is_authenticated %}
+<p class="lead">It looks like you've managed to log in.  Go ahead and click on the logo in the top left to get started working!</p>
+{% else %}
+<p class="lead">Go ahead and log in using the link above. You can use your Active Directory login information (the same login you use to access most other PLOS resources).</p>
+{% endif %}
+
+<p>Remember, if you're absolutely confused or something's broken, check out the <a href="{% url help %}">help</a> page or contact either Jack (jlabarba@plos.org) or Nina (nmeechoonuk@plos.org) for assistance.  They're mostly friendly!</p>
+
 {% endblock %}
