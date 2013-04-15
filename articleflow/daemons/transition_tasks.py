@@ -1,4 +1,5 @@
 import sys
+import os
 
 from datetime import datetime, timedelta, date
 
@@ -168,7 +169,42 @@ def assign_published_stage_article(art, stage_c):
                            from_transition=None,
                            from_transition_user=daemon_user,
                            )
-        a_s.save()               
+        a_s.save()
+
+# this variant will try to publish the article using a system call
+def assign_published_stage_article_active(art, stage_c):
+    logger.info("Checking article, %s, to see if it's pubbed on stage" % art.doi)
+    ready_to_publish_state = State.objects.get(name='Ready to Publish')
+    if art.current_state != ready_to_publish_state:
+        logger.info("Article, %s, not 'Ready to publish' is '%s' instead.  Aborting transition to 'Published on stage'" % (art.doi, art.current_state))
+        return False
+    if stage_c.doi_published(art.doi):
+        published_on_stage_state = State.objects.get(name='Published on Stage')
+        logger.info("Article, %s, is published on stage. Moving to 'Published on Stage'" % art.doi)
+        daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
+        a_s = ArticleState(article=art,
+                           state=published_on_stage_state,
+                           assignee=None,
+                           from_transition=None,
+                           from_transition_user=daemon_user,
+                           )
+        a_s.save()
+    # not published? let's try to publish it
+    else:
+        os.system("publish %s" % art.doi)
+    # and check again to see if it's published
+    if stage_c.doi_published(art.doi):
+        published_on_stage_state = State.objects.get(name='Published on Stage')
+        logger.info("Article, %s, is published on stage. Moving to 'Published on Stage'" % art.doi)
+        daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
+        a_s = ArticleState(article=art,
+                           state=published_on_stage_state,
+                           assignee=None,
+                           from_transition=None,
+                           from_transition_user=daemon_user,
+                           )
+        a_s.save()
+        
 
 def assign_published_stage(stage_c):
     ready_to_publish_state = State.objects.get(name='Ready to Publish') 
@@ -262,6 +298,17 @@ def migration_sync():
     assign_published_stage(stage_c)
     assign_published_live(live_c)
     cleanup_published_live(live_c)
+
+@task
+def ongoing_ambra_sync():
+    stage_c = AmbraStageConnection()
+    live_c = AmbraProdConnection()
+    
+    assign_ingested(stage_c)
+    assign_ready_for_qc()
+    assign_urgent(3)
+    assign_published_stage_active(stage_c)
+    assign_published_live(live_c)
 
 if __name__ == "__main__":
     main()
