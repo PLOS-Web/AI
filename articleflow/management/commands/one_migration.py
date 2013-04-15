@@ -10,7 +10,7 @@ from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
 
 from articleflow.models import Article, ArticleState, State, Journal
 from issues.models import Issue, Category
-from articleflow.transition_tasks import migration_sync
+from articleflow.daemons.transition_tasks import migration_sync
 
 import MySQLdb
 from datetime import datetime
