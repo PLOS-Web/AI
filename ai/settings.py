@@ -264,14 +264,15 @@ CELERYBEAT_PIDFILE = '/tmp/celerybeat.pid'
 # CELERY tasks
 CELERY_IMPORTS=(
     'articleflow.daemons.em_sync',
+    'articleflow.daemons.transition_tasks',
 )
 
 # CELERY beat schedule
 CELERYBEAT_SCHEDULE = {
-    #'test-scheduler': {
-    #    'task': 'articleflow.daemons.em_sync.cron_test',
-    #    'schedule': crontab(hour="*", minute="*", day_of_week="*")
-    #    },
+    'test-scheduler': {
+        'task': 'articleflow.daemons.em_sync.cron_test',
+        'schedule': crontab(hour="*", minute="*", day_of_week="*")
+        },
     'em-sync': {
         'task': 'articleflow.daemons.em_sync.sync_all_pubdates',
         'schedule': crontab(hour="*/2", minute="0", day_of_week="*")

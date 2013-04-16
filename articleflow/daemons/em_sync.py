@@ -52,13 +52,14 @@ def sync_all_pubdates():
                     logger.info("Updating %s with pubdate, %s" % (article, a[1]))
                     article.save()
                 except Article.DoesNotExist, e:
-                    logger.info("Pubdate update couldn't find doi, %s, in AI" % short_doi)
+                    logger.error("Pubdate update couldn't find doi, %s, in AI" % short_doi)
             else:
-                logger.info("EM provided a null pubdate for %s. Not updating." % a[0])
+                logger.error("EM provided a null pubdate for %s. Not updating." % a[0])
 
 @task
 def cron_test():
-    logger.info("Cron test activated")
+    for i in range(0,11):
+        logger.info("Cron test activated %s" % i)
     return True
     
 def main():
