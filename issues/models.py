@@ -7,6 +7,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from articleflow.models import Article, ArticleExtras
 
+def now():
+    return datetime.datetime.utcnow().replace(tzinfo=utc)
+
 STATUS_CODES = (
     (1, 'Open'),
     (2, 'Closed'),
@@ -33,7 +36,7 @@ class Issue(models.Model):
     current_status = models.ForeignKey('IssueStatus', related_name='current_status_of', null=True, blank=True, default=None)
 
     #Bookkeeping
-    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
+    created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -44,6 +47,8 @@ class Issue(models.Model):
 
     def save(self, *args, **kwargs):
         insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
         ret = super(Issue, self).save(*args, **kwargs)
 
         # Add a new 'open' status entry for new issues
@@ -86,7 +91,7 @@ class IssueStatus(models.Model):
     issue = models.ForeignKey('Issue', related_name='statuses')
 
     #Bookkeeping
-    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
+    created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
@@ -94,6 +99,9 @@ class IssueStatus(models.Model):
 
     def save(self, *args, **kwargs):
         print "Save IssueStatus"
+        insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
         ret = super(IssueStatus, self).save(*args, **kwargs)
 
         i = self.issue
@@ -112,8 +120,14 @@ class Category(models.Model):
     user_selectable = models.BooleanField(default=True)
 
     #Bookkeeping
-    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
+    created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)
     
     def __unicode__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
+        ret = super(Category, self).save(*args, **kwargs)
