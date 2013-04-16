@@ -22,6 +22,9 @@ ERROR_SET_SOURCES = (
     (3, 'test'),
 )
 
+def now():
+    return datetime.datetime.utcnow().replace(tzinfo=utc)
+
 class Error(models.Model):
     message = models.CharField(max_length=600)
     level = models.IntegerField(choices=ERROR_LEVEL)
@@ -34,7 +37,7 @@ class Error(models.Model):
     current_status = models.ForeignKey('ErrorStatus', related_name='current_status_of', null=True, blank=True, default=None)
 
     # Bookkeeping
-    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
+    created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
@@ -42,6 +45,8 @@ class Error(models.Model):
 
     def save(self, *args, **kwargs):
         insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
         ret = super(Error, self).save(*args, **kwargs)
         
         # Add a new 'open' status entry for new issues
@@ -74,13 +79,16 @@ class ErrorStatus(models.Model):
     error = models.ForeignKey('Error', related_name='statuses')
 
     # Bookkeeping
-    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
+    created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return self.get_state_display()
 
     def save(self, *args, **kwargs):
+        insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
         ret = super(ErrorStatus, self).save(*args, **kwargs)
         
         e = self.error
@@ -97,7 +105,7 @@ class ErrorSet(models.Model):
     article = models.ForeignKey(Article, related_name='error_sets')
 
     # Bookkeeping
-    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
+    created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
@@ -105,6 +113,8 @@ class ErrorSet(models.Model):
     
     def save(self, *args, **kwargs):
         insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
         ret = super(ErrorSet, self).save(*args, **kwargs)
         
         # Wipe out articleextra tallies on new errorset

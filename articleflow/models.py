@@ -10,6 +10,9 @@ from django.db.models import Sum, Max
 import logging
 logger = logging.getLogger(__name__)
 
+def now():
+    return datetime.datetime.utcnow().replace(tzinfo=utc)
+
 AUTO_ASSIGN = (
     (1, 'No'),
     (2, 'Yes'),
@@ -28,13 +31,21 @@ class State(models.Model):
     progress_index = models.IntegerField(default=0)
 
     #Bookkeeping 
-    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
+    created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)
     def __unicode__(self):
         return self.name
 
     def possible_assignees(self):
         return User.objects.filter(groups__state_assignments=self)
+
+
+    def save(self, *args, **kwargs):
+        insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
+        ret = super(State, self).save(*args, **kwargs)
+        return ret
 
     class Meta:
         ordering = ['progress_index']
@@ -52,7 +63,7 @@ class ArticleState(models.Model):
     from_transition_user = models.ForeignKey(User, related_name='articlestates_created',null=True, blank=True, default=None)
 
     #Bookkeeping 
-    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
+    created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
@@ -68,6 +79,9 @@ class ArticleState(models.Model):
         ah.save()
 
     def save(self, *args, **kwargs):
+        insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
         insert = not self.pk
         logger.debug("SAVING ARTICLESTATE: %s" % self.verbose_unicode())
 
@@ -110,8 +124,15 @@ class Journal(models.Model):
     em_ambra_stage_prefix = models.CharField(max_length=200) #the journal name modifier for stage Ambra's URL scheme
     
     #Bookkeeping
-    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
+    created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)    
+
+    def save(self, *args, **kwargs):
+        insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
+        ret = super(Journal, self).save(*args, **kwargs)
+        return ret
 
     def __unicode__(self):
         return self.full_name
@@ -133,7 +154,7 @@ class Article(models.Model):
     em_max_revision = models.IntegerField(null=True, blank=True, default=None)
     
     #Bookkeeping
-    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
+    created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
@@ -157,6 +178,8 @@ class Article(models.Model):
     def save(self, *args, **kwargs):
         insert = not self.pk
         logger.info("SAVING ARTICLE: %s" % self.verbose_unicode())
+	if insert and not self.created:
+                self.created = now()
         ret = super(Article, self).save(*args, **kwargs)
 
         # Create a blank articleextras row
@@ -202,11 +225,13 @@ class ArticleExtras(models.Model):
     num_warnings = models.IntegerField(default=0)
 
     # Bookkeeping
-    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
+    created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
         insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
         ret = super(ArticleExtras, self).save(*args, **kwargs)
 
         if insert:
@@ -239,7 +264,7 @@ class Transition(models.Model):
     preference_weight = models.IntegerField()
 
     #Bookkeeping 
-    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
+    created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)
     
     def __unicode__(self):
@@ -267,16 +292,30 @@ class Transition(models.Model):
         else:
             return False
 
+    def save(self, *args, **kwargs):
+        insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
+        ret = super(Transition, self).save(*args, **kwargs)
+        return ret
+
 class AssignmentHistory(models.Model):
     user = models.ForeignKey(User, related_name='assignment_histories')
     article_state = models.ForeignKey('ArticleState', related_name='assignment_histories')
 
     #Bookkeeping
-    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
+    created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return u'(%s, %s): %s %s' % (self.article_state.article.doi, self.article_state.state.name, self.user.username, self.created)
+
+    def save(self, *args, **kwargs):
+        insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
+        ret = super(AssignmentHistory, self).save(*args, **kwargs)
+        return ret
 
 class AssignmentRatio(models.Model):
     user = models.ForeignKey(User, related_name='assignment_weights')
@@ -284,7 +323,7 @@ class AssignmentRatio(models.Model):
     weight = models.IntegerField(null=True, blank=True, default=None)
 
     #Bookkeeping
-    created = models.DateTimeField(default=datetime.datetime.utcnow().replace(tzinfo=utc))
+    created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -292,6 +331,13 @@ class AssignmentRatio(models.Model):
 
     def __unicode__(self):
         return u"state: %s, user: %s, weight: %s" % (self.state.name, self.user.username, self.weight)
+
+    def save(self, *args, **kwargs):
+        insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
+        ret = super(AssignmentRatio, self).save(*args, **kwargs)
+        return ret
 
 class AutoAssign():
     @staticmethod
