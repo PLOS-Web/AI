@@ -11,6 +11,7 @@
   <div class="issue-description">
     <span class="label label-{{ issue.category.name|sanitize_class_name }} issue-category">{{ issue.category }}</span>
     <span class="issue-author">{{ issue.submitter.username }}</span>
+    <span class="issue-timestamp">{{ issue.created }}</span>
     <span class="issue-description-spaced">{{ issue.description }}</span>
     <script type="text/javascript">
       //  should this be on document ready?
