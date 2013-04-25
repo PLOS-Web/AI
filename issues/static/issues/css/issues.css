@@ -189,6 +189,10 @@ textarea.issue-textarea {
     color: #858585;
 }
 
+.issue-timestamp{
+    float: right;
+}
+
 .issue-status-control {
     display: inline;
     float: right;
