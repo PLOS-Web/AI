@@ -27,6 +27,9 @@ from articleflow.forms import AssignmentForm
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
 
+import logging
+logger = logging.getLogger(__name__)
+
 def resolve_choice_index(choices, key):
     for choice in choices:
         if key == choice[1]:
@@ -361,6 +364,34 @@ class Help(View):
 
     def get(self, request, *args, **kwargs):
         context = {}
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
+class ReportsMain(View):
+    #template_name = '404.html'
+    template_name = 'articleflow/reports/main.html'
+
+    def get(self, request, *args, **kwargs):
+        context = {}
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
+class ReportsPCQCCounts(View):
+    template_name = 'articleflow/reports/pcqccounts.html'
+
+    def get_context_data(self,request, *args, **kwargs):
+        users = {}
+        workers = User.objects.filter(groups__name='Production').all()
+        for w in workers.all():
+            users[w.username] = {'user': w}
+            logger.debug("Worker: %s" % w.username)
+
+        print users
+        for u in users:
+            for j in Journal.objects.all():
+                pass
+                
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(kwargs)
         return render_to_response(self.template_name, context, context_instance=RequestContext(request))
 
 

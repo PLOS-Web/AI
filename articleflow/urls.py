@@ -14,6 +14,7 @@ urlpatterns = patterns('articleflow.views',
                        url(r'^detail/(?P<doi>[a-z|\.|0-9]{0,50})/assign-to-me', AssignToMe.as_view(), name='assign_to_me'),
                        url(r'^assign_weights/(?P<state_pk>[0-9]*)/$', AssignRatios.as_view(), name='assign_weight_detail'),
                        url(r'^assign_weights/$', AssignRatiosMain.as_view(), name='assign_weight_main'),
+                       url(r'^reports/', include('articleflow.reports_urls')),
                        
                        )
 
