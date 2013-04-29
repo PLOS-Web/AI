@@ -395,6 +395,10 @@ class ReportsPCQCCounts(View):
 
         print users
 
+        journals = []
+        for j in Journal.objects.all():
+            journals += [j.short_name]
+
         for u in users.itervalues():
             u['counts'] = {}
             
@@ -404,9 +408,7 @@ class ReportsPCQCCounts(View):
             if 'end-date' in self.request.GET.keys():
                 user_as_base = journal_base.filter(created__lte=data['end-date'])
             
-            journals = []
             for j in Journal.objects.all():
-                journals += [j.short_name]
                 journal_base = user_as_base.filter(article__journal=j)
                 u['counts'][j.short_name] = journal_base.count()
             
