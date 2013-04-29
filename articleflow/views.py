@@ -383,11 +383,11 @@ class ReportsPCQCCounts(View):
         data = form.cleaned_data
         users = {}
         if data['group'] == '1':
-            workers = User.objects.filter(groups__name='Production')
+            workers = User.objects.filter(groups__name='production')
         if data['group'] == '2':
-            workers = User.objects.filter(groups__name='Zyg')
+            workers = User.objects.filter(groups__name='zyg')
         if data['group'] == '3':
-            workers = User.objects.filter(Q(groups__name='Production')|Q(groups__name='Zyg')).all()
+            workers = User.objects.filter(Q(groups__name='production')|Q(groups__name='zyg')).all()
 
         for w in workers.order_by('username').all():
             users[w.username] = {'user': w}
