@@ -9,6 +9,8 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django import forms
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.views.generic.edit import FormView
+from django.db.models import Q
 
 import simplejson
 import re
@@ -23,7 +25,7 @@ import django_filters
 import transitionrules
 
 from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio
-from articleflow.forms import AssignmentForm
+from articleflow.forms import AssignmentForm, ReportsDateRange
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
 
@@ -377,18 +379,70 @@ class ReportsMain(View):
 class ReportsPCQCCounts(View):
     template_name = 'articleflow/reports/pcqccounts.html'
 
-    def get_context_data(self,request, *args, **kwargs):
+    def form_valid(self, form, **kwargs):
+        data = form.cleaned_data
         users = {}
-        workers = User.objects.filter(groups__name='Production').all()
-        for w in workers.all():
+        if data['group'] == '1':
+            workers = User.objects.filter(groups__name='Production')
+        if data['group'] == '2':
+            workers = User.objects.filter(groups__name='Zyg')
+        if data['group'] == '3':
+            workers = User.objects.filter(Q(groups__name='Production')|Q(groups__name='Zyg')).all()
+
+        for w in workers.order_by('username').all():
             users[w.username] = {'user': w}
             logger.debug("Worker: %s" % w.username)
 
         print users
-        for u in users:
+
+        for u in users.itervalues():
+            u['counts'] = {}
+            
+            user_as_base = ArticleState.objects.filter(from_transition_user=u['user'])
+            if 'start-date' in self.request.GET.keys():
+                user_as_base = journal_base.filter(created__gte=data['start-date'])
+            if 'end-date' in self.request.GET.keys():
+                user_as_base = journal_base.filter(created__lte=data['end-date'])
+            
+            journals = []
             for j in Journal.objects.all():
-                pass
-                
+                journals += [j.short_name]
+                journal_base = user_as_base.filter(article__journal=j)
+                u['counts'][j.short_name] = journal_base.count()
+            
+            u['actions'] = user_as_base.order_by('created').all()
+            
+
+            u['total'] = 0
+            for c in u['counts'].itervalues():
+                u['total'] += c
+    
+        journal_totals = {}
+        for j in Journal.objects.all():
+            journal_totals[j.short_name] = 0
+            for u in users.itervalues():
+                journal_totals[j.short_name] += u['counts'][j.short_name]
+        
+        journal_total=0
+        for c in journal_totals.itervalues():
+            journal_total += c
+
+        return {'users': users,
+                'journal_totals': journal_totals,
+                'journal_total': journal_total,
+                'journals': journals}
+
+    def get_context_data(self,request, *args, **kwargs):
+        context = {}
+        if self.request.GET:
+            form = ReportsDateRange(self.request.GET)
+            if form.is_valid():
+                return {'results': self.form_valid(form),
+                        'form': form}
+            else:
+                return {'form': form}
+
+        return {'form': ReportsDateRange}
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(kwargs)
