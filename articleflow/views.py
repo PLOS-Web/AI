@@ -6,11 +6,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ValidationError
 from django.template import RequestContext
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.urlresolvers import reverse
 from django import forms
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic.edit import FormView
 from django.db.models import Q
+from django.utils.decorators import method_decorator
 
 import simplejson
 import re
@@ -380,9 +382,14 @@ class ReportsMain(View):
 class ReportsPCQCCounts(View):
     template_name = 'articleflow/reports/pcqccounts.html'
 
+    @method_decorator(login_required())
+    @method_decorator(user_passes_test(lambda u: u.groups.filter(name='management').count()== 1))
+    def dispatch(self, request, *args, **kwargs):
+        return super(ReportsPCQCCounts, self).dispatch(request, *args, **kwargs)
+
     def form_valid(self, form, **kwargs):
         data = form.cleaned_data
-        print "DATA %s " % data
+        # hacky fix for non-inclusive end date on filter
         data['end_date'] = data['end_date'] + datetime.timedelta(days=1)
         
         users = {}
@@ -397,8 +404,6 @@ class ReportsPCQCCounts(View):
             users[w.username] = {'user': w}
             logger.debug("Worker: %s" % w.username)
 
-        print users
-
         journals = []
         for j in Journal.objects.all():
             journals += [j.short_name]
@@ -409,16 +414,12 @@ class ReportsPCQCCounts(View):
             user_as_base = ArticleState.objects.filter(from_transition_user=u['user'])
             user_as_base = user_as_base.filter(created__gte=data['start_date']).filter(created__lt=data['end_date'])
             
-            for a_s in user_as_base.all():
-                print a_s.created
-            
             for j in Journal.objects.all():
                 journal_base = user_as_base.filter(article__journal=j)
                 u['counts'][j.short_name] = journal_base.count()
             
             u['actions'] = user_as_base.order_by('created').all()
             
-
             u['total'] = 0
             for c in u['counts'].itervalues():
                 u['total'] += c
