@@ -14,6 +14,7 @@ from django.db.models import Q
 
 import simplejson
 import re
+import datetime
 
 from django.contrib.auth.models import Group
 
@@ -381,6 +382,9 @@ class ReportsPCQCCounts(View):
 
     def form_valid(self, form, **kwargs):
         data = form.cleaned_data
+        print "DATA %s " % data
+        data['end_date'] = data['end_date'] + datetime.timedelta(days=1)
+        
         users = {}
         if data['group'] == '1':
             workers = User.objects.filter(groups__name='production')
@@ -403,10 +407,10 @@ class ReportsPCQCCounts(View):
             u['counts'] = {}
             
             user_as_base = ArticleState.objects.filter(from_transition_user=u['user'])
-            if 'start-date' in self.request.GET.keys():
-                user_as_base = journal_base.filter(created__gte=data['start-date'])
-            if 'end-date' in self.request.GET.keys():
-                user_as_base = journal_base.filter(created__lte=data['end-date'])
+            user_as_base = user_as_base.filter(created__gte=data['start_date']).filter(created__lt=data['end_date'])
+            
+            for a_s in user_as_base.all():
+                print a_s.created
             
             for j in Journal.objects.all():
                 journal_base = user_as_base.filter(article__journal=j)
