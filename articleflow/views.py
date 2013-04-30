@@ -6,12 +6,17 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ValidationError
 from django.template import RequestContext
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.urlresolvers import reverse
 from django import forms
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.views.generic.edit import FormView
+from django.db.models import Q
+from django.utils.decorators import method_decorator
 
 import simplejson
 import re
+import datetime
 
 from django.contrib.auth.models import Group
 
@@ -23,9 +28,12 @@ import django_filters
 import transitionrules
 
 from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio
-from articleflow.forms import AssignmentForm
+from articleflow.forms import AssignmentForm, ReportsDateRange
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
+
+import logging
+logger = logging.getLogger(__name__)
 
 def resolve_choice_index(choices, key):
     for choice in choices:
@@ -361,6 +369,92 @@ class Help(View):
 
     def get(self, request, *args, **kwargs):
         context = {}
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
+class ReportsMain(View):
+    #template_name = '404.html'
+    template_name = 'articleflow/reports/main.html'
+
+    def get(self, request, *args, **kwargs):
+        context = {}
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
+class ReportsPCQCCounts(View):
+    template_name = 'articleflow/reports/pcqccounts.html'
+
+    @method_decorator(login_required())
+    @method_decorator(user_passes_test(lambda u: u.groups.filter(name='management').count()== 1))
+    def dispatch(self, request, *args, **kwargs):
+        return super(ReportsPCQCCounts, self).dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form, **kwargs):
+        data = form.cleaned_data
+        # hacky fix for non-inclusive end date on filter
+        data['end_date'] = data['end_date'] + datetime.timedelta(days=1)
+        
+        users = {}
+        if data['group'] == '1':
+            workers = User.objects.filter(groups__name='production')
+        if data['group'] == '2':
+            workers = User.objects.filter(groups__name='zyg')
+        if data['group'] == '3':
+            workers = User.objects.filter(Q(groups__name='production')|Q(groups__name='zyg')).all()
+
+        for w in workers.order_by('username').all():
+            users[w.username] = {'user': w}
+            logger.debug("Worker: %s" % w.username)
+
+        journals = []
+        for j in Journal.objects.all():
+            journals += [j.short_name]
+
+        from_transitions = Transition.objects.filter(Q(from_state__name='Ready for QC (CW)')|Q(from_state__name='Urgent QC (CW)')).all()
+
+        for u in users.itervalues():
+            u['counts'] = {}
+
+            user_as_base = ArticleState.objects.filter(from_transition_user=u['user']).filter(from_transition__in=from_transitions)
+            user_as_base = user_as_base.filter(created__gte=data['start_date']).filter(created__lt=data['end_date'])
+            
+            for j in Journal.objects.all():
+                journal_base = user_as_base.filter(article__journal=j)
+                u['counts'][j.short_name] = journal_base.count()
+            
+            u['actions'] = user_as_base.order_by('created').all()
+            
+            u['total'] = 0
+            for c in u['counts'].itervalues():
+                u['total'] += c
+    
+        journal_totals = {}
+        for j in Journal.objects.all():
+            journal_totals[j.short_name] = 0
+            for u in users.itervalues():
+                journal_totals[j.short_name] += u['counts'][j.short_name]
+        
+        journal_total=0
+        for c in journal_totals.itervalues():
+            journal_total += c
+
+        return {'users': users,
+                'journal_totals': journal_totals,
+                'journal_total': journal_total,
+                'journals': journals}
+
+    def get_context_data(self,request, *args, **kwargs):
+        context = {}
+        if self.request.GET:
+            form = ReportsDateRange(self.request.GET)
+            if form.is_valid():
+                return {'results': self.form_valid(form),
+                        'form': form}
+            else:
+                return {'form': form}
+
+        return {'form': ReportsDateRange}
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(kwargs)
         return render_to_response(self.template_name, context, context_instance=RequestContext(request))
 
 

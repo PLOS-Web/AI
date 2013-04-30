@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+{% load utils %}
+
+{% block head %}
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{{ STATIC_URL }}css/grid.css" />
+<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+<script src="{{ STATIC_URL }}js/grid.js"></script>
+</script>
+{% endblock %}
+
+{% block sub_title %} - Reports: PC QC Counts{% endblock %}
+
+{% block content %}
+<h3>PC QC Counts</h3>
+<h4>Description</h4>
+<p>Lists all transition events of type "Ok" or "Needs Web Corrections" for members of the specified group.</p>
+<div>
+  <form action="." class="form form-horizontal" method="get">
+    {{ form|crispy }}
+    <div class="control-group">
+      <div class="controls">
+	<input class="btn-primary" type="submit" name="submit" value="Search">
+      </div>
+    </div>
+  </form>
+</div>
+
+{% if results %}
+<h4>Results</h4>
+<table class='table table-hover'>
+  <thead>
+    <tr>
+      <th>User</th>
+      {% for j in results.journals %}
+      <th>{{ j }}</th>
+      {% endfor %}
+      <th>Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for u, c in results.users|ordered_flat_dict %}
+    <tr>
+      <td><a href="#actions_{{ u }}">{{ u }}</a></td>
+      {% for j in results.journals %}
+      <td>{{ c.counts|get_item:j }}</td>
+      {% endfor %}
+      <td>{{ c.total }}</td>
+    </tr>
+    {% endfor %}
+    <tr>
+      <td><b>Total</b></td>
+      {% for j in results.journals %}
+      <td>{{ results.journal_totals|get_item:j }}</td>
+      {% endfor %}
+      <td>{{ results.journal_total }}</td>
+    </tr>
+  </tbody>
+</table>
+
+{% for u_name, c in results.users|ordered_flat_dict %}
+<h5 id="actions_{{ u_name }}">{{ u_name }}</h5>
+{% if c.actions %}
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th>Doi</th>
+      <th>Transition</th>
+      <th>Time</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a_s in c.actions %}
+    <tr>
+      <td><a href="{% url detail_main a_s.article.doi %}">{{ a_s.article.doi }}</a></td>
+      <td><a href="{% url detail_history a_s.article.doi %}">{{ a_s.from_transition.name }}</td>
+      <td>{{ a_s.created }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>--</p>
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endblock %}

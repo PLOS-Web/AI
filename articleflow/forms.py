@@ -15,5 +15,10 @@ class AssignmentForm(forms.Form):
         if state_pk:
             self.fields['state'] = forms.IntegerField(widget=forms.HiddenInput(), initial=state_pk)
 
+class ReportsDateRange(forms.Form):
+    group_choices = ((1, 'Production'),(2, "Zyg"), (3, "Both"))
 
-
+    group = forms.ChoiceField(choices=group_choices)
+    start_date = forms.DateTimeField(input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
+    end_date = forms.DateTimeField(input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
+    
