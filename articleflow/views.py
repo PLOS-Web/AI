@@ -412,10 +412,7 @@ class ReportsPCQCCounts(View):
 
         for u in users.itervalues():
             u['counts'] = {}
-            
-            print "%s TRANSITIONS:" % from_transitions.count()
-            for t in from_transitions:
-                print "transition: %s " % t
+
             user_as_base = ArticleState.objects.filter(from_transition_user=u['user']).filter(from_transition__in=from_transitions)
             user_as_base = user_as_base.filter(created__gte=data['start_date']).filter(created__lt=data['end_date'])
             
