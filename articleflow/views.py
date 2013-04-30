@@ -408,10 +408,15 @@ class ReportsPCQCCounts(View):
         for j in Journal.objects.all():
             journals += [j.short_name]
 
+        from_transitions = Transition.objects.filter(Q(from_state__name='Ready for QC (CW)')|Q(from_state__name='Urgent QC (CW)')).all()
+
         for u in users.itervalues():
             u['counts'] = {}
             
-            user_as_base = ArticleState.objects.filter(from_transition_user=u['user'])
+            print "%s TRANSITIONS:" % from_transitions.count()
+            for t in from_transitions:
+                print "transition: %s " % t
+            user_as_base = ArticleState.objects.filter(from_transition_user=u['user']).filter(from_transition__in=from_transitions)
             user_as_base = user_as_base.filter(created__gte=data['start_date']).filter(created__lt=data['end_date'])
             
             for j in Journal.objects.all():
