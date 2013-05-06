@@ -26,7 +26,7 @@ def now():
     return datetime.datetime.utcnow().replace(tzinfo=utc)
 
 class Error(models.Model):
-    message = models.CharField(max_length=600)
+    message = models.CharField(max_length=4096)
     level = models.IntegerField(choices=ERROR_LEVEL)
     
     # FKs
