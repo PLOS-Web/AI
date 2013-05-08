@@ -8,6 +8,7 @@ from articleflow.models import Article, ArticleExtras
 ERROR_LEVEL = (
     (1, 'Error'),
     (2, 'Warning'),
+    (3, 'Correction'),
 )
 
 STATUS_CODES = (
@@ -51,7 +52,11 @@ class Error(models.Model):
         
         # Add a new 'open' status entry for new issues
         if insert: 
-            status = ErrorStatus(state=1, error=self)
+            if self.level == 3:
+                status = ErrorStatus(state=2, error=self)
+            else:
+                status = ErrorStatus(state=1, error=self)
+            
             status.save()
 
             # Only do anything if this is an error for the latest errorset
@@ -71,6 +76,9 @@ class Error(models.Model):
                 a_extras.save()
 
         return ret
+
+class Meta:
+    order_with_respect_to = 'level'
             
 class ErrorStatus(models.Model):
     state = models.IntegerField(choices=STATUS_CODES)
