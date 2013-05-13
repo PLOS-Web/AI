@@ -20,7 +20,7 @@ import datetime
 
 from django.contrib.auth.models import Group
 
-
+import sys
 import simplejson
 import re
 import django_filters
@@ -477,12 +477,12 @@ class BaseTransaction(View):
         return True
 
     def parse_payload(self, json_str):
-        print json_str
         try:
             self.payload = simplejson.loads(json_str)
         except:
-            print "Couldn't parse json"
-            return (self.error_response("Unable to parse json message"), True)
+            e = sys.exc_info()[0]
+            logger.error("Couldn't parse json: %s" % e)
+            return (self.error_response("Unable to parse json message: %s" % e), True)
 
         if not self.valid_payload():
             print "not valid payload"
