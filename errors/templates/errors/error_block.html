@@ -8,7 +8,7 @@
   <div id="error-status-icon-{{ error.pk }}" class="issue-status-{{ error.current_status.state }} issue-status-icon rounded-box-cell-left" href="javascript:void(0)"></div>
   <div class="issue-text rounded-box-cell-right">
   <div class="issue-description">
-    <span class="label label-important">{{ error.get_level_display }}</span><span class="issue-description-spaced">{{ error.message }}</span>
+    <span class="label {% if error.get_level_display == "Correction" %}label-success{% else %} label-important {% endif %}">{{ error.get_level_display }}</span><span class="issue-description-spaced">{{ error.message }}</span>
     <script type="text/javascript">
       //  should this be on document ready?
       //$(document).ready(function(){
