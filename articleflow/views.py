@@ -70,6 +70,8 @@ def separate_errors(e):
     
     errors=[]
     for error in errors_raw:
+        if not error:
+            continue
         error_tuple = (error, 1)
         print "Raw: %s" % error
         for i, level in ERROR_LEVEL:
