@@ -22,3 +22,5 @@ class ReportsDateRange(forms.Form):
     start_date = forms.DateTimeField(input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
     end_date = forms.DateTimeField(input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
     
+class FileUpload(forms.Form):
+    file = forms.FileField()

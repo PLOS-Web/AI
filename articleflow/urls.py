@@ -15,6 +15,7 @@ urlpatterns = patterns('articleflow.views',
                        url(r'^assign_weights/(?P<state_pk>[0-9]*)/$', AssignRatios.as_view(), name='assign_weight_detail'),
                        url(r'^assign_weights/$', AssignRatiosMain.as_view(), name='assign_weight_main'),
                        url(r'^reports/', include('articleflow.reports_urls')),
-                       
+                       url(r'^sftp-serve-down/(?P<doi>[a-z|\.|0-9]{0,50})$', FTPMeropsdOrig.as_view(), name='sftp_serve_down'),
+                       url(r'^sftp_test_upload/$', FTPMeropsUpload.as_view(), name='sftp_test_upload'),                       
                        )
 

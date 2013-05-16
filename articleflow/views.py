@@ -13,10 +13,12 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic.edit import FormView
 from django.db.models import Q
 from django.utils.decorators import method_decorator
+from django.core.servers.basehttp import FileWrapper
 
 import simplejson
 import re
 import datetime
+import mimetypes
 
 from django.contrib.auth.models import Group
 
@@ -24,11 +26,12 @@ import sys
 import simplejson
 import re
 import django_filters
+from storages.backends.sftpstorage import SFTPStorage, SFTPStorageFile
 
 import transitionrules
 
 from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio
-from articleflow.forms import AssignmentForm, ReportsDateRange
+from articleflow.forms import AssignmentForm, ReportsDateRange, FileUpload
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
 
@@ -314,7 +317,24 @@ class ArticleDetailTransition(View):
                             'open_errors': open_items['open_errors']
                             }
                         }
-                    return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')    
+                    return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+            if transition.file_upload_destination:
+                logger.debug("Transition requiring file upload attempted: %s" % transition)
+
+                form_render = render_to_response(
+                    'articleflow/fileupload_form.html',
+                    {
+                        "form": FileUpload()
+                        },
+                    context_instance=RequestContext(request)
+                    )
+                to_json = {
+                    'needs_further_info': {
+                        'content': form_render.content
+                        }
+                    }
+                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')                
             success = article.execute_transition(transition, user)
             #context = self.get_context_data(kwargs)
             print "success?"
@@ -873,5 +893,69 @@ class AssignRatios(View):
         ctx = self.get_context_data(kwargs)
         return render_to_response(self.template_name, ctx, context_instance=RequestContext(request))
 
+## SFTP Storage stuff
 
+# had to override a bit of django-storages here
+#  it was doing naughty things with StringIOs
+class CSFTPStorage(SFTPStorage):
+    def _save(self, name, content):
+        """Save file via SFTP."""
+        path = self._remote_path(name)
+        dirname = self._pathmod.dirname(path)
+        if not self.exists(dirname):
+            self._mkdir(dirname)
 
+        f = self.sftp.open(path, 'wb')
+        f.write(content)
+        f.close()
+
+        # set file permissions if configured
+        if self._file_mode is not None:
+            self.sftp.chmod(path, self._file_mode)
+        if self._uid or self._gid:
+            self._chown(path, uid=self._uid, gid=self._gid)
+        return name
+
+def serve_doc(storage, filename):
+    storage_file = SFTPStorageFile(filename, storage, 'r')
+    #wrapper = FileWrapper(storage_file.read())
+    mime, enc = mimetypes.guess_type(filename, False)
+    print "mime: %s" % mime
+    try:
+        response = HttpResponse(storage_file.read(), content_type=mime)
+    except IOError, e:
+        raise Http404
+    response['Content-Length'] = storage_file.size
+    response['Content-Disposition'] = "attachment; filename=%s" % filename
+    #storage_file.close()
+    return response
+
+def upload_doc(storage, file_name, file_stream):
+    storage_file = SFTPStorageFile(file_name, storage, 'rw')
+    storage_file.write(file_stream)
+    print storage_file.file.getvalue()
+    storage_file.close()
+    
+class FTPMeropsdOrig(View):
+    def get(self, request, *args, **kwargs):
+        sftp = SFTPStorage()
+        #return HttpResponse('fake')
+        return serve_doc(sftp, "%s.zip" % kwargs['doi'])
+
+class FTPMeropsUpload(View):
+    template_name = 'articleflow/fileupload_form.html'
+
+    def get(self, request, *args, **kwargs):
+        form = FileUpload()
+        context = {'form': form}
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
+    def post(self, request, *args, **kwargs):
+        form = FileUpload(request.POST, request.FILES)
+        if form.is_valid():
+            sftp = CSFTPStorage()
+            print request.FILES
+            upload_doc(sftp, 'upload_test', request.FILES['file'].read())
+            return HttpResponse("success!")
+        context = {'form': form}
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))

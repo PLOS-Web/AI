@@ -1,0 +1,13 @@
+{% load crispy_forms_tags %}
+
+<form class="form" action="{% url sftp_test_upload %}" method="post" enctype="multipart/form-data" >
+  {% csrf_token %}
+  {{ form|crispy }}
+  <div class="control-group">
+    <div class="controls">
+      <input type="submit" name="submit" value="Submit">
+    </div>
+  </div>
+</form>
+
+<a href="#">cancel upload</a>
