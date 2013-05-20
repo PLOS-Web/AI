@@ -61,7 +61,9 @@ function assign_to_me_ajax(article_pk, target_url){
     });
 }
 
-	    
+function load_transition_panel(load_url){
+    $('.article-state-control .rounded-box-card-inner').load(load_url);
+}
 	
 
 $(document).ready(function(){
@@ -73,3 +75,4 @@ $(document).ready(function(){
 	$('#article-note-collapse-toggle').html('[-]');
     });
 });
+

@@ -4,7 +4,7 @@ from django.views.generic import ListView, DetailView
 from django.views.generic.base import View
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ValidationError
-from django.template import RequestContext
+from django.template import RequestContext, Template
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.urlresolvers import reverse
@@ -259,6 +259,20 @@ class ArticleDetailMain(View):
             })
         return context
 
+class ArticleDetailTransitionPanel(View):
+    template = Template("{% load transitions %} {% render_article_state_control article user 1 %}")
+
+    def get_context_data(self, request, kwargs):
+        ctx = RequestContext(request)
+        ctx.update({'article': Article.objects.get(doi=kwargs['doi'])})
+        ctx.update({'user': request.user})
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(request, kwargs)
+        r = self.template.render(context)
+        return HttpResponse(r)
+
 class ArticleDetailTransition(View):
 
     template_name = 'articleflow/possible_transitions.html'
@@ -325,6 +339,7 @@ class ArticleDetailTransition(View):
                 form_render = render_to_response(
                     'articleflow/fileupload_form.html',
                     {
+                        "article": article,
                         "form": FileUpload()
                         },
                     context_instance=RequestContext(request)
