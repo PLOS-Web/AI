@@ -340,6 +340,7 @@ class ArticleDetailTransition(View):
                     'articleflow/fileupload_form.html',
                     {
                         "article": article,
+                        "transition": transition,
                         "form": FileUpload()
                         },
                     context_instance=RequestContext(request)

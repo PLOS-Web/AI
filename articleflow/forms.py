@@ -1,5 +1,9 @@
 from django import forms
 
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Field, Submit
+from crispy_forms.bootstrap import FormActions
+
 class AssignmentForm(forms.Form):
     def __init__(self, u_ratios=None, state_pk=None, *args, **kwargs):
         super(AssignmentForm, self).__init__(*args, **kwargs)
@@ -23,4 +27,11 @@ class ReportsDateRange(forms.Form):
     end_date = forms.DateTimeField(input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
     
 class FileUpload(forms.Form):
-    file = forms.FileField()
+    file = forms.FileField(label="Upload file", widget=forms.FileInput())
+
+    helper = FormHelper()
+    helper.form_class = 'form upload-form'
+    helper.layout = Layout(
+        Field('file'),
+        Submit('submit', 'Submit', css_class='btn-primary'),
+        )

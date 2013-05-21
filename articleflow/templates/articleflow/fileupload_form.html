@@ -1,21 +1,18 @@
 {% load crispy_forms_tags %}
 
-<div>
-  <form class="form" action="{% url sftp_test_upload %}" method="post" enctype="multipart/form-data" >
-    {% csrf_token %}
-    {{ form|crispy }}
-    <div class="control-group">
-      <div class="controls">
-	<input type="submit" name="submit" value="Submit">
-      </div>
-    </div>
-  </form>
-  <a class="btn btn-link" id="cancel-upload">cancel upload</a>
-  <script type="text/javascript">
-    $("#cancel-upload").click(function(){
-       load_transition_panel('{% url transitions_panel article.doi %}');
-    });
-  </script>
-</div>
-
+<div class="file-upload-panel">
+  <div class="file-upload-description">
+    <h4>{{ transition.name }}:</h4>
+    <p>{{ transition.file_upload_description }}</p>
+  </div>
   
+  <div>
+    {% crispy form %}
+    <a class="btn btn-link" id="cancel-upload">cancel upload</a>
+    <script type="text/javascript">
+      $("#cancel-upload").click(function(){
+      load_transition_panel('{% url transitions_panel article.doi %}');
+    });
+    </script>
+  </div>
+</div>
