@@ -129,6 +129,10 @@ class ColumnOrder():
     def assigned(a, type):
         return a.order_by(ColumnOrder.parse_type(type) + 'current_articlestate__assignee__username')
     
+    @staticmethod
+    def typesetter(a, type):
+        return a.order_by(ColumnOrder.parse_type(type) + 'typesetter__name')
+    
 ORDER_CHOICES = {
     'DOI': ColumnOrder.doi,
     'PubDate' : ColumnOrder.pubdate,
@@ -137,6 +141,7 @@ ORDER_CHOICES = {
     'Errors' : ColumnOrder.errors,
     'State' : ColumnOrder.state,
     'Assigned' : ColumnOrder.assigned,
+    'Typesetter' : ColumnOrder.typesetter,
 }
 
 
