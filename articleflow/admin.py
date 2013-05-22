@@ -19,4 +19,5 @@ admin.site.register(Journal)
 admin.site.register(ArticleExtras)
 admin.site.register(AssignmentHistory)
 admin.site.register(AssignmentRatio)
+admin.site.register(Typesetter)
 
