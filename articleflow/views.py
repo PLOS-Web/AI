@@ -53,6 +53,7 @@ COLUMN_CHOICES = (
     (4, 'Errors'),
     (5, 'State'),
     (6, 'Assigned'),
+    (7, 'Typesetter'),
     )
 
 def get_journal_from_doi(doi):
