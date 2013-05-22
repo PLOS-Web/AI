@@ -48,3 +48,44 @@
 .label-SI {
     background-color: #999; 
 }
+
+.upload-form label{
+    display: none;
+}
+
+.upload-form div{
+    float: left;
+}
+
+.upload-form form{
+    float: left;
+}
+
+.upload-form {
+    float: left;
+}
+
+.article-state-control .rounded-box-card-inner{
+    height: 64px;
+}
+
+.rounded-box-list{
+    margin-bottom: 0px;
+}
+
+.file-upload-description {
+    margin-bottom: 10px;
+}
+
+.file-upload-description h4{
+    display: inline;
+}
+
+.file-upload-description p{
+    display: inline;
+    margin-bottom: 8px;
+}
+
+.file-upload-panel h4{
+    display: inline;
+}

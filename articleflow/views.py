@@ -4,7 +4,7 @@ from django.views.generic import ListView, DetailView
 from django.views.generic.base import View
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ValidationError
-from django.template import RequestContext
+from django.template import RequestContext, Template
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.urlresolvers import reverse
@@ -13,22 +13,26 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic.edit import FormView
 from django.db.models import Q
 from django.utils.decorators import method_decorator
+from django.core.servers.basehttp import FileWrapper
 
 import simplejson
 import re
 import datetime
+import mimetypes
 
 from django.contrib.auth.models import Group
 
+import os
 import sys
 import simplejson
 import re
 import django_filters
+from storages.backends.sftpstorage import SFTPStorage, SFTPStorageFile
 
 import transitionrules
 
 from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio
-from articleflow.forms import AssignmentForm, ReportsDateRange
+from articleflow.forms import AssignmentForm, ReportsDateRange, FileUpload
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
 
@@ -256,6 +260,20 @@ class ArticleDetailMain(View):
             })
         return context
 
+class ArticleDetailTransitionPanel(View):
+    template = Template("{% load transitions %} {% render_article_state_control article user 1 %}")
+
+    def get_context_data(self, request, kwargs):
+        ctx = RequestContext(request)
+        ctx.update({'article': Article.objects.get(doi=kwargs['doi'])})
+        ctx.update({'user': request.user})
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(request, kwargs)
+        r = self.template.render(context)
+        return HttpResponse(r)
+
 class ArticleDetailTransition(View):
 
     template_name = 'articleflow/possible_transitions.html'
@@ -314,7 +332,26 @@ class ArticleDetailTransition(View):
                             'open_errors': open_items['open_errors']
                             }
                         }
-                    return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')    
+                    return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+            if transition.file_upload_destination:
+                logger.debug("Transition requiring file upload attempted: %s" % transition)
+
+                form_render = render_to_response(
+                    'articleflow/fileupload_form.html',
+                    {
+                        "article": article,
+                        "transition": transition,
+                        "form": FileUpload(article, transition)
+                        },
+                    context_instance=RequestContext(request)
+                    )
+                to_json = {
+                    'needs_further_info': {
+                        'content': form_render.content
+                        }
+                    }
+                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')                
             success = article.execute_transition(transition, user)
             #context = self.get_context_data(kwargs)
             print "success?"
@@ -873,5 +910,146 @@ class AssignRatios(View):
         ctx = self.get_context_data(kwargs)
         return render_to_response(self.template_name, ctx, context_instance=RequestContext(request))
 
+## SFTP Storage stuff
+
+# had to override a bit of django-storages here
+#  it was doing naughty things with StringIOs
+class CSFTPStorage(SFTPStorage):
+    def _save(self, name, content):
+        """Save file via SFTP."""
+        path = self._remote_path(name)
+        dirname = self._pathmod.dirname(path)
+        if not self.exists(dirname):
+            self._mkdir(dirname)
+
+        f = self.sftp.open(path, 'wb')
+        f.write(content)
+        f.close()
+
+        # set file permissions if configured
+        if self._file_mode is not None:
+            self.sftp.chmod(path, self._file_mode)
+        if self._uid or self._gid:
+            self._chown(path, uid=self._uid, gid=self._gid)
+        return name
+
+def serve_doc_ftp(storage, filename):
+    storage_file = SFTPStorageFile(filename, storage, 'r')
+    #wrapper = FileWrapper(storage_file.read())
+    mime, enc = mimetypes.guess_type(filename, False)
+    print "mime: %s" % mime
+    try:
+        response = HttpResponse(storage_file.read(), content_type=mime)
+    except IOError, e:
+        raise Http404
+    response['Content-Length'] = storage_file.size
+    response['Content-Disposition'] = "attachment; filename=%s" % filename
+    #storage_file.close()
+    return response
+
+def send_file(pathname):
+    basename = os.path.basename(pathname)
+    mime, enc = mimetypes.guess_type(basename, False)
+    logger.debug("Opening file at '%s' for reading." % pathname)
+    wrapper = FileWrapper(file(pathname))
+
+    response = HttpResponse(wrapper, content_type=mime)
+    response['Content-Length'] = os.path.getsize(pathname)
+    response['Content-Disposition'] = "attachment; filename=%s" % basename
+    return response
+
+def upload_doc(storage, file_name, file_stream):
+    storage_file = SFTPStorageFile(file_name, storage, 'rw')
+    storage_file.write(file_stream)
+    print storage_file.file.getvalue()
+    storage_file.close()
+
+merops_file_schema = {
+    'meropsed.doc': {
+        'dir_path': '/home/jlabarba/fileserve_test/merops_output/',
+        'filename_modifier': '',
+        'file_extension': 'doc',
+        },
+    'meropsed-original.doc': {
+        'dir_path': '/home/jlabarba/fileserve_test/merops_output/',
+        'filename_modifier': '-original',
+        'file_extension': 'doc',
+        },
+    'meropsed-original.xml': {
+        'dir_path': '/home/jlabarba/fileserve_test/merops_output/',
+        'filename_modifier': '',
+        'file_extension': 'xml',
+        },
+    'finishxml.doc': {
+        'dir_path': '/home/jlabarba/fileserve_test/finishxml_output/',
+        'filename_modifier': '-finishxmlcheck-original',
+        'file_extension': 'doc',
+        },
+    'finishxml-original.doc': {
+        'dir_path': '/home/jlabarba/fileserve_test/finishxml_output/',
+        'filename_modifier': '-finishxmlcheck-original',
+        'file_extension': 'doc',
+        },
+    'finishxml.xml': {
+        'dir_path': '/home/jlabarba/fileserve_test/finishxml_output/',
+        'filename_modifier': '',
+        'file_extension': 'xml',
+        },
+    }
+
+class ServeArticleDoc(View):
+    dir_path = '/home/jlabarba/fileserve_test/' 
+    filename_modifier = ''
+    file_extension = 'doc'
+
+    def get(self, request, *args, **kwargs):
+        try:
+            article = Article.objects.get(doi=kwargs['doi'])
+        except Article.DoesNotExist, e:
+            raise Http404("Couldn't find any article with the doi %s" % kwargs['doi'])
+
+        if kwargs['file_type']:
+            try:
+                schema_item = merops_file_schema[kwargs['file_type']]
+            except KeyError:
+                raise Http404("'%s' is not a recognized downloadable merops file type."% kwargs['file_type'])
+            self.dir_path = schema_item['dir_path']
+            self.filename_modifier = schema_item['filename_modifier']
+            self.file_extension = schema_item['file_extension']
+
+        pathname = os.path.join(self.dir_path, "%s%s.%s" % (article.doi, self.filename_modifier, self.file_extension))
+        
+        try:
+            return send_file(pathname)
+        except IOError, e:
+            raise Http404("Couldn't find that file on disk: %s" % pathname)
 
 
+    
+class FTPMeropsdOrig(View):
+    def get(self, request, *args, **kwargs):
+        sftp = SFTPStorage()
+        #return HttpResponse('fake')
+        return serve_doc(sftp, "%s.zip" % kwargs['doi'])
+
+class FTPMeropsUpload(View):
+    template_name = 'articleflow/fileupload_form.html'
+
+    def get(self, request, *args, **kwargs):
+        form = FileUpload()
+        context = {'form': form}
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
+    def post(self, request, *args, **kwargs):
+        form = FileUpload(request.POST, request.FILES)
+        if form.is_valid():
+            ctx = context_instance=RequestContext(request)
+            print ctx
+            transition = ctx['transition']
+            #sftp = CSFTPStorage()
+            #print request.FILES
+            #upload_doc(sftp, 'upload_test', request.FILES['file'].read())
+            
+            return HttpResponse("success!")
+        context = {'form': form}
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))

@@ -1,11 +1,13 @@
 {% load transitions %}
 
+{% if not minimal_structure %}
 <div class="rounded-box-list article-state-control">
   <div class="rounded-box-header-inner">
     <h4 class="rounded-box-header">Change Article State</h4>
   </div>
   
   <div class="rounded-box-card-inner">
+{% endif %}
     <div class="">
       {% if not transitions %}
       <p>No available transitions.</p>
@@ -19,5 +21,7 @@
       {% endfor %}
     </div>
     <div class="clear"></div>
+{% if not minimal_structure %}
   </div>
 </div>
+{% endif %}

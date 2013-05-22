@@ -11,7 +11,7 @@ from local_settings import *
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 MANAGERS = ADMINS
@@ -125,6 +125,7 @@ INSTALLED_APPS = (
     'south',
     'djcelery',
     'kombu.transport.django',
+    'storages',
 
     'articleflow',
     'issues',

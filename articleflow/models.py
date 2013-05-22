@@ -262,6 +262,8 @@ class Transition(models.Model):
     allowed_groups = models.ManyToManyField(Group, related_name="allowed_transitions")
     assign_transition_user = models.BooleanField(default=False)
     preference_weight = models.IntegerField()
+    file_upload_destination = models.CharField(max_length=600, null=True, blank=True, default=None, help_text="If this transition requires an upload, enter the path to the desired destination directory.  If no upload is required, leave this field blank.")
+    file_upload_description = models.CharField(max_length=600, null=True, blank=True, default=None, help_text="If this transition requires an upload, this is the help text to display")
 
     #Bookkeeping 
     created = models.DateTimeField(null=True, blank=True, default=None)

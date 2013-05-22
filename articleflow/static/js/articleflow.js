@@ -23,6 +23,10 @@ function switch_article_state_ajax(article_pk, requested_transition_pk, error_ms
 	else if (returnedData.not_allowed_error){
 	    alert("You don't have permission to make this transition.");
 	    
+	}
+	else if (returnedData.needs_further_info){
+	    console.log("Attempted transition needing further info");
+	    $('.article-state-control .rounded-box-card-inner').html(returnedData.needs_further_info.content);
 	} else {
 	    document.location.href = returnedData.redirect_url
 	}
@@ -57,7 +61,9 @@ function assign_to_me_ajax(article_pk, target_url){
     });
 }
 
-	    
+function load_transition_panel(load_url){
+    $('.article-state-control .rounded-box-card-inner').load(load_url);
+}
 	
 
 $(document).ready(function(){
@@ -69,3 +75,4 @@ $(document).ready(function(){
 	$('#article-note-collapse-toggle').html('[-]');
     });
 });
+
