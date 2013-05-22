@@ -31,7 +31,7 @@ from storages.backends.sftpstorage import SFTPStorage, SFTPStorageFile
 
 import transitionrules
 
-from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio
+from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio, Typesetter
 from articleflow.forms import AssignmentForm, ReportsDateRange, FileUpload
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
@@ -158,6 +158,7 @@ class ArticleFilter(django_filters.FilterSet):
     journal = django_filters.ModelMultipleChoiceFilter(name='journal', label='Journal', queryset=Journal.objects.all(), widget=checkbox_widget)
     current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_state', label='Article state', queryset=State.objects.all(), widget=checkbox_widget)
     current_assignee = django_filters.ModelMultipleChoiceFilter(name='current_articlestate__assignee', label='Assigned', queryset=User.objects.all())
+    typesetter = django_filters.ModelMultipleChoiceFilter(name='typesetter__name', label='Typesetter', queryset=Typesetter.objects.all(), widget=checkbox_widget)
     
     class Meta:
         model = Article
