@@ -4,7 +4,7 @@ from articleflow.models import *
 class ArticleAdmin(admin.ModelAdmin):
     readonly_fields = ('current_state', 'current_articlestate', 'article_extras')
     fieldsets = [
-        (None            , {'fields': ['doi', 'pubdate', 'journal']}),
+        (None            , {'fields': ['doi', 'pubdate', 'journal', 'typesetter']}),
         ('State Info'    , {'fields': ['current_state', 'current_articlestate']}),
         ('File Info'     , {'fields': ['si_guid', 'md5']}),
         ('EM info'       , {'fields': ['em_pk', 'em_ms_number', 'em_max_revision']}),
