@@ -18,5 +18,6 @@ urlpatterns = patterns('articleflow.views',
                        url(r'^reports/', include('articleflow.reports_urls')),
                        url(r'^sftp-serve-down/(?P<doi>[a-z|\.|0-9]{0,50})$', FTPMeropsdOrig.as_view(), name='sftp_serve_down'),
                        url(r'^sftp_test_upload/$', FTPMeropsUpload.as_view(), name='sftp_test_upload'),                       
+                       url(r'^detail/(?P<doi>[a-z|\.|0-9]{0,50})/merops_files/(?P<file_type>.*)$', ServeArticleDoc.as_view(), name='merops_files'),
                        )
 

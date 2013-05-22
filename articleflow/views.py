@@ -22,6 +22,7 @@ import mimetypes
 
 from django.contrib.auth.models import Group
 
+import os
 import sys
 import simplejson
 import re
@@ -341,7 +342,7 @@ class ArticleDetailTransition(View):
                     {
                         "article": article,
                         "transition": transition,
-                        "form": FileUpload()
+                        "form": FileUpload(article, transition)
                         },
                     context_instance=RequestContext(request)
                     )
@@ -932,7 +933,7 @@ class CSFTPStorage(SFTPStorage):
             self._chown(path, uid=self._uid, gid=self._gid)
         return name
 
-def serve_doc(storage, filename):
+def serve_doc_ftp(storage, filename):
     storage_file = SFTPStorageFile(filename, storage, 'r')
     #wrapper = FileWrapper(storage_file.read())
     mime, enc = mimetypes.guess_type(filename, False)
@@ -946,11 +947,84 @@ def serve_doc(storage, filename):
     #storage_file.close()
     return response
 
+def send_file(pathname):
+    basename = os.path.basename(pathname)
+    mime, enc = mimetypes.guess_type(basename, False)
+    logger.debug("Opening file at '%s' for reading." % pathname)
+    wrapper = FileWrapper(file(pathname))
+
+    response = HttpResponse(wrapper, content_type=mime)
+    response['Content-Length'] = os.path.getsize(pathname)
+    response['Content-Disposition'] = "attachment; filename=%s" % basename
+    return response
+
 def upload_doc(storage, file_name, file_stream):
     storage_file = SFTPStorageFile(file_name, storage, 'rw')
     storage_file.write(file_stream)
     print storage_file.file.getvalue()
     storage_file.close()
+
+merops_file_schema = {
+    'meropsed.doc': {
+        'dir_path': '/home/jlabarba/fileserve_test/merops_output/',
+        'filename_modifier': '',
+        'file_extension': 'doc',
+        },
+    'meropsed-original.doc': {
+        'dir_path': '/home/jlabarba/fileserve_test/merops_output/',
+        'filename_modifier': '-original',
+        'file_extension': 'doc',
+        },
+    'meropsed-original.xml': {
+        'dir_path': '/home/jlabarba/fileserve_test/merops_output/',
+        'filename_modifier': '',
+        'file_extension': 'xml',
+        },
+    'finishxml.doc': {
+        'dir_path': '/home/jlabarba/fileserve_test/finishxml_output/',
+        'filename_modifier': '-finishxmlcheck-original',
+        'file_extension': 'doc',
+        },
+    'finishxml-original.doc': {
+        'dir_path': '/home/jlabarba/fileserve_test/finishxml_output/',
+        'filename_modifier': '-finishxmlcheck-original',
+        'file_extension': 'doc',
+        },
+    'finishxml.xml': {
+        'dir_path': '/home/jlabarba/fileserve_test/finishxml_output/',
+        'filename_modifier': '',
+        'file_extension': 'xml',
+        },
+    }
+
+class ServeArticleDoc(View):
+    dir_path = '/home/jlabarba/fileserve_test/' 
+    filename_modifier = ''
+    file_extension = 'doc'
+
+    def get(self, request, *args, **kwargs):
+        try:
+            article = Article.objects.get(doi=kwargs['doi'])
+        except Article.DoesNotExist, e:
+            raise Http404("Couldn't find any article with the doi %s" % kwargs['doi'])
+
+        if kwargs['file_type']:
+            try:
+                schema_item = merops_file_schema[kwargs['file_type']]
+            except KeyError:
+                raise Http404("'%s' is not a recognized downloadable merops file type."% kwargs['file_type'])
+            self.dir_path = schema_item['dir_path']
+            self.filename_modifier = schema_item['filename_modifier']
+            self.file_extension = schema_item['file_extension']
+
+        pathname = os.path.join(self.dir_path, "%s%s.%s" % (article.doi, self.filename_modifier, self.file_extension))
+        
+        try:
+            return send_file(pathname)
+        except IOError, e:
+            raise Http404("Couldn't find that file on disk: %s" % pathname)
+
+
     
 class FTPMeropsdOrig(View):
     def get(self, request, *args, **kwargs):
@@ -969,9 +1043,13 @@ class FTPMeropsUpload(View):
     def post(self, request, *args, **kwargs):
         form = FileUpload(request.POST, request.FILES)
         if form.is_valid():
-            sftp = CSFTPStorage()
-            print request.FILES
-            upload_doc(sftp, 'upload_test', request.FILES['file'].read())
+            ctx = context_instance=RequestContext(request)
+            print ctx
+            transition = ctx['transition']
+            #sftp = CSFTPStorage()
+            #print request.FILES
+            #upload_doc(sftp, 'upload_test', request.FILES['file'].read())
+            
             return HttpResponse("success!")
         context = {'form': form}
         return render_to_response(self.template_name, context, context_instance=RequestContext(request))
