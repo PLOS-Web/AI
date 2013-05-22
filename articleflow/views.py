@@ -157,7 +157,7 @@ class ArticleFilter(django_filters.FilterSet):
     checkbox_widget = forms.CheckboxSelectMultiple()
     journal = django_filters.ModelMultipleChoiceFilter(name='journal', label='Journal', queryset=Journal.objects.all(), widget=checkbox_widget)
     current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_state', label='Article state', queryset=State.objects.all(), widget=checkbox_widget)
-    current_assignee = django_filters.ModelMultipleChoiceFilter(name='current_articlestate__assignee', label='Assigned', queryset=User.objects.all())
+    current_assignee = django_filters.ModelMultipleChoiceFilter(name='current_articlestate__assignee', label='Assigned', queryset=User.objects.filter(is_active=True).order_by('username'))
     typesetter = django_filters.ModelMultipleChoiceFilter(name='typesetter__name', label='Typesetter', queryset=Typesetter.objects.all(), widget=checkbox_widget)
     
     class Meta:
