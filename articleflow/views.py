@@ -553,22 +553,19 @@ class BaseTransaction(View):
 
 class TransactionArticle(BaseTransaction):
     def valid_payload(self):
-        print self.payload
+        logger.debug("API transaction article received payload: %s" % self.payload)
         self.payload['doi'] = self.doi
 
         try:
             self.payload['journal']=get_journal_from_doi(self.payload['doi']).pk
-            print "Journal: %s" % self.payload['journal']
         except ValueError:
-            print "Can't resolve journal"
+            logger.error("Can't resolve journal")
             return False
 
         try:
-            print "Validating date"
             match = re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}$', self.payload['pubdate'])
-            print match
             if not match:
-                print "Incorrect pubdate format"
+                logger.error("Incorrect pubdate format")
                 return False
         except KeyError:
             pass
@@ -577,7 +574,7 @@ class TransactionArticle(BaseTransaction):
             requested_state = self.payload['state']
             state=State.objects.get(name=requested_state)
         except State.DoesNotExist:
-            print "Nonexistant state"
+            logger.error("Nonexistant state")
             return False
         except KeyError:
             pass
@@ -586,7 +583,16 @@ class TransactionArticle(BaseTransaction):
             username = self.payload['state_change_user']
             user=User.objects.get(username=username)
         except User.DoesNotExist:
-            print "User Doesn't exist"
+            logger.error("User Doesn't exist")
+            return False
+        except KeyError:
+            pass
+
+        try:
+            typesetter = self.payload['typesetter']
+            t=Typesetter.objects.get(name=typesetter)
+        except Typesetter.DoesNotExist:
+            logger.error("Typesetter Doesn't exist")
             return False
         except KeyError:
             pass
@@ -594,10 +600,8 @@ class TransactionArticle(BaseTransaction):
         return True
 
     def control(self):
-        print "start control"
         a, new = Article.objects.get_or_create(doi=self.get_val('doi'),
                                                journal=Journal.objects.get(pk=self.get_val('journal')))
-        print "New article? %s" % new
 
         if self.get_val('pubdate'):
             a.pubdate=self.get_val('pubdate')
@@ -606,32 +610,32 @@ class TransactionArticle(BaseTransaction):
         if self.get_val('si_guid'):
             a.si_guid=self.get_val('si_guid')
 
-        print "Journal: %s" % self.payload['journal']
+        logger.debug("API finding journal: %s" % self.payload['journal'])
         a.journal=Journal.objects.get(pk=self.get_val('journal'))
                                           
-        print "New article? %s" % new
+        logger.debug("API New article? %s" % new)
         a.save()
 
         requested_state = self.get_val('state')
         if requested_state:
             if a.current_state.name != requested_state:
+                logger.debug("API setting state for article: %s, %s" % (a, requested_state))
                 s = ArticleState(article=a,
                                  state=State.objects.get(name=requested_state)
                                  )
-                if self.get_val('state_change_user'):
-                    s.from_transition_user = User.objects.get(username=self.get_val('state_change_user')) 
-
                 s.save()
+        if self.get_val('state_change_user'):
+            logger.debug("Setting from_transition_user to %s" % self.get_val('state_change_user'))
+            s = a.current_articlestate
+            s.from_transition_user = User.objects.get(username=self.get_val('state_change_user'))
+            s.save()
         return self.payload
 
     def put(self, request, *args, **kwargs):
-        print "start put"
         self.doi = kwargs['doi']
         response, fail = self.parse_payload(request.body)
         if fail:
             return response
-        print self.payload
-        print "pubdate: %s" % self.get_val('pubdate')
 
         # make change
         response_dict = self.control()
@@ -639,8 +643,6 @@ class TransactionArticle(BaseTransaction):
         return self.get(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        print kwargs
-        print kwargs['doi']
         try:
             a = Article.objects.get(doi=kwargs['doi'])
         except Article.DoesNotExist:
