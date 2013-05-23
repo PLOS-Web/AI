@@ -31,7 +31,7 @@ from storages.backends.sftpstorage import SFTPStorage, SFTPStorageFile
 
 import transitionrules
 
-from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio
+from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio, Typesetter
 from articleflow.forms import AssignmentForm, ReportsDateRange, FileUpload
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
@@ -53,6 +53,7 @@ COLUMN_CHOICES = (
     (4, 'Errors'),
     (5, 'State'),
     (6, 'Assigned'),
+    (7, 'Typesetter'),
     )
 
 def get_journal_from_doi(doi):
@@ -77,13 +78,13 @@ def separate_errors(e):
         if not error:
             continue
         error_tuple = (error, 1)
-        print "Raw: %s" % error
+        logger.debug("Raw: %s" % error)
         for i, level in ERROR_LEVEL:
             
             p = re.compile('(?<=%s:).*' % level, re.IGNORECASE)
             m = p.search(error) 
             if m:
-                print "Match: %s" % m.group(0)
+                logger.debug("Match: %s" % m.group(0))
                 error_tuple = (m.group(0).strip(), i)
                 break
 
@@ -128,6 +129,10 @@ class ColumnOrder():
     def assigned(a, type):
         return a.order_by(ColumnOrder.parse_type(type) + 'current_articlestate__assignee__username')
     
+    @staticmethod
+    def typesetter(a, type):
+        return a.order_by(ColumnOrder.parse_type(type) + 'typesetter__name')
+    
 ORDER_CHOICES = {
     'DOI': ColumnOrder.doi,
     'PubDate' : ColumnOrder.pubdate,
@@ -136,6 +141,7 @@ ORDER_CHOICES = {
     'Errors' : ColumnOrder.errors,
     'State' : ColumnOrder.state,
     'Assigned' : ColumnOrder.assigned,
+    'Typesetter' : ColumnOrder.typesetter,
 }
 
 
@@ -151,7 +157,8 @@ class ArticleFilter(django_filters.FilterSet):
     checkbox_widget = forms.CheckboxSelectMultiple()
     journal = django_filters.ModelMultipleChoiceFilter(name='journal', label='Journal', queryset=Journal.objects.all(), widget=checkbox_widget)
     current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_state', label='Article state', queryset=State.objects.all(), widget=checkbox_widget)
-    current_assignee = django_filters.ModelMultipleChoiceFilter(name='current_articlestate__assignee', label='Assigned', queryset=User.objects.all())
+    current_assignee = django_filters.ModelMultipleChoiceFilter(name='current_articlestate__assignee', label='Assigned', queryset=User.objects.filter(is_active=True).order_by('username'))
+    typesetter = django_filters.ModelMultipleChoiceFilter(name='typesetter__name', label='Typesetter', queryset=Typesetter.objects.all(), widget=checkbox_widget)
     
     class Meta:
         model = Article
@@ -546,22 +553,19 @@ class BaseTransaction(View):
 
 class TransactionArticle(BaseTransaction):
     def valid_payload(self):
-        print self.payload
+        logger.debug("API transaction article received payload: %s" % self.payload)
         self.payload['doi'] = self.doi
 
         try:
             self.payload['journal']=get_journal_from_doi(self.payload['doi']).pk
-            print "Journal: %s" % self.payload['journal']
         except ValueError:
-            print "Can't resolve journal"
+            logger.error("Can't resolve journal")
             return False
 
         try:
-            print "Validating date"
             match = re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}$', self.payload['pubdate'])
-            print match
             if not match:
-                print "Incorrect pubdate format"
+                logger.error("Incorrect pubdate format")
                 return False
         except KeyError:
             pass
@@ -570,7 +574,7 @@ class TransactionArticle(BaseTransaction):
             requested_state = self.payload['state']
             state=State.objects.get(name=requested_state)
         except State.DoesNotExist:
-            print "Nonexistant state"
+            logger.error("Nonexistant state")
             return False
         except KeyError:
             pass
@@ -579,7 +583,17 @@ class TransactionArticle(BaseTransaction):
             username = self.payload['state_change_user']
             user=User.objects.get(username=username)
         except User.DoesNotExist:
-            print "User Doesn't exist"
+            logger.error("User Doesn't exist")
+            return False
+        except KeyError:
+            pass
+
+        try:
+            typesetter = self.payload['typesetter']
+            t=Typesetter.objects.get(name=typesetter)
+        except Typesetter.DoesNotExist:
+            choices = [ts.name for ts in Typesetter.objects.all()]
+            logger.error("Typesetter, %s, not recognized. Available choices: %s" % (typesetter, choices))
             return False
         except KeyError:
             pass
@@ -587,10 +601,8 @@ class TransactionArticle(BaseTransaction):
         return True
 
     def control(self):
-        print "start control"
         a, new = Article.objects.get_or_create(doi=self.get_val('doi'),
                                                journal=Journal.objects.get(pk=self.get_val('journal')))
-        print "New article? %s" % new
 
         if self.get_val('pubdate'):
             a.pubdate=self.get_val('pubdate')
@@ -598,33 +610,35 @@ class TransactionArticle(BaseTransaction):
             a.md5=self.get_val('md5')
         if self.get_val('si_guid'):
             a.si_guid=self.get_val('si_guid')
+        if self.get_val('typesetter'):
+            a.typesetter=Typesetter.objects.get(name=self.get_val('typesetter'))
 
-        print "Journal: %s" % self.payload['journal']
+        logger.debug("API finding journal: %s" % self.payload['journal'])
         a.journal=Journal.objects.get(pk=self.get_val('journal'))
                                           
-        print "New article? %s" % new
+        logger.debug("API New article? %s" % new)
         a.save()
 
         requested_state = self.get_val('state')
         if requested_state:
             if a.current_state.name != requested_state:
+                logger.debug("API setting state for article: %s, %s" % (a, requested_state))
                 s = ArticleState(article=a,
                                  state=State.objects.get(name=requested_state)
                                  )
-                if self.get_val('state_change_user'):
-                    s.from_transition_user = User.objects.get(username=self.get_val('state_change_user')) 
-
                 s.save()
+        if self.get_val('state_change_user'):
+            logger.debug("Setting from_transition_user to %s" % self.get_val('state_change_user'))
+            s = a.current_articlestate
+            s.from_transition_user = User.objects.get(username=self.get_val('state_change_user'))
+            s.save()
         return self.payload
 
     def put(self, request, *args, **kwargs):
-        print "start put"
         self.doi = kwargs['doi']
         response, fail = self.parse_payload(request.body)
         if fail:
             return response
-        print self.payload
-        print "pubdate: %s" % self.get_val('pubdate')
 
         # make change
         response_dict = self.control()
@@ -632,8 +646,6 @@ class TransactionArticle(BaseTransaction):
         return self.get(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        print kwargs
-        print kwargs['doi']
         try:
             a = Article.objects.get(doi=kwargs['doi'])
         except Article.DoesNotExist:
@@ -660,33 +672,31 @@ class TransactionArticle(BaseTransaction):
 
 class TransactionErrorset(BaseTransaction):
     def valid_payload(self):
-        print self.payload
 
         try:
             self.article = Article.objects.get(doi=self.doi)
         except Article.DoesNotExist:
-            print "That article doesn't exist"
+            logger.error("That article doesn't exist")
             return False
 
         try:
             self.source_i = resolve_choice_index(ERROR_SET_SOURCES, self.payload['source'])
             if not self.source_i:
-                print "Source doesn't exist"
+                logger.error("Source doesn't exist")
                 return False
         except KeyError:
-            print "Didn't supply source"
+            logger.error("Didn't supply source")
             return False
 
         try:
             self.payload['errors']
         except KeyError:
-            print "Didn't supply errors"
+            logger.error("Didn't supply errors")
             return False
 
         return True
         
     def control(self):
-        print "start control"
         es = ErrorSet(source=self.source_i,
                       article=self.article)
         es.save()
@@ -700,7 +710,6 @@ class TransactionErrorset(BaseTransaction):
     def put(self, request, *args, **kwargs):
         self.doi = kwargs['doi']
         self.errorset_pk = kwargs['errorset_pk']
-        print "REQUEST BODY:"
         response, fail = self.parse_payload(request.body)
         if fail:
             return response
@@ -714,13 +723,13 @@ class TransactionErrorset(BaseTransaction):
 
 class TransactionTransition(BaseTransaction):
     def valid_payload(self):
-        print self.payload
+        self.user = None
 
         try:
             username = self.payload['transition_user']
             self.user=User.objects.get(username=username)
         except User.DoesNotExist:
-            print "User Doesn't exist"
+            logger.error("User Doesn't exist")
             return False
         except KeyError:
             pass
@@ -728,22 +737,23 @@ class TransactionTransition(BaseTransaction):
         try:
             self.article = Article.objects.get(doi=self.doi)
         except Article.DoesNotExist:
-            print "That article doesn't exist"
+            logger.error("That article doesn't exist")
             return False
 
         try:
             self.transition = Transition.objects.get(name=self.payload['name'])
 
             if self.transition not in self.article.possible_transitions().all():
-                print "That transition is not legal"
+                logger.error("That transition is not legal")
                 return False
         except Transition.DoesNotExist:
-            print "That transition doesn't exist"
+            logger.error("That transition doesn't exist")
             return False
         except KeyError:
-            print "Didn't supply transition name"
+            logger.error("Didn't supply transition name")
             return False
         
+        logger.debug("API: legal transition request")
         return True
 
     def control(self):
@@ -754,6 +764,7 @@ class TransactionTransition(BaseTransaction):
 
         response, fail = self.parse_payload(request.body)
         if fail:
+            logger.error("Transition POST failed")
             return response
 
         self.control()
@@ -766,7 +777,7 @@ class TransactionTransition(BaseTransaction):
         try:
             self.article = Article.objects.get(doi=self.doi)
         except Article.DoesNotExist:
-            print "That article doesn't exist"
+            logger.error("That article doesn't exist")
             return self.error_result("That article doesn't exist")
 
         transitions = self.article.possible_transitions().all()

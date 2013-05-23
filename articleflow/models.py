@@ -137,6 +137,23 @@ class Journal(models.Model):
     def __unicode__(self):
         return self.full_name
 
+class Typesetter(models.Model):
+    """
+    Describes typesetter
+    """
+    name = models.CharField(max_length=200)
+    description = models.CharField(max_length=2048, null=True, blank=True, default=None)
+
+    #Bookkeeping
+    created = models.DateTimeField(null=True, blank=True, default=None)
+    last_modified = models.DateTimeField(auto_now=True)    
+
+    def verbose_unicode(self):
+        return "name: %s, description: %s, created: %s, last_modified: %s" % (self.name, self.description, self.created, self.last_modified)
+
+    def __unicode__(self):
+        return self.name
+
 class Article(models.Model):
     """
     Holds information about each article
@@ -149,6 +166,7 @@ class Article(models.Model):
     current_articlestate = models.ForeignKey('ArticleState', related_name='current_article', null=True, blank=True, default=None)
     current_state = models.ForeignKey('State', related_name="current_articles", null=True, blank=True, default=None)
     article_extras = models.ForeignKey('ArticleExtras', related_name="article_dont_use", null=True, blank=True, default=None)
+    typesetter = models.ForeignKey('Typesetter', related_name='articles_typeset', null=True, blank=True, default=None)
     em_pk = models.IntegerField(null=True, blank=True, default=None)
     em_ms_number = models.CharField(max_length=50, null=True, blank=True, default=None)
     em_max_revision = models.IntegerField(null=True, blank=True, default=None)
