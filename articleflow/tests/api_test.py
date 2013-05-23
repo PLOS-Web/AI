@@ -18,7 +18,7 @@ class APIArticleTestCase(LiveServerTestCase):
         try:
             return Article.objects.get(doi=doi)
         except Article.DoesNotExist:
-            self.fail("article with %s doesn't exist" % doi)
+            self.fail("article with doi %s doesn't exist" % doi)
 
     def assert_article_doesnt_exist(self, doi):
         try:
@@ -164,23 +164,21 @@ class APIArticleTestCase(LiveServerTestCase):
         print "**** %s " % a.current_articlestate.verbose_unicode()
         self.assertEqual(a.current_articlestate.from_transition_user.username, data['state_change_user'])
 
+    def test_article_typesetter(self):
+        data = {
+            'typesetter': 'Merops'
+            }
+        r = requests.put(self.live_server_url + '/api/article/pone.9999999', data=simplejson.dumps(data))
+        print (r.status_code, r.content)
+        a = self.assert_article_exists('pone.9999999')
+        self.assertEquals(a.typesetter.name, data['typesetter'])
+
     def test_article_get(self):
         r = requests.put(self.live_server_url + '/api/article/pone.9999999', data=simplejson.dumps({}))
         self.assert_article_exists('pone.9999999')
         
         r = requests.get(self.live_server_url + '/api/article/pone.9999999')
         self.assertEqual(r.status_code, 200)
-
-        
-    def test_errorset_put(self):
-        print "Errorset PUT"
-        data = {
-            'source': 'ariesPull',
-            'errors': 'error: stuff\nerror: other stuff\nwarning: a warning'
-            }
-        
-        r = requests.put(self.live_server_url + '/api/article/pone.9999999/errorset/', data=simplejson.dumps(data))
-        print r.text        
 
 
 class APIErrorSetTestCase(LiveServerTestCase):
