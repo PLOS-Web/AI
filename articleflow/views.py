@@ -592,7 +592,8 @@ class TransactionArticle(BaseTransaction):
             typesetter = self.payload['typesetter']
             t=Typesetter.objects.get(name=typesetter)
         except Typesetter.DoesNotExist:
-            logger.error("Typesetter Doesn't exist")
+            choices = [ts.name for ts in Typesetter.objects.all()]
+            logger.error("Typesetter, %s, not recognized. Available choices: %s" % (typesetter, choices))
             return False
         except KeyError:
             pass
@@ -609,6 +610,8 @@ class TransactionArticle(BaseTransaction):
             a.md5=self.get_val('md5')
         if self.get_val('si_guid'):
             a.si_guid=self.get_val('si_guid')
+        if self.get_val('typesetter'):
+            a.typesetter=Typesetter.objects.get(name=self.get_val('typesetter'))
 
         logger.debug("API finding journal: %s" % self.payload['journal'])
         a.journal=Journal.objects.get(pk=self.get_val('journal'))

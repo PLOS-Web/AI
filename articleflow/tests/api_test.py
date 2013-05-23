@@ -173,6 +173,14 @@ class APIArticleTestCase(LiveServerTestCase):
         a = self.assert_article_exists('pone.9999999')
         self.assertEquals(a.typesetter.name, data['typesetter'])
 
+    def test_article_fake_typesetter(self):
+        data = {
+            'typesetter': 'fake_typesetter'
+            }
+        r = requests.put(self.live_server_url + '/api/article/pone.9999999', data=simplejson.dumps(data))
+        self.assertEqual(r.status_code, 400)
+        a = self.assert_article_doesnt_exist('pone.9999999')
+
     def test_article_get(self):
         r = requests.put(self.live_server_url + '/api/article/pone.9999999', data=simplejson.dumps({}))
         self.assert_article_exists('pone.9999999')
