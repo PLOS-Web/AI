@@ -78,13 +78,13 @@ def separate_errors(e):
         if not error:
             continue
         error_tuple = (error, 1)
-        print "Raw: %s" % error
+        logger.debug("Raw: %s" % error)
         for i, level in ERROR_LEVEL:
             
             p = re.compile('(?<=%s:).*' % level, re.IGNORECASE)
             m = p.search(error) 
             if m:
-                print "Match: %s" % m.group(0)
+                logger.debug("Match: %s" % m.group(0))
                 error_tuple = (m.group(0).strip(), i)
                 break
 
@@ -669,33 +669,31 @@ class TransactionArticle(BaseTransaction):
 
 class TransactionErrorset(BaseTransaction):
     def valid_payload(self):
-        print self.payload
 
         try:
             self.article = Article.objects.get(doi=self.doi)
         except Article.DoesNotExist:
-            print "That article doesn't exist"
+            logger.error("That article doesn't exist")
             return False
 
         try:
             self.source_i = resolve_choice_index(ERROR_SET_SOURCES, self.payload['source'])
             if not self.source_i:
-                print "Source doesn't exist"
+                logger.error("Source doesn't exist")
                 return False
         except KeyError:
-            print "Didn't supply source"
+            logger.error("Didn't supply source")
             return False
 
         try:
             self.payload['errors']
         except KeyError:
-            print "Didn't supply errors"
+            logger.error("Didn't supply errors")
             return False
 
         return True
         
     def control(self):
-        print "start control"
         es = ErrorSet(source=self.source_i,
                       article=self.article)
         es.save()
@@ -709,7 +707,6 @@ class TransactionErrorset(BaseTransaction):
     def put(self, request, *args, **kwargs):
         self.doi = kwargs['doi']
         self.errorset_pk = kwargs['errorset_pk']
-        print "REQUEST BODY:"
         response, fail = self.parse_payload(request.body)
         if fail:
             return response
@@ -723,13 +720,13 @@ class TransactionErrorset(BaseTransaction):
 
 class TransactionTransition(BaseTransaction):
     def valid_payload(self):
-        print self.payload
+        self.user = None
 
         try:
             username = self.payload['transition_user']
             self.user=User.objects.get(username=username)
         except User.DoesNotExist:
-            print "User Doesn't exist"
+            logger.error("User Doesn't exist")
             return False
         except KeyError:
             pass
@@ -737,22 +734,23 @@ class TransactionTransition(BaseTransaction):
         try:
             self.article = Article.objects.get(doi=self.doi)
         except Article.DoesNotExist:
-            print "That article doesn't exist"
+            logger.error("That article doesn't exist")
             return False
 
         try:
             self.transition = Transition.objects.get(name=self.payload['name'])
 
             if self.transition not in self.article.possible_transitions().all():
-                print "That transition is not legal"
+                logger.error("That transition is not legal")
                 return False
         except Transition.DoesNotExist:
-            print "That transition doesn't exist"
+            logger.error("That transition doesn't exist")
             return False
         except KeyError:
-            print "Didn't supply transition name"
+            logger.error("Didn't supply transition name")
             return False
         
+        logger.debug("API: legal transition request")
         return True
 
     def control(self):
@@ -763,6 +761,7 @@ class TransactionTransition(BaseTransaction):
 
         response, fail = self.parse_payload(request.body)
         if fail:
+            logger.error("Transition POST failed")
             return response
 
         self.control()
@@ -775,7 +774,7 @@ class TransactionTransition(BaseTransaction):
         try:
             self.article = Article.objects.get(doi=self.doi)
         except Article.DoesNotExist:
-            print "That article doesn't exist"
+            logger.error("That article doesn't exist")
             return self.error_result("That article doesn't exist")
 
         transitions = self.article.possible_transitions().all()
