@@ -1,6 +1,7 @@
+import pytz
 import datetime
-from django.utils.timezone import utc
 
+from django.utils.timezone import utc
 from django.db import models
 from django.contrib.auth.models import User, Group
 
@@ -10,8 +11,23 @@ from django.db.models import Sum, Max
 import logging
 logger = logging.getLogger(__name__)
 
+PAC = pytz.timezone('US/Pacific')
+
 def now():
     return datetime.datetime.utcnow().replace(tzinfo=utc)
+
+def toUTCc(d):
+    if not d:
+        return None
+
+    logger.debug("Ensuring datetime is UTC: %s" % d)
+    if d.tzinfo == pytz.utc:
+        logger.debug("Datetime already UTC")
+        return d
+    else:
+        d_utc = PAC.normalize(PAC.localize(d)).astimezone(pytz.utc)
+        logger.debug("Datetime converted to: %s" % d_utc)
+        return d_utc
 
 AUTO_ASSIGN = (
     (1, 'No'),
@@ -345,6 +361,13 @@ class WatchState(models.Model):
     watcher = models.CharField(max_length=100, unique=True, blank=True, null=True, default=None
                                  ,help_text="Unique name given to worker")
     last_mtime = models.DateTimeField(null=True, blank=True, default=None)
+
+    def gt_last_mtime(self, dt):
+        return self.last_mtime < toUTCc(dt)
+
+    def update_last_mtime(self, dt):
+        self.last_mtime = toUTCc(dt)
+        self.save()
 
     #Bookkeeping
     created = models.DateTimeField(null=True, blank=True, default=None)
