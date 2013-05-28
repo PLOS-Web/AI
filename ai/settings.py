@@ -6,7 +6,10 @@ import ldap
 from django_auth_ldap.config import LDAPSearch
 
 import os.path
+
+# Import branched settings files
 from local_settings import *
+from merops_settings import *
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
