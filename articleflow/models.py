@@ -24,6 +24,8 @@ class State(models.Model):
     Defines the possible states that articles can be in
     """
     name = models.CharField(max_length=100)
+    unique_name = models.CharField(max_length=100, unique=True, blank=True, null=True, default=None
+                                 ,help_text="Unique name given to transition for programmatic referencing")
     last_modified = models.DateTimeField(auto_now=True)
     worker_groups = models.ManyToManyField(Group, related_name="state_assignments", null=True, blank=True, default=None)
     auto_assign = models.IntegerField(default=1, choices=AUTO_ASSIGN)
@@ -274,6 +276,8 @@ class Transition(models.Model):
     @TODO add permissions
     """
     name = models.CharField(max_length=200)
+    unique_name = models.CharField(max_length=100, unique=True, blank=True, null=True, default=None
+                                 ,help_text="Unique name given to transition for programmatic referencing")
     from_state = models.ForeignKey('State', related_name='possible_transitions')
     to_state = models.ForeignKey('State', related_name='possible_last_transitions')
     disallow_open_items = models.BooleanField(default=False)
