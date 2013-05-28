@@ -341,6 +341,15 @@ class AssignmentHistory(models.Model):
         ret = super(AssignmentHistory, self).save(*args, **kwargs)
         return ret
 
+class WatchState(models.Model):
+    watcher = models.CharField(max_length=100, unique=True, blank=True, null=True, default=None
+                                 ,help_text="Unique name given to worker")
+    last_mtime = models.DateTimeField(null=True, blank=True, default=None)
+
+    #Bookkeeping
+    created = models.DateTimeField(null=True, blank=True, default=None)
+    last_modified = models.DateTimeField(auto_now=True)
+
 class AssignmentRatio(models.Model):
     user = models.ForeignKey(User, related_name='assignment_weights')
     state = models.ForeignKey('State', related_name='assignment_weights')
