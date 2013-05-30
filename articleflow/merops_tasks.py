@@ -55,6 +55,7 @@ def watch_docs_from_aries():
         art_s.save()
         # extract manuscript, rename to doi.doc
         # move manuscript to hopper
+        queue_doc_meropsing('TODO', art)
                 
     ws, new = WatchState.objects.get_or_create(watcher="merops_aries_delivery")
     if new:
@@ -62,8 +63,18 @@ def watch_docs_from_aries():
     zip_prog = re.compile('.*\.zip$')
     scan_directory_for_changes(ws, process_doc_from_aries, settings.MEROPS_ARIES_DELIVERY, zip_prog)
 
-def queue_doc_meropsing():
-    raise NotImplementedError
+def queue_doc_meropsing(doc, article):
+    """Move a document into the queue for meropsing
+    :param doc: filepath to document that oughta be moved.
+    :param article: :class:`Article` object corresponding to the article being moved.
+    """
+    # TODO plop file in queue
+    logger.debug("Moving %s into meropsing queue" % article.doi)
+
+    # update article status
+    meropsed_queued_state = State.objects.get(unique_name="queued_for_meropsing")
+    art_s = ArticleState(article=article, state=meropsed_queued_state)
+    art_s.save()
 
 def watch_merops_output():
     raise NotImplementedError
