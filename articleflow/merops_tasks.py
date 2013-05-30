@@ -112,10 +112,41 @@ def move_to_pm():
         art_s = ArticleState(article=a, state=pm_state)
         art_s.save()
 
-def queue_doc_finishxml():
-    raise NotImplementedError
+def queue_doc_finishxml(doc, article):
+    """Move a document into the queue for finishxml
+    :param doc: filepath to document that oughta be moved.
+    :param article: :class:`Article` object corresponding to the article being moved.
+    """     
+    # TODO plop file in queue
+    logger.debug("Moving %s into finish queue" % article.doi)
+
+    # update article status
+    finish_queued_state = State.objects.get(unique_name="queued_for_finish")
+    art_s = ArticleState(article=article, state=finish_queued_state)
+    art_s.save()
 
 def watch_finishxml_output():
-    raise NotImplementedError
+    def process_doc_from_merops(f):
+        # Identify article
+        filename = os.path.basename(f)
+        logger.debug("Filename: %s" % filename)
+        doi_sre_match = re.match(RE_SHORT_DOI_PATTERN, filename)
+        if not doi_sre_match:
+            raise TypeError("Can't figure out doi from filename: %s" % filename)
+        doi = doi_sre_match.group()
+        logger.debug("Found doi from filename: %s" % doi)
 
+        # Update status in AI
+        art, new = Article.objects.get_or_create(doi=doi)
+        if new:
+            art.typesetter = Typesetter.objects.get(name='Merops')
+            art.save()
+        finish_output_state = State.objects.get(unique_name="finish_out")
+        art_s = ArticleState(article=art, state=finish_output_state)
+        art_s.save()
 
+    ws, new = WatchState.objects.get_or_create(watcher="merops_finish_out")
+    if new:
+        ws.save()
+    finished_xml_prog = re.compile(RE_SHORT_DOI_PATTERN + '\.xml$')
+    scan_directory_for_changes(ws, process_doc_from_merops, settings.MEROPS_FINISH_XML_OUTPUT, finished_xml_prog)
