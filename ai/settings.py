@@ -233,6 +233,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
             },
+        'articleflow.merops_tasks': {
+            'handlers': ['debugging'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
         'celery': {
             'handlers': ['debugging'],
             'level': 'DEBUG',
