@@ -70,7 +70,6 @@ class State(models.Model):
     def possible_assignees(self):
         return User.objects.filter(groups__state_assignments=self)
 
-
     def save(self, *args, **kwargs):
         insert = not self.pk
 	if insert and not self.created:
@@ -213,6 +212,10 @@ class Article(models.Model):
         return "doi: %s, pubdate: %s, journal: %s, si_guid: %s, md5: %s, created: %s" % (self.doi, self.pubdate, self.journal, self.si_guid, self.md5, self.created)
     
     # Return the possible transitions that this object can do based on its current state
+
+    def current_assignee(self):
+        return self.current_articlestate.assignee
+
     def possible_transitions(self, user=None):
         if user:
             raw_transitions = self.current_state.possible_transitions.all()
