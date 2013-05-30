@@ -8,11 +8,13 @@ from ai import settings
 import logging
 logger = logging.getLogger(__name__)
 
+RE_SHORT_DOI_PATTERN = "[a-z]*\.[0-9]*"
+
 def _get_mtime(file):
     return datetime.datetime.fromtimestamp(os.stat(file).st_mtime)
 
 def _get_filenames_and_mtime_in_dir(path, filename_regex_prog=None):
-    print "PATH %s" % path
+    logger.info("Checking for new files in %s matching %s" % (path, filename_regex_prog.pattern))
     files = [ (os.path.join(path, f), _get_mtime(os.path.join(path, f))) for f in os.listdir(path) if os.path.isfile(os.path.join(path,f))]
     if filename_regex_prog:
         files = filter(lambda x: filename_regex_prog.match(os.path.basename(x[0])), files)
@@ -67,7 +69,7 @@ def queue_doc_meropsing(doc, article):
     """Move a document into the queue for meropsing
     :param doc: filepath to document that oughta be moved.
     :param article: :class:`Article` object corresponding to the article being moved.
-    """
+    """     
     # TODO plop file in queue
     logger.debug("Moving %s into meropsing queue" % article.doi)
 
@@ -77,7 +79,38 @@ def queue_doc_meropsing(doc, article):
     art_s.save()
 
 def watch_merops_output():
-    raise NotImplementedError
+    def process_doc_from_merops(f):
+        # Identify article
+        filename = os.path.basename(f)
+        logger.debug("Filename: %s" % filename)
+        doi_sre_match = re.match(RE_SHORT_DOI_PATTERN, filename)
+        if not doi_sre_match:
+            raise TypeError("Can't figure out doi from filename: %s" % filename)
+        doi = doi_sre_match.group()
+        logger.debug("Found doi from filename: %s" % doi)
+
+        # Update status in AI
+        art, new = Article.objects.get_or_create(doi=doi)
+        if new:
+            art.typesetter = Typesetter.objects.get(name='Merops')
+            art.save()
+        merops_output_state = State.objects.get(unique_name="meropsed")
+        art_s = ArticleState(article=art, state=merops_output_state)
+        art_s.save()
+
+    ws, new = WatchState.objects.get_or_create(watcher="merops_meropsed_out")
+    if new:
+        ws.save()
+    meropsed_doc_prog = re.compile(RE_SHORT_DOI_PATTERN + '\.doc$')
+    scan_directory_for_changes(ws, process_doc_from_merops, settings.MEROPS_MEROPSED_OUTPUT, meropsed_doc_prog)
+
+def move_to_pm():
+    meropsed_articles = Article.objects.filter(current_state__unique_name="meropsed")
+
+    pm_state = State.objects.get(unique_name="prepare_manuscript")
+    for a in meropsed_articles:
+        art_s = ArticleState(article=a, state=pm_state)
+        art_s.save()
 
 def queue_doc_finishxml():
     raise NotImplementedError
