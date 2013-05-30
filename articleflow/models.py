@@ -1,5 +1,6 @@
 import pytz
 import datetime
+import re
 
 from django.utils.timezone import utc
 from django.db import models
@@ -34,6 +35,18 @@ AUTO_ASSIGN = (
     (2, 'Yes'),
     (3, 'Custom')
 )
+
+def get_journal_from_doi(doi):
+    match = re.match('.*(?=\.)', doi)
+    
+    if not match:
+        raise ValueError('Could not find a journal short_name in doi, %s' % doi)
+    short_name = re.match('.*(?=\.)', doi).group(0)
+    
+    try:
+        return Journal.objects.get(short_name=short_name)
+    except Journal.DoesNotExist:
+        raise ValueError("doi prefix, %s, does not match any known journal" % short_name)
 
 class State(models.Model):
     """
@@ -178,7 +191,7 @@ class Article(models.Model):
     """
     doi = models.CharField(max_length=50, unique=True)
     pubdate = models.DateField(null=True, blank=True, default=None)
-    journal = models.ForeignKey('Journal')
+    journal = models.ForeignKey('Journal', null=True, blank=True, default=None)
     si_guid = models.CharField(max_length=500, null=True, blank=True, default=None)
     md5 = models.CharField(max_length=500, null=True, blank=True, default=None)
     current_articlestate = models.ForeignKey('ArticleState', related_name='current_article', null=True, blank=True, default=None)
@@ -197,7 +210,7 @@ class Article(models.Model):
         return self.doi
     
     def verbose_unicode(self):
-        return "doi: %s, pubdate: %s, journal: %s, si_guid: %s, md5: %s, created: %s" % (self.doi, self.pubdate, self.journal.short_name, self.si_guid, self.md5, self.created)
+        return "doi: %s, pubdate: %s, journal: %s, si_guid: %s, md5: %s, created: %s" % (self.doi, self.pubdate, self.journal, self.si_guid, self.md5, self.created)
     
     # Return the possible transitions that this object can do based on its current state
     def possible_transitions(self, user=None):
@@ -216,6 +229,9 @@ class Article(models.Model):
         logger.info("SAVING ARTICLE: %s" % self.verbose_unicode())
 	if insert and not self.created:
                 self.created = now()
+        if not self.journal:
+            logger.debug("Automatically figuring out journal")
+            self.journal = get_journal_from_doi(self.doi)
         ret = super(Article, self).save(*args, **kwargs)
 
         # Create a blank articleextras row
@@ -363,10 +379,16 @@ class WatchState(models.Model):
     last_mtime = models.DateTimeField(null=True, blank=True, default=None)
 
     def gt_last_mtime(self, dt):
-        return self.last_mtime < toUTCc(dt)
+        if dt is None:
+            return False
+        if not self.last_mtime:
+            return True
+        logger.debug("Comparing times: 'last_mtime': %s < 'dt': %s" % (self.last_mtime, toUTCc(dt)))
+        return self.last_mtime < toUTCc(dt.replace(microsecond=0))
 
     def update_last_mtime(self, dt):
         self.last_mtime = toUTCc(dt)
+        logger.debug("Updating last_mtime to %s" % self.last_mtime)
         self.save()
 
     #Bookkeeping
