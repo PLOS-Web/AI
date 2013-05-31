@@ -17,6 +17,8 @@ PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
+SOUTH_TESTS_MIGRATE = False
+
 MANAGERS = ADMINS
 
 
@@ -229,6 +231,11 @@ LOGGING = {
             'propagate': True,
             },
         'articleflow.views': {
+            'handlers': ['debugging'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
+        'articleflow.views_api': {
             'handlers': ['debugging'],
             'level': 'DEBUG',
             'propagate': True,
