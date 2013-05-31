@@ -26,7 +26,8 @@ class ReportsDateRange(forms.Form):
     group = forms.ChoiceField(choices=group_choices)
     start_date = forms.DateTimeField(input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
     end_date = forms.DateTimeField(input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
-    
+ 
+   
 class FileUpload(forms.Form):
     file = forms.FileField(label="Upload file", widget=forms.FileInput())
 
@@ -39,10 +40,12 @@ class FileUpload(forms.Form):
     def helper(self):
         helper = FormHelper()
         helper.form_class = 'form upload-form'
-        print "Helper: doi: %s" % reverse('detail_transition', args=(self.article.doi,))
-        helper.set_form_action(reverse('detail_transitions', args=(self.article.doi)))
+        #print "Helper: doi: %s" % reverse('detail_transition', args=(self.article.doi,))
+        action_url = reverse('detail_transition', args=(self.article.doi,))
+        helper.set_form_action(action_url)
         helper.layout = Layout(
             Field('file'),
             Submit('submit', 'Submit', css_class='btn-primary'),
             )
         return helper
+
