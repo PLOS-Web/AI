@@ -13,6 +13,36 @@ import re
 import logging
 logger = logging.getLogger(__name__)
 
+def resolve_choice_index(choices, key):
+    for choice in choices:
+        if key == choice[1]:
+            return choice[0]
+    return None
+
+def separate_errors(e):
+    if not e:
+        return []
+    errors_raw = e.strip().splitlines(False)
+    
+    errors=[]
+    for error in errors_raw:
+        if not error:
+            continue
+        error_tuple = (error, 1)
+        logger.debug("Raw: %s" % error)
+        for i, level in ERROR_LEVEL:
+            
+            p = re.compile('(?<=%s:).*' % level, re.IGNORECASE)
+            m = p.search(error) 
+            if m:
+                logger.debug("Match: %s" % m.group(0))
+                error_tuple = (m.group(0).strip(), i)
+                break
+
+        errors += [error_tuple]
+    
+    return errors
+
 def get_journal_from_doi(doi):
     match = re.match('.*(?=\.)', doi)
     
@@ -193,7 +223,7 @@ class TransactionArticle(BaseTransaction):
 
 class TransactionErrorset(BaseTransaction):
     def valid_payload(self):
-
+        logger.debug("Validating Errorset transaction payload")
         try:
             self.article = Article.objects.get(doi=self.doi)
         except Article.DoesNotExist:
