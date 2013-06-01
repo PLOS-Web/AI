@@ -34,7 +34,9 @@ class FileUpload(forms.Form):
     def __init__(self, article, transition, *args, **kwargs):
         super(FileUpload, self).__init__(*args, **kwargs)
         self.article = article
+        self.fields['article_pk'] = forms.IntegerField(widget=forms.HiddenInput(), initial=article.pk)
         self.transition = transition
+        self.fields['requested_transition_pk'] = forms.IntegerField(widget=forms.HiddenInput(), initial=transition.pk)
 
     @property
     def helper(self):
@@ -44,8 +46,11 @@ class FileUpload(forms.Form):
         action_url = reverse('detail_transition', args=(self.article.doi,))
         helper.set_form_action(action_url)
         helper.layout = Layout(
+            Field('article_pk'),
+            Field('transition_pk'),
             Field('file'),
             Submit('submit', 'Submit', css_class='btn-primary'),
             )
         return helper
+
 
