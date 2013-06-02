@@ -77,9 +77,10 @@ def watch_docs_from_aries():
     def process_doc_from_aries(f):
         # add article to AI
         #   extract doi from go.xml
-        si_guid = 'blahblah filler'
+        
+        si_guid = os.path.basename(f).split('.zip')[0]
         doi = PlosDoi(man_e.doi(f)).short
-        logger.debug("Identified new aries-merops delivery as %s" % doi)
+        logger.debug("Identified new aries-merops delivery {guid: %s} as %s" % (si_guid,doi))
         #doi = 'pone.00000001'
 
         art, new = Article.objects.get_or_create(doi=doi)
