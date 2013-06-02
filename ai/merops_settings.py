@@ -7,3 +7,5 @@ MEROPS_MEROPSED_OUTPUT = os.path.abspath("/var/spool/delivery/merops/merops/out/
 MEROPS_FINISH_XML_WATCH = os.path.abspath("/var/spool/delivery/merops/finish/watch/")
 MEROPS_FINISH_XML_OUTPUT = os.path.abspath("/var/spool/delivery/merops/finish/out/"
 )
+
+MEROPS_MANUSCRIPT_EXTRACTION = os.path.abspath("/tmp/merops/manuscript-extraction/")

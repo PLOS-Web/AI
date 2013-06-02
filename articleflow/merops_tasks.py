@@ -1,6 +1,8 @@
 import os.path
+import shutil
 import datetime
 import re
+import zipfile
 
 from articleflow.models import Article, ArticleState, State, Typesetter, WatchState
 from ai import settings
@@ -81,7 +83,6 @@ def watch_docs_from_aries():
         si_guid = os.path.basename(f).split('.zip')[0]
         doi = PlosDoi(man_e.doi(f)).short
         logger.debug("Identified new aries-merops delivery {guid: %s} as %s" % (si_guid,doi))
-        #doi = 'pone.00000001'
 
         art, new = Article.objects.get_or_create(doi=doi)
         art.typesetter = Typesetter.objects.get(name='Merops')
@@ -92,22 +93,29 @@ def watch_docs_from_aries():
         art_s = ArticleState(article=art, state=delivery_state)
         art_s.save()
         # extract manuscript, rename to doi.doc
-        # move manuscript to hopper
-        queue_doc_meropsing('TODO', art)
-                
+        manuscript_name = man_e.manuscript(f)
+        z = zipfile.ZipFile(f)
+        z.extract(manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION)
+        logger.debug("Extracting manuscript file, %s, to %s" % (manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION))
+        z.close()
+        man_f = os.path.join(settings.MEROPS_MANUSCRIPT_EXTRACTION, manuscript_name)
+        queue_doc_meropsing(art, man_f)
+    
     ws, new = WatchState.objects.get_or_create(watcher="merops_aries_delivery")
     if new:
         ws.save()
     zip_prog = re.compile('.*\.zip$')
     scan_directory_for_changes(ws, process_doc_from_aries, settings.MEROPS_ARIES_DELIVERY, zip_prog)
 
-def queue_doc_meropsing(doc, article):
+def queue_doc_meropsing(article, doc=None):
     """Move a document into the queue for meropsing
     :param doc: filepath to document that oughta be moved.
     :param article: :class:`Article` object corresponding to the article being moved.
     """     
-    # TODO plop file in queue
-    logger.debug("Moving %s into meropsing queue" % article.doi)
+    # TODO move file into queue if specified
+    if doc:
+        logger.debug("Moving %s into meropsing queue" % article.doi)
+        shutil.move(doc, os.path.join(settings.MEROPS_MEROPSED_WATCH, "%s.doc" % article.doi))
 
     # update article status
     meropsed_queued_state = State.objects.get(unique_name="queued_for_meropsing")

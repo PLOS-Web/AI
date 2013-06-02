@@ -25,7 +25,8 @@ def manuscript(guidzip):
     m = list(set(go_files(go)) - set(metadata_files(meta)))
     if len(m) != 1:
         raise Exception(str(len(m)) + " potential manuscripts found")
-    if m[0][-4:] != '.doc':
+    print("TESSST ", m[0][-4:])
+    if m[0][-4:] != '.doc' and m[0][-5:] != '.docx':
         raise Exception(m[0] + " may not be a doc file")
     return m[0]
 
