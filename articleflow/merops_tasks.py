@@ -4,11 +4,44 @@ import re
 
 from articleflow.models import Article, ArticleState, State, Typesetter, WatchState
 from ai import settings
+import manuscript_extractor as man_e
 
 import logging
 logger = logging.getLogger(__name__)
 
 RE_SHORT_DOI_PATTERN = "[a-z]*\.[0-9]*"
+
+class PlosDoi(object):
+
+    def __init__(self, doi_str):
+        self._pub_prefix = "10.1371/journal."
+
+        short_form_match = re.compile(RE_SHORT_DOI_PATTERN)
+        #long_form_match = re.compile('^(?<=10\.1371/journal\.)%s$' % RE_SHORT_DOI_PATTERN)
+        long_form_match = re.compile('(?<=10\.1371/journal\.)%s' % RE_SHORT_DOI_PATTERN)
+        ambra_doi_match = re.compile('^(?<=info\:doi/10\.1371/journal\.)%s$' % RE_SHORT_DOI_PATTERN)
+
+        if short_form_match.match(doi_str):
+            self._short_doi = doi_str
+            logger.debug("Parsing short form doi: %s" % doi_str)
+        elif long_form_match.search(doi_str):
+            self._short_doi = long_form_match.search(doi_str).group()
+            logger.debug("Parsing long form doi: %s" % doi_str)
+        elif ambra_doi_match.search(doi_str):
+            self._short_doi = ambra_doi_match.search(doi_str).group()
+            logger.debug("Parsing ambra-style doi: %s" % doi_str)
+        else:
+            raise ValueError("Couldn't parse doi %s" % doi_str)
+
+        logger.debug("Constructed Doi object with shortform doi: %s" % self._short_doi)
+
+    @property
+    def short(self):
+        return self._short_doi
+
+    @property
+    def long(self):
+        return "%s%s" % (self._pub_prefix, self._short_doi)
 
 def _get_mtime(file):
     return datetime.datetime.fromtimestamp(os.stat(file).st_mtime)
@@ -45,7 +78,9 @@ def watch_docs_from_aries():
         # add article to AI
         #   extract doi from go.xml
         si_guid = 'blahblah filler'
-        doi = 'pone.00000001'
+        doi = PlosDoi(man_e.doi(f)).short
+        logger.debug("Identified new aries-merops delivery as %s" % doi)
+        #doi = 'pone.00000001'
 
         art, new = Article.objects.get_or_create(doi=doi)
         art.typesetter = Typesetter.objects.get(name='Merops')
