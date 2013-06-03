@@ -132,7 +132,8 @@ class TransactionArticle(BaseTransaction):
 
         try:
             username = self.payload['state_change_user']
-            user=User.objects.get(username=username)
+            if username:
+                user=User.objects.get(username=username)
         except User.DoesNotExist:
             logger.error("User Doesn't exist")
             return False
@@ -278,7 +279,8 @@ class TransactionTransition(BaseTransaction):
 
         try:
             username = self.payload['transition_user']
-            self.user=User.objects.get(username=username)
+            if username:
+                self.user=User.objects.get(username=username)
         except User.DoesNotExist:
             logger.error("User Doesn't exist")
             return False
