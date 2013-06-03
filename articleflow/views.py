@@ -30,6 +30,7 @@ import django_filters
 
 import transitionrules
 
+from ai import settings
 from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio, Typesetter
 from articleflow.forms import AssignmentForm, ReportsDateRange, FileUpload
 from issues.models import Issue, Category
@@ -680,38 +681,7 @@ def upload_doc(storage, file_name, file_stream):
     print storage_file.file.getvalue()
     storage_file.close()
 
-merops_file_schema = {
-    'meropsed.doc': {
-        'dir_path': '/home/jlabarba/fileserve_test/merops_output/',
-        'filename_modifier': '',
-        'file_extension': 'doc',
-        },
-    'meropsed-original.doc': {
-        'dir_path': '/home/jlabarba/fileserve_test/merops_output/',
-        'filename_modifier': '-original',
-        'file_extension': 'doc',
-        },
-    'meropsed-original.xml': {
-        'dir_path': '/home/jlabarba/fileserve_test/merops_output/',
-        'filename_modifier': '',
-        'file_extension': 'xml',
-        },
-    'finishxml.doc': {
-        'dir_path': '/home/jlabarba/fileserve_test/finishxml_output/',
-        'filename_modifier': '-finishxmlcheck-original',
-        'file_extension': 'doc',
-        },
-    'finishxml-original.doc': {
-        'dir_path': '/home/jlabarba/fileserve_test/finishxml_output/',
-        'filename_modifier': '-finishxmlcheck-original',
-        'file_extension': 'doc',
-        },
-    'finishxml.xml': {
-        'dir_path': '/home/jlabarba/fileserve_test/finishxml_output/',
-        'filename_modifier': '',
-        'file_extension': 'xml',
-        },
-    }
+
 
 class ServeArticleDoc(View):
     dir_path = '/home/jlabarba/fileserve_test/' 
@@ -726,7 +696,7 @@ class ServeArticleDoc(View):
 
         if kwargs['file_type']:
             try:
-                schema_item = merops_file_schema[kwargs['file_type']]
+                schema_item = settings.MEROPS_FILE_SCHEMA[kwargs['file_type']]
             except KeyError:
                 raise Http404("'%s' is not a recognized downloadable merops file type."% kwargs['file_type'])
             self.dir_path = schema_item['dir_path']
