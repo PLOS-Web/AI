@@ -5,6 +5,8 @@ import ldap
 import sys
 from django_auth_ldap.config import LDAPSearch
 
+LOG_FILE_DIRECTORY = os.path.abs("/home/jlabarba/ai/logs/")
+
 # email to send 500 stack traces to
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),

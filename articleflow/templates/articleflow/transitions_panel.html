@@ -1,0 +1,10 @@
+{% if not transitions %}
+<p>No available transitions.</p>
+{% endif %}
+{% for transition in transitions %}
+<button id="state-transition-{{ transition.pk }}" class="btn {{ transition.preference_weight|buttonclass }}">{{ transition.name }}</button>
+
+<script type="text/javascript">
+  $('#state-transition-{{ transition.pk }}').on("click", function(){switch_article_state_ajax({{ article.pk }}, {{ transition.pk }}, 'state-error-board', '{% url detail_transition article.doi %}')});
+</script>
+{% endfor %}

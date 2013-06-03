@@ -69,7 +69,7 @@ class Error(models.Model):
                 elif self.level == 2:
                     a_extras.num_warnings += 1
                 else:
-                    print "Encountered error category unknown to articleextras"
+                    logger.error("Encountered error category unknown to articleextras: %s" % self.level)
                     
                 a_extras.num_errors_total += 1                    
 

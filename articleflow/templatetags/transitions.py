@@ -8,7 +8,8 @@ logger = logging.getLogger(__name__)
 register = template.Library()
 
 @register.inclusion_tag('articleflow/state_control.html', takes_context=True)
-def render_article_state_control(context, article, user):
+def render_article_state_control(context, article, user, minimal_structure=False):
+    print "Minimal_structure: %s" % minimal_structure
     transitions = article.possible_transitions(user)
     for t in transitions.all():
         logger.debug("Identified possible transition: %s" % t)
@@ -23,7 +24,8 @@ def render_article_state_control(context, article, user):
         
     context.update({
             'article': article,
-            'transitions': transitions.all().order_by('preference_weight').reverse()
+            'transitions': transitions.all().order_by('preference_weight').reverse(),
+            'minimal_structure': minimal_structure
             })
     return context
 

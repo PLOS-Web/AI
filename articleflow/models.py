@@ -1,6 +1,8 @@
+import pytz
 import datetime
-from django.utils.timezone import utc
+import re
 
+from django.utils.timezone import utc
 from django.db import models
 from django.contrib.auth.models import User, Group
 
@@ -10,8 +12,23 @@ from django.db.models import Sum, Max
 import logging
 logger = logging.getLogger(__name__)
 
+PAC = pytz.timezone('US/Pacific')
+
 def now():
     return datetime.datetime.utcnow().replace(tzinfo=utc)
+
+def toUTCc(d):
+    if not d:
+        return None
+
+    logger.debug("Ensuring datetime is UTC: %s" % d)
+    if d.tzinfo == pytz.utc:
+        logger.debug("Datetime already UTC")
+        return d
+    else:
+        d_utc = PAC.normalize(PAC.localize(d)).astimezone(pytz.utc)
+        logger.debug("Datetime converted to: %s" % d_utc)
+        return d_utc
 
 AUTO_ASSIGN = (
     (1, 'No'),
@@ -19,11 +36,25 @@ AUTO_ASSIGN = (
     (3, 'Custom')
 )
 
+def get_journal_from_doi(doi):
+    match = re.match('.*(?=\.)', doi)
+    
+    if not match:
+        raise ValueError('Could not find a journal short_name in doi, %s' % doi)
+    short_name = re.match('.*(?=\.)', doi).group(0)
+    
+    try:
+        return Journal.objects.get(short_name=short_name)
+    except Journal.DoesNotExist:
+        raise ValueError("doi prefix, %s, does not match any known journal" % short_name)
+
 class State(models.Model):
     """
     Defines the possible states that articles can be in
     """
     name = models.CharField(max_length=100)
+    unique_name = models.CharField(max_length=100, unique=True, blank=True, null=True, default=None
+                                 ,help_text="Unique name given to transition for programmatic referencing")
     last_modified = models.DateTimeField(auto_now=True)
     worker_groups = models.ManyToManyField(Group, related_name="state_assignments", null=True, blank=True, default=None)
     auto_assign = models.IntegerField(default=1, choices=AUTO_ASSIGN)
@@ -38,7 +69,6 @@ class State(models.Model):
 
     def possible_assignees(self):
         return User.objects.filter(groups__state_assignments=self)
-
 
     def save(self, *args, **kwargs):
         insert = not self.pk
@@ -137,18 +167,36 @@ class Journal(models.Model):
     def __unicode__(self):
         return self.full_name
 
+class Typesetter(models.Model):
+    """
+    Describes typesetter
+    """
+    name = models.CharField(max_length=200)
+    description = models.CharField(max_length=2048, null=True, blank=True, default=None)
+
+    #Bookkeeping
+    created = models.DateTimeField(null=True, blank=True, default=None)
+    last_modified = models.DateTimeField(auto_now=True)    
+
+    def verbose_unicode(self):
+        return "name: %s, description: %s, created: %s, last_modified: %s" % (self.name, self.description, self.created, self.last_modified)
+
+    def __unicode__(self):
+        return self.name
+
 class Article(models.Model):
     """
     Holds information about each article
     """
     doi = models.CharField(max_length=50, unique=True)
     pubdate = models.DateField(null=True, blank=True, default=None)
-    journal = models.ForeignKey('Journal')
+    journal = models.ForeignKey('Journal', null=True, blank=True, default=None)
     si_guid = models.CharField(max_length=500, null=True, blank=True, default=None)
     md5 = models.CharField(max_length=500, null=True, blank=True, default=None)
     current_articlestate = models.ForeignKey('ArticleState', related_name='current_article', null=True, blank=True, default=None)
     current_state = models.ForeignKey('State', related_name="current_articles", null=True, blank=True, default=None)
     article_extras = models.ForeignKey('ArticleExtras', related_name="article_dont_use", null=True, blank=True, default=None)
+    typesetter = models.ForeignKey('Typesetter', related_name='articles_typeset', null=True, blank=True, default=None)
     em_pk = models.IntegerField(null=True, blank=True, default=None)
     em_ms_number = models.CharField(max_length=50, null=True, blank=True, default=None)
     em_max_revision = models.IntegerField(null=True, blank=True, default=None)
@@ -161,9 +209,13 @@ class Article(models.Model):
         return self.doi
     
     def verbose_unicode(self):
-        return "doi: %s, pubdate: %s, journal: %s, si_guid: %s, md5: %s, created: %s" % (self.doi, self.pubdate, self.journal.short_name, self.si_guid, self.md5, self.created)
+        return "doi: %s, pubdate: %s, journal: %s, si_guid: %s, md5: %s, created: %s" % (self.doi, self.pubdate, self.journal, self.si_guid, self.md5, self.created)
     
     # Return the possible transitions that this object can do based on its current state
+
+    def current_assignee(self):
+        return self.current_articlestate.assignee
+
     def possible_transitions(self, user=None):
         if user:
             raw_transitions = self.current_state.possible_transitions.all()
@@ -180,6 +232,9 @@ class Article(models.Model):
         logger.info("SAVING ARTICLE: %s" % self.verbose_unicode())
 	if insert and not self.created:
                 self.created = now()
+        if not self.journal:
+            logger.debug("Automatically figuring out journal")
+            self.journal = get_journal_from_doi(self.doi)
         ret = super(Article, self).save(*args, **kwargs)
 
         # Create a blank articleextras row
@@ -256,12 +311,16 @@ class Transition(models.Model):
     @TODO add permissions
     """
     name = models.CharField(max_length=200)
+    unique_name = models.CharField(max_length=100, unique=True, blank=True, null=True, default=None
+                                 ,help_text="Unique name given to transition for programmatic referencing")
     from_state = models.ForeignKey('State', related_name='possible_transitions')
     to_state = models.ForeignKey('State', related_name='possible_last_transitions')
     disallow_open_items = models.BooleanField(default=False)
     allowed_groups = models.ManyToManyField(Group, related_name="allowed_transitions")
     assign_transition_user = models.BooleanField(default=False)
     preference_weight = models.IntegerField()
+    file_upload_destination = models.CharField(max_length=600, null=True, blank=True, default=None, help_text="If this transition requires an upload, enter the path to the desired destination directory.  If no upload is required, leave this field blank.")
+    file_upload_description = models.CharField(max_length=600, null=True, blank=True, default=None, help_text="If this transition requires an upload, this is the help text to display")
 
     #Bookkeeping 
     created = models.DateTimeField(null=True, blank=True, default=None)
@@ -316,6 +375,28 @@ class AssignmentHistory(models.Model):
                 self.created = now()
         ret = super(AssignmentHistory, self).save(*args, **kwargs)
         return ret
+
+class WatchState(models.Model):
+    watcher = models.CharField(max_length=100, unique=True, blank=True, null=True, default=None
+                                 ,help_text="Unique name given to worker")
+    last_mtime = models.DateTimeField(null=True, blank=True, default=None)
+
+    def gt_last_mtime(self, dt):
+        if dt is None:
+            return False
+        if not self.last_mtime:
+            return True
+        logger.debug("Comparing times: 'last_mtime': %s < 'dt': %s" % (self.last_mtime, toUTCc(dt)))
+        return self.last_mtime < toUTCc(dt.replace(microsecond=0))
+
+    def update_last_mtime(self, dt):
+        self.last_mtime = toUTCc(dt)
+        logger.debug("Updating last_mtime to %s" % self.last_mtime)
+        self.save()
+
+    #Bookkeeping
+    created = models.DateTimeField(null=True, blank=True, default=None)
+    last_modified = models.DateTimeField(auto_now=True)
 
 class AssignmentRatio(models.Model):
     user = models.ForeignKey(User, related_name='assignment_weights')

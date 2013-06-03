@@ -21,3 +21,5 @@ lib64
 at_dump
 migration_seed.json
 site_media/
+log/
+logs/

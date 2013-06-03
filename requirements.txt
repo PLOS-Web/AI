@@ -13,12 +13,15 @@ django-celery==3.0.11
 django-crispy-forms==1.2.2
 django-debug-toolbar==0.9.4
 -e git+https://github.com/alex/django-filter.git@b2b69617fab8d9a9288e0e86b617c65dc37bfee7#egg=django_filter-dev
+django-storages==1.1.8
 kombu==2.5.6
+lxml==3.2.1
 pyodbc==3.0.6
 python-dateutil==1.5
 python-ldap==2.4.10
 pytz==2012j
 requests==1.1.0
 simplejson==2.6.2
+sql-server.pyodbc==1.0
 uWSGI==1.4.4
 wsgiref==0.1.2

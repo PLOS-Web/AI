@@ -125,6 +125,8 @@
 	    {% elif user.is_authenticated %}
 	    {% render_assign_to_me_button article user %}
 	    {% endif %}
+	{% elif col == "Typesetter" %}
+	    {{ article.typesetter.name }}
 	{% else %}
 	  {{ value }}
 	{% endif %}

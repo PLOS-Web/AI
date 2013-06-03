@@ -1,4 +1,5 @@
 # Django settings for ai project.
+from datetime import timedelta
 from celery.task.schedules import crontab 
 import djcelery
 djcelery.setup_loader()
@@ -6,13 +7,18 @@ import ldap
 from django_auth_ldap.config import LDAPSearch
 
 import os.path
+
+# Import branched settings files
 from local_settings import *
+from merops_settings import *
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
+
+# SOUTH_TESTS_MIGRATE = False
 
 MANAGERS = ADMINS
 
@@ -125,6 +131,7 @@ INSTALLED_APPS = (
     'south',
     'djcelery',
     'kombu.transport.django',
+    'storages',
 
     'articleflow',
     'issues',
@@ -167,6 +174,22 @@ LOGGING = {
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler',
         },
+        'daemon-file':{
+            'level': 'DEBUG',
+            'class':'logging.handlers.RotatingFileHandler',
+            'maxBytes': 500000,
+            'filename': os.path.join(LOG_FILE_DIRECTORY, 'daemons.log'),
+            'backupCount': 5,
+            'formatter': 'verbose',
+            },
+        'requests-file':{
+            'level': 'DEBUG',
+            'class':'logging.handlers.RotatingFileHandler',
+            'maxBytes': 500000,
+            'filename': os.path.join(LOG_FILE_DIRECTORY, 'requests.log'),
+            'backupCount': 5,
+            'formatter': 'verbose',
+            },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
@@ -200,22 +223,22 @@ LOGGING = {
             'propagate': True,
             },
         'issues.views': {
-            'handlers': ['debugging'],
+            'handlers': ['debugging', 'requests-file'],
             'level': 'DEBUG',
             'propagate': True,
             },
         'articleflow.models': {
-            'handlers': ['debugging'],
+            'handlers': ['debugging', 'requests-file'],
             'level': 'DEBUG',
             'propagate': True,
             },
         'articleflow.templatetags.transitions': {
-            'handlers': ['debugging'],
+            'handlers': ['debugging', 'requests-file'],
             'level': 'DEBUG',
             'propagate': True,
             },
         'articleflow.transitionrules': {
-            'handlers': ['debugging'],
+            'handlers': ['debugging', 'requests-file'],
             'level': 'DEBUG',
             'propagate': True,
             },
@@ -225,12 +248,22 @@ LOGGING = {
             'propagate': True,
             },
         'articleflow.views': {
-            'handlers': ['debugging'],
+            'handlers': ['debugging', 'requests-file'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
+        'articleflow.views_api': {
+            'handlers': ['debugging', 'requests-file'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
+        'articleflow.daemons.merops_tasks': {
+            'handlers': ['debugging', 'daemon-file'],
             'level': 'DEBUG',
             'propagate': True,
             },
         'celery': {
-            'handlers': ['debugging'],
+            'handlers': ['debugging', 'daemon-file'],
             'level': 'DEBUG',
             'propagate': True,
             },
@@ -270,14 +303,11 @@ CELERYBEAT_PIDFILE = '/tmp/celerybeat.pid'
 CELERY_IMPORTS=(
     'articleflow.daemons.em_sync',
     'articleflow.daemons.transition_tasks',
+    'articleflow.daemons.merops_tasks',
 )
 
 # CELERY beat schedule
 CELERYBEAT_SCHEDULE = {
-    'test-scheduler': {
-        'task': 'articleflow.daemons.em_sync.cron_test',
-        'schedule': crontab(hour="*", minute="*", day_of_week="*")
-        },
     'em-sync': {
         'task': 'articleflow.daemons.em_sync.sync_all_pubdates',
         'schedule': crontab(hour="*/2", minute="0", day_of_week="*")
@@ -286,4 +316,18 @@ CELERYBEAT_SCHEDULE = {
         'task': 'articleflow.daemons.transition_tasks.ongoing_ambra_sync',
         'schedule': crontab(minute="*/15", day_of_week="*")
         },
+    'merops-tasks-watch-docs-from-aries': {
+        'task': 'articleflow.daemons.merops_tasks.watch_docs_from_aries',
+        'schedule': timedelta(seconds=30)
+        },
+    'merops-tasks-watch-merops-output': {
+        'task': 'articleflow.daemons.merops_tasks.watch_merops_output',
+        'schedule': timedelta(seconds=30)
+        },
+    'merops-tasks-watch-finishxml-output': {
+        'task': 'articleflow.daemons.merops_tasks.watch_finishxml_output',
+        'schedule': timedelta(seconds=30)
+        },
     }
+
+
