@@ -35,6 +35,10 @@
 	<td>{{ article.current_articlestate.state.name }}</td>
       </tr>
       <tr>
+	<td>Typesetter: </td>
+	<td>{{ article.typesetter.name }}</td>
+      </tr>
+      <tr>
 	<td>Assigned to: </td>
 	<td>	    
 	  {% if article.current_articlestate.assignee.username %}
@@ -58,7 +62,6 @@
       </tr>
     </table>
     <div>
-      {% render_merops_hopper_downloads article %}
     </div>
   </div>
   <div class="span5">
@@ -66,7 +69,20 @@
       {% render_article_note_block article user %}
   </div>
 </div>
-
+{% if article.typesetter.name == 'Merops' %}
+<div class="row margined-top">
+  <div class="span12">
+    <div class="rounded-box-list">
+      <div class="rounded-box-header-inner">
+	<h4 class="rounded-box-header">Merops File Downloads</h4>
+      </div>
+      <div class="rounded-box-card-inner blue-background">
+	{% render_merops_hopper_downloads article %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 <div class="row article-detail-issues">
   <div class="span6">
     {% render_issues article %}

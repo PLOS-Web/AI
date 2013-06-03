@@ -1,9 +1,16 @@
-<p>Merops links</p>
 <ul>
-  <li><a href={% url merops_files article.doi 'meropsed.doc' %}>{{ article.doi }}.doc</a></li>
-  <li><a href={% url merops_files article.doi 'meropsed-original.doc' %} >{{ article.doi }}-original.doc</a></li>
-  <li><a href={% url merops_files article.doi 'meropsed-original.xml' %} >{{ article.doi }}-original.xml</a></li>
-  <li><a href={% url merops_files article.doi 'finishxml.doc' %} >{{ article.doi }}-finishxml.doc</a></li>
-  <li><a href={% url merops_files article.doi 'finishxml-original.doc' %} >{{ article.doi }}-finishxml-original.doc</a></li>
-  <li><a href={% url merops_files article.doi 'finishxml.xml' %} >{{ article.doi }}-finishxml.xml</a></li>
+  <li>Initial processing files
+    <ul>
+      <li><a href={% url merops_files article.doi 'meropsed.doc' %}>{{ article.doi }}.doc</a></li>
+      <li><a href={% url merops_files article.doi 'meropsed-original.doc' %} >{{ article.doi }}-original.doc</a></li>
+      <li><a href={% url merops_files article.doi 'meropsed-original.xml' %} >{{ article.doi }}-original.xml</a></li>
+    </ul>
+  </li>
+  <li>Finish XML files
+    <ul>
+      <li><a href={% url merops_files article.doi 'finishxml.doc' %} >{{ article.doi }}-finishxml.doc</a></li>
+      <li><a href={% url merops_files article.doi 'finishxml-original.doc' %} >{{ article.doi }}-finishxml-original.doc</a></li>
+      <li><a href={% url merops_files article.doi 'finishxml.xml' %} >{{ article.doi }}-finishxml.xml</a></li>
+    </ul>
+  </li>
 </ul>

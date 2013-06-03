@@ -7,6 +7,14 @@
     margin-left: 0px;
 }
 
+.blue-background {
+    background-color: #EFEFEF;
+}
+
+.margined-top {
+    margin-top: 20px;
+}
+
 .article-detail-issues {
     padding-top: 20px;
 }

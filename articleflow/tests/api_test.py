@@ -85,6 +85,7 @@ class APIArticleTestCase(LiveServerTestCase):
             }            
         r = requests.put(self.live_server_url + '/api/article/pone.9999999', data=simplejson.dumps(data))
         a = self.assert_article_exists('pone.9999999')
+        print (a.verbose_unicode())
             
         self.assertEqual(a.pubdate, datetime.datetime.strptime(data['pubdate'], '%Y-%m-%d').date())
 
