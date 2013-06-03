@@ -43,11 +43,11 @@ class FileUpload(forms.Form):
         helper = FormHelper()
         helper.form_class = 'form upload-form'
         #print "Helper: doi: %s" % reverse('detail_transition', args=(self.article.doi,))
-        action_url = reverse('detail_transition', args=(self.article.doi,))
+        action_url = reverse('detail_transition_upload', args=(self.article.doi,))
         helper.set_form_action(action_url)
         helper.layout = Layout(
             Field('article_pk'),
-            Field('transition_pk'),
+            Field('requested_transition_pk'),
             Field('file'),
             Submit('submit', 'Submit', css_class='btn-primary'),
             )

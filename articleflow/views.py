@@ -283,6 +283,31 @@ class ArticleDetailTransitionPanel(View):
         r = self.template.render(context)
         return HttpResponse(r)
 
+class ArticleDetailTransitionUpload(View):
+
+    def handle_uploaded_file(self, f, destination_pathname):
+        logger.debug("Writing uploaded file to %s" % destination_pathname)
+        with open(destination_pathname, 'wb+') as destination:
+            for chunk in f.chunks():
+                destination.write(chunk)
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated():
+            to_json = {
+                'error': 'Need to login'
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+        article = get_object_or_404(Article, pk=request.POST['article_pk'])
+        transition = get_object_or_404(Transition, pk=request.POST['requested_transition_pk'])
+        form = FileUpload(article, transition, request.POST, request.FILES)
+        if form.is_valid():
+            if transition in article.possible_transitions():
+                self.handle_uploaded_file(request.FILES['file'], os.path.join(transition.file_upload_destination, "%s.doc" % article.doi))
+                article.execute_transition(transition, request.user)
+                return HttpResponseRedirect(reverse('detail_main', args=(article.doi,)))
+
+        return HttpResponse("Failure. Tell Jack")
+
 class ArticleDetailTransition(View):
 
     template_name = 'articleflow/possible_transitions.html'
