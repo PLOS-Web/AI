@@ -23,6 +23,9 @@ ERROR_SET_SOURCES = (
     (3, 'test'),
 )
 
+import logging
+logger = logging.getLogger(__name__)
+
 def now():
     return datetime.datetime.utcnow().replace(tzinfo=utc)
 
@@ -68,6 +71,8 @@ class Error(models.Model):
                     a_extras.num_errors += 1
                 elif self.level == 2:
                     a_extras.num_warnings += 1
+                elif self.level == 3:
+                    pass
                 else:
                     logger.error("Encountered error category unknown to articleextras: %s" % self.level)
                     
