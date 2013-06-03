@@ -11,7 +11,7 @@ built for:
 
 deb-pendencies:
 
-libmysqlclient-dev python-dev libldap2-dev libsasl2-dev libssl-dev unixodbc-dev
+libmysqlclient-dev python-dev libldap2-dev libsasl2-dev libssl-dev unixodbc-dev libxml2-dev libxslt1-dev
 
 ## Instructions
 
