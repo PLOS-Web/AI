@@ -1,11 +1,12 @@
 # Fill me out and copy me to local_settings.py
 #  (then don't ever commit me)
 
+import os
 import ldap
 import sys
 from django_auth_ldap.config import LDAPSearch
 
-LOG_FILE_DIRECTORY = os.path.abs("/home/jlabarba/ai/logs/")
+LOG_FILE_DIRECTORY = os.path.dirname("/home/jlabarba/ai/logs/")
 
 # email to send 500 stack traces to
 ADMINS = (
