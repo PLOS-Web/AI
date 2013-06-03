@@ -6,7 +6,11 @@ import zipfile
 
 from articleflow.models import Article, ArticleState, State, Typesetter, WatchState
 from ai import settings
-import manuscript_extractor as man_e
+import articleflow.manuscript_extractor as man_e
+
+from celery.task import task
+from celery.utils.log import get_task_logger
+celery_logger = get_task_logger(__name__) 
 
 import logging
 logger = logging.getLogger(__name__)
@@ -55,6 +59,7 @@ def _get_filenames_and_mtime_in_dir(path, filename_regex_prog=None):
         files = filter(lambda x: filename_regex_prog.match(os.path.basename(x[0])), files)
     return files
 
+
 def scan_directory_for_changes(ws, trigger_func, directory, filename_regex_prog=None):
     """make one scan of a directory for all newly modified files.
     saves last mtime to database using a WatchState object.
@@ -75,38 +80,6 @@ def scan_directory_for_changes(ws, trigger_func, directory, filename_regex_prog=
         if ws.gt_last_mtime(m_time):
             ws.update_last_mtime(m_time)
 
-def watch_docs_from_aries():
-    def process_doc_from_aries(f):
-        # add article to AI
-        #   extract doi from go.xml
-        
-        si_guid = os.path.basename(f).split('.zip')[0]
-        doi = PlosDoi(man_e.doi(f)).short
-        logger.debug("Identified new aries-merops delivery {guid: %s} as %s" % (si_guid,doi))
-
-        art, new = Article.objects.get_or_create(doi=doi)
-        art.typesetter = Typesetter.objects.get(name='Merops')
-        art.si_guid = si_guid
-
-        art.save()
-        delivery_state = State.objects.get(unique_name='delivered_from_aries')
-        art_s = ArticleState(article=art, state=delivery_state)
-        art_s.save()
-        # extract manuscript, rename to doi.doc
-        manuscript_name = man_e.manuscript(f)
-        z = zipfile.ZipFile(f)
-        z.extract(manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION)
-        logger.debug("Extracting manuscript file, %s, to %s" % (manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION))
-        z.close()
-        man_f = os.path.join(settings.MEROPS_MANUSCRIPT_EXTRACTION, manuscript_name)
-        queue_doc_meropsing(art, man_f)
-    
-    ws, new = WatchState.objects.get_or_create(watcher="merops_aries_delivery")
-    if new:
-        ws.save()
-    zip_prog = re.compile('.*\.zip$')
-    scan_directory_for_changes(ws, process_doc_from_aries, settings.MEROPS_ARIES_DELIVERY, zip_prog)
-
 def queue_doc_meropsing(article, doc=None):
     """Move a document into the queue for meropsing
     :param doc: filepath to document that oughta be moved.
@@ -121,32 +94,6 @@ def queue_doc_meropsing(article, doc=None):
     meropsed_queued_state = State.objects.get(unique_name="queued_for_meropsing")
     art_s = ArticleState(article=article, state=meropsed_queued_state)
     art_s.save()
-
-def watch_merops_output():
-    def process_doc_from_merops(f):
-        # Identify article
-        filename = os.path.basename(f)
-        logger.debug("Filename: %s" % filename)
-        doi_sre_match = re.match(RE_SHORT_DOI_PATTERN, filename)
-        if not doi_sre_match:
-            raise TypeError("Can't figure out doi from filename: %s" % filename)
-        doi = doi_sre_match.group()
-        logger.debug("Found doi from filename: %s" % doi)
-
-        # Update status in AI
-        art, new = Article.objects.get_or_create(doi=doi)
-        if new:
-            art.typesetter = Typesetter.objects.get(name='Merops')
-            art.save()
-        merops_output_state = State.objects.get(unique_name="meropsed")
-        art_s = ArticleState(article=art, state=merops_output_state)
-        art_s.save()
-
-    ws, new = WatchState.objects.get_or_create(watcher="merops_meropsed_out")
-    if new:
-        ws.save()
-    meropsed_doc_prog = re.compile(RE_SHORT_DOI_PATTERN + '\.doc$')
-    scan_directory_for_changes(ws, process_doc_from_merops, settings.MEROPS_MEROPSED_OUTPUT, meropsed_doc_prog)
 
 def move_to_pm():
     meropsed_articles = Article.objects.filter(current_state__unique_name="meropsed")
@@ -169,6 +116,70 @@ def queue_doc_finishxml(doc, article):
     art_s = ArticleState(article=article, state=finish_queued_state)
     art_s.save()
 
+@task
+def watch_docs_from_aries():
+    def process_doc_from_aries(f):
+        # add article to AI
+        #   extract doi from go.xml
+        si_guid = os.path.basename(f).split('.zip')[0]
+        doi = PlosDoi(man_e.doi(f)).short
+        logger.debug("Identified new aries-merops delivery {guid: %s} as %s" % (si_guid,doi))
+        celery_logger.info("watch_docs_from_aries identified new file for %s" % doi)
+
+        art, new = Article.objects.get_or_create(doi=doi)
+        art.typesetter = Typesetter.objects.get(name='Merops')
+        art.si_guid = si_guid
+
+        art.save()
+        delivery_state = State.objects.get(unique_name='delivered_from_aries')
+        art_s = ArticleState(article=art, state=delivery_state)
+        art_s.save()
+        # extract manuscript, rename to doi.doc
+        manuscript_name = man_e.manuscript(f)
+        z = zipfile.ZipFile(f)
+        z.extract(manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION)
+        logger.debug("Extracting manuscript file, %s, to %s" % (manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION))
+        z.close()
+        man_f = os.path.join(settings.MEROPS_MANUSCRIPT_EXTRACTION, manuscript_name)
+        queue_doc_meropsing(art, man_f)
+    
+    celery_logger.info("Initiating watch_docs_from_aries")
+    ws, new = WatchState.objects.get_or_create(watcher="merops_aries_delivery")
+    if new:
+        ws.save()
+    zip_prog = re.compile('.*\.zip$')
+    scan_directory_for_changes(ws, process_doc_from_aries, settings.MEROPS_ARIES_DELIVERY, zip_prog)
+
+@task
+def watch_merops_output():
+    def process_doc_from_merops(f):
+        # Identify article
+        filename = os.path.basename(f)
+        logger.debug("Filename: %s" % filename)
+        doi_sre_match = re.match(RE_SHORT_DOI_PATTERN, filename)
+        if not doi_sre_match:
+            raise TypeError("Can't figure out doi from filename: %s" % filename)
+        doi = doi_sre_match.group()
+        logger.debug("Found doi from filename: %s" % doi)
+        celery_logger.info("watch_merops_output identified new file for %s" % doi)
+
+        # Update status in AI
+        art, new = Article.objects.get_or_create(doi=doi)
+        if new:
+            art.typesetter = Typesetter.objects.get(name='Merops')
+            art.save()
+        merops_output_state = State.objects.get(unique_name="meropsed")
+        art_s = ArticleState(article=art, state=merops_output_state)
+        art_s.save()
+
+    celery_logger.info("Initiating watch_merops_output")
+    ws, new = WatchState.objects.get_or_create(watcher="merops_meropsed_out")
+    if new:
+        ws.save()
+    meropsed_doc_prog = re.compile(RE_SHORT_DOI_PATTERN + '\.doc$')
+    scan_directory_for_changes(ws, process_doc_from_merops, settings.MEROPS_MEROPSED_OUTPUT, meropsed_doc_prog)
+
+@task
 def watch_finishxml_output():
     def process_doc_from_merops(f):
         # Identify article
@@ -179,6 +190,7 @@ def watch_finishxml_output():
             raise TypeError("Can't figure out doi from filename: %s" % filename)
         doi = doi_sre_match.group()
         logger.debug("Found doi from filename: %s" % doi)
+        celery_logger.info("watch_finishxml_output identified new file for %s" % doi)
 
         # Update status in AI
         art, new = Article.objects.get_or_create(doi=doi)
@@ -189,8 +201,15 @@ def watch_finishxml_output():
         art_s = ArticleState(article=art, state=finish_output_state)
         art_s.save()
 
+    celery_logger.info("Initiating watch_finishxml_output")
     ws, new = WatchState.objects.get_or_create(watcher="merops_finish_out")
     if new:
         ws.save()
     finished_xml_prog = re.compile(RE_SHORT_DOI_PATTERN + '\.xml$')
     scan_directory_for_changes(ws, process_doc_from_merops, settings.MEROPS_FINISH_XML_OUTPUT, finished_xml_prog)
+
+@task
+def test_task():
+    print "*** AM I WORKNIG? ***"
+    logger.info("TEST TASK")
+    celery_logger.info("TEST TASK")

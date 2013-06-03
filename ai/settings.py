@@ -1,4 +1,5 @@
 # Django settings for ai project.
+from datetime import timedelta
 from celery.task.schedules import crontab 
 import djcelery
 djcelery.setup_loader()
@@ -256,7 +257,7 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
             },
-        'articleflow.merops_tasks': {
+        'articleflow.daemons.merops_tasks': {
             'handlers': ['debugging', 'daemon-file'],
             'level': 'DEBUG',
             'propagate': True,
@@ -302,14 +303,11 @@ CELERYBEAT_PIDFILE = '/tmp/celerybeat.pid'
 CELERY_IMPORTS=(
     'articleflow.daemons.em_sync',
     'articleflow.daemons.transition_tasks',
+    'articleflow.daemons.merops_tasks',
 )
 
 # CELERY beat schedule
 CELERYBEAT_SCHEDULE = {
-    'test-scheduler': {
-        'task': 'articleflow.daemons.em_sync.cron_test',
-        'schedule': crontab(hour="*", minute="*", day_of_week="*")
-        },
     'em-sync': {
         'task': 'articleflow.daemons.em_sync.sync_all_pubdates',
         'schedule': crontab(hour="*/2", minute="0", day_of_week="*")
@@ -318,4 +316,18 @@ CELERYBEAT_SCHEDULE = {
         'task': 'articleflow.daemons.transition_tasks.ongoing_ambra_sync',
         'schedule': crontab(minute="*/15", day_of_week="*")
         },
+    'merops-tasks-watch-docs-from-aries': {
+        'task': 'articleflow.daemons.merops_tasks.watch_docs_from_aries',
+        'schedule': timedelta(seconds=30)
+        },
+    'merops-tasks-watch-merops-output': {
+        'task': 'articleflow.daemons.merops_tasks.watch_merops_output',
+        'schedule': timedelta(seconds=30)
+        },
+    'merops-tasks-watch-finishxml-output': {
+        'task': 'articleflow.daemons.merops_tasks.watch_finishxml_output',
+        'schedule': timedelta(seconds=30)
+        },
     }
+
+
