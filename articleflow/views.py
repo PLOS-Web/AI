@@ -708,7 +708,7 @@ class ServeArticleDoc(View):
         try:
             return send_file(pathname)
         except IOError, e:
-            raise Http404("Couldn't find that file on disk: %s" % pathname)
+            raise Http404(":( I can't find that file.  This likely means that the associated process in merops hasn't been completed.  If you think this 404 message is in error, please contact your admin.")
 
 class FTPMeropsUpload(View):
     template_name = 'articleflow/fileupload_form.html'
