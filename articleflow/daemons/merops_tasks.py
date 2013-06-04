@@ -80,11 +80,14 @@ def scan_directory_for_changes(ws, trigger_func, directory, filename_regex_prog=
         raise
     files = filter(lambda x: ws.gt_last_mtime(x[1]),files)
     files = sorted(files, key=lambda f: f[1])
-    for f, m_time in files:
-        logger.info("Found new file: %s" % f)
-        trigger_func(f)
-        if ws.gt_last_mtime(m_time):
-            ws.update_last_mtime(m_time)
+    try:
+        for f, m_time in files:
+            logger.info("Found new file: %s" % f)
+            trigger_func(f)
+            if ws.gt_last_mtime(m_time):
+                ws.update_last_mtime(m_time)
+    except Exception, e:
+        logger.error(e)
 
 def queue_doc_meropsing(article, doc=None):
     """Move a document into the queue for meropsing
