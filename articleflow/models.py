@@ -394,6 +394,9 @@ class WatchState(models.Model):
         logger.debug("Updating last_mtime to %s" % self.last_mtime)
         self.save()
 
+    def __unicode__(self):
+        return self.watcher
+
     #Bookkeeping
     created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)
