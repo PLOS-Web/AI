@@ -329,6 +329,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'articleflow.daemons.merops_tasks.watch_merops_output',
         'schedule': timedelta(seconds=30)
         },
+    'merops-tasks-move-to-pm': {
+        'task': 'articleflow.daemons.merops_tasks.move-to-pm',
+        'schedule': timedelta(seconds=30)
+        },
     'merops-tasks-watch-finishxml-output': {
         'task': 'articleflow.daemons.merops_tasks.watch_finishxml_output',
         'schedule': timedelta(seconds=30)

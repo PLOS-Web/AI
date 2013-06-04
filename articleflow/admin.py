@@ -24,6 +24,9 @@ class ArticleStateAdmin(admin.ModelAdmin):
     list_filter = ('state', 'assignee', 'from_transition', 'from_transition_user')
     search_fields = ('article__doi', 'assignee__username')
 
+class WatchStateAdmin(admin.ModelAdmin):
+    list_display = ('watcher', 'last_mtime')
+
 admin.site.register(State, StateAdmin)
 admin.site.register(ArticleState, ArticleStateAdmin)
 admin.site.register(Article, ArticleAdmin)
@@ -33,5 +36,5 @@ admin.site.register(ArticleExtras)
 admin.site.register(AssignmentHistory)
 admin.site.register(AssignmentRatio)
 admin.site.register(Typesetter)
-admin.site.register(WatchState)
+admin.site.register(WatchState, WatchStateAdmin)
 
