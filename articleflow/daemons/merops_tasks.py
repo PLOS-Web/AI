@@ -180,7 +180,7 @@ def watch_merops_output():
     ws, new = WatchState.objects.get_or_create(watcher="merops_meropsed_out")
     if new:
         ws.save()
-    meropsed_doc_prog = re.compile(RE_SHORT_DOI_PATTERN + '\.doc$')
+    meropsed_doc_prog = re.compile(RE_SHORT_DOI_PATTERN + '.*\.doc$')
     scan_directory_for_changes(ws, process_doc_from_merops, settings.MEROPS_MEROPSED_OUTPUT, meropsed_doc_prog)
 
 @task
@@ -218,7 +218,7 @@ def watch_finishxml_output():
     ws, new = WatchState.objects.get_or_create(watcher="merops_finish_out")
     if new:
         ws.save()
-    finished_xml_prog = re.compile(RE_SHORT_DOI_PATTERN + '\.xml$')
+    finished_xml_prog = re.compile(RE_SHORT_DOI_PATTERN + '.*\.xml$')
     scan_directory_for_changes(ws, process_doc_from_merops, settings.MEROPS_FINISH_XML_OUTPUT, finished_xml_prog)
 
 @task
