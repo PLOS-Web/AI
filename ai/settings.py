@@ -174,20 +174,30 @@ LOGGING = {
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler',
         },
-        'daemon-file':{
-            'level': 'DEBUG',
-            'class':'logging.handlers.RotatingFileHandler',
-            'maxBytes': 500000,
-            'filename': os.path.join(LOG_FILE_DIRECTORY, 'daemons.log'),
-            'backupCount': 5,
+        'tasks-file':{
+            'level': 'INFO',
+            'level': 'INFO',
+            'class':'logging.handlers.TimedRotatingFileHandler',
+            'when': 'midnight',
+            'filename': os.path.join(LOG_FILE_DIRECTORY, 'tasks.log'),
+            'backupCount': '30',
+            'formatter': 'verbose',
+            },
+        'celery-file':{
+            'level': 'INFO',
+            'level': 'INFO',
+            'class':'logging.handlers.TimedRotatingFileHandler',
+            'when': 'midnight',
+            'filename': os.path.join(LOG_FILE_DIRECTORY, 'celery.log'),
+            'backupCount': '30',
             'formatter': 'verbose',
             },
         'requests-file':{
-            'level': 'DEBUG',
-            'class':'logging.handlers.RotatingFileHandler',
-            'maxBytes': 500000,
+            'level': 'INFO',
+            'class':'logging.handlers.TimedRotatingFileHandler',
+            'when': 'midnight',
             'filename': os.path.join(LOG_FILE_DIRECTORY, 'requests.log'),
-            'backupCount': 5,
+            'backupCount': '30',
             'formatter': 'verbose',
             },
         'console': {
@@ -263,12 +273,12 @@ LOGGING = {
             'propagate': True,
             },
         'articleflow.daemons.merops_tasks': {
-            'handlers': ['debugging', 'daemon-file'],
+            'handlers': ['debugging', 'tasks-file'],
             'level': 'DEBUG',
             'propagate': True,
             },
         'celery': {
-            'handlers': ['debugging', 'daemon-file'],
+            'handlers': ['debugging', 'celery-file'],
             'level': 'DEBUG',
             'propagate': True,
             },
@@ -330,7 +340,7 @@ CELERYBEAT_SCHEDULE = {
         'schedule': timedelta(seconds=30)
         },
     'merops-tasks-move-to-pm': {
-        'task': 'articleflow.daemons.merops_tasks.move-to-pm',
+        'task': 'articleflow.daemons.merops_tasks.move_to_pm',
         'schedule': timedelta(seconds=30)
         },
     'merops-tasks-watch-finishxml-output': {
