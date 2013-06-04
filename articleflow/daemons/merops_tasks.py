@@ -17,6 +17,12 @@ logger = logging.getLogger(__name__)
 
 RE_SHORT_DOI_PATTERN = "[a-z]*\.[0-9]*"
 
+def make_articlestate_if_new(articlestate):
+    if articlestate.article.current_state == articlestate.state:
+        return False
+    articlestate.save()
+    return True
+
 class PlosDoi(object):
 
     def __init__(self, doi_str):
@@ -93,15 +99,7 @@ def queue_doc_meropsing(article, doc=None):
     # update article status
     meropsed_queued_state = State.objects.get(unique_name="queued_for_meropsing")
     art_s = ArticleState(article=article, state=meropsed_queued_state)
-    art_s.save()
-
-def move_to_pm():
-    meropsed_articles = Article.objects.filter(current_state__unique_name="meropsed")
-
-    pm_state = State.objects.get(unique_name="prepare_manuscript")
-    for a in meropsed_articles:
-        art_s = ArticleState(article=a, state=pm_state)
-        art_s.save()
+    make_articlestate_if_new(art_s)
 
 def queue_doc_finishxml(doc, article):
     """Move a document into the queue for finishxml
@@ -114,7 +112,7 @@ def queue_doc_finishxml(doc, article):
     # update article status
     finish_queued_state = State.objects.get(unique_name="queued_for_finish")
     art_s = ArticleState(article=article, state=finish_queued_state)
-    art_s.save()
+    make_articlestate_if_new(art_s)
 
 @task
 def watch_docs_from_aries():
@@ -133,15 +131,18 @@ def watch_docs_from_aries():
         art.save()
         delivery_state = State.objects.get(unique_name='delivered_from_aries')
         art_s = ArticleState(article=art, state=delivery_state)
-        art_s.save()
+        make_articlestate_if_new(art_s)
         # extract manuscript, rename to doi.doc
-        manuscript_name = man_e.manuscript(f)
-        z = zipfile.ZipFile(f)
-        z.extract(manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION)
-        logger.debug("Extracting manuscript file, %s, to %s" % (manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION))
-        z.close()
-        man_f = os.path.join(settings.MEROPS_MANUSCRIPT_EXTRACTION, manuscript_name)
-        queue_doc_meropsing(art, man_f)
+        try:
+            manuscript_name = man_e.manuscript(f)
+            z = zipfile.ZipFile(f)
+            z.extract(manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION)
+            logger.debug("Extracting manuscript file, %s, to %s" % (manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION))
+            z.close()
+            man_f = os.path.join(settings.MEROPS_MANUSCRIPT_EXTRACTION, manuscript_name)
+            queue_doc_meropsing(art, man_f)
+        except man_e.ManuscriptExtractionException, e:
+            logger.error(e)
     
     celery_logger.info("Initiating watch_docs_from_aries")
     ws, new = WatchState.objects.get_or_create(watcher="merops_aries_delivery")
@@ -170,7 +171,7 @@ def watch_merops_output():
             art.save()
         merops_output_state = State.objects.get(unique_name="meropsed")
         art_s = ArticleState(article=art, state=merops_output_state)
-        art_s.save()
+        make_articlestate_if_new(art_s)
 
     celery_logger.info("Initiating watch_merops_output")
     ws, new = WatchState.objects.get_or_create(watcher="merops_meropsed_out")
@@ -178,6 +179,15 @@ def watch_merops_output():
         ws.save()
     meropsed_doc_prog = re.compile(RE_SHORT_DOI_PATTERN + '\.doc$')
     scan_directory_for_changes(ws, process_doc_from_merops, settings.MEROPS_MEROPSED_OUTPUT, meropsed_doc_prog)
+
+@task
+def move_to_pm():
+    meropsed_articles = Article.objects.filter(current_state__unique_name="meropsed")
+
+    pm_state = State.objects.get(unique_name="prepare_manuscript")
+    for a in meropsed_articles:
+        art_s = ArticleState(article=a, state=pm_state)
+        make_articlestate_if_new(art_s)
 
 @task
 def watch_finishxml_output():
@@ -199,7 +209,7 @@ def watch_finishxml_output():
             art.save()
         finish_output_state = State.objects.get(unique_name="finish_out")
         art_s = ArticleState(article=art, state=finish_output_state)
-        art_s.save()
+        make_articlestate_if_new(art_s)
 
     celery_logger.info("Initiating watch_finishxml_output")
     ws, new = WatchState.objects.get_or_create(watcher="merops_finish_out")

@@ -18,16 +18,22 @@ def doi(guidzip):
     go = etree.parse(guidzip.replace('zip', 'go.xml')).getroot()
     return go.xpath("//parameter[@name='DOI']")[0].attrib['value']
 
+class ManuscriptExtractionException(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+    def __str_(self):
+        return "Error in manuscript extraction: %s" % self.msg
+
 def manuscript(guidzip):
     go = etree.parse(guidzip.replace('zip', 'go.xml')).getroot()
     meta_xml = z.ZipFile(guidzip).open(metadata(go))
     meta = etree.parse(meta_xml).getroot()
     m = list(set(go_files(go)) - set(metadata_files(meta)))
     if len(m) != 1:
-        raise Exception(str(len(m)) + " potential manuscripts found")
+        raise ManuscriptExtractionException(str(len(m)) + " potential manuscripts found")
     print("TESSST ", m[0][-4:])
     if m[0][-4:] != '.doc' and m[0][-5:] != '.docx':
-        raise Exception(m[0] + " may not be a doc file")
+        raise ManuscriptExtractionException(m[0] + " may not be a doc file")
     return m[0]
 
 if __name__ == '__main__':
