@@ -17,6 +17,7 @@ from django.core.servers.basehttp import FileWrapper
 
 import simplejson
 import re
+import glob
 import datetime
 import mimetypes
 
@@ -664,15 +665,19 @@ class AssignRatios(View):
         ctx = self.get_context_data(kwargs)
         return render_to_response(self.template_name, ctx, context_instance=RequestContext(request))
 
-def send_file(pathname):
+def send_file(pathname, attachment_name=None):
     basename = os.path.basename(pathname)
+    if not attachment_name:
+        filename = basename
+    else:
+        filename = attachment_name
     mime, enc = mimetypes.guess_type(basename, False)
     logger.debug("Opening file at '%s' for reading." % pathname)
     wrapper = FileWrapper(file(pathname))
 
     response = HttpResponse(wrapper, content_type=mime)
     response['Content-Length'] = os.path.getsize(pathname)
-    response['Content-Disposition'] = "attachment; filename=%s" % basename
+    response['Content-Disposition'] = "attachment; filename=%s" % filename
     return response
 
 def upload_doc(storage, file_name, file_stream):
@@ -681,7 +686,21 @@ def upload_doc(storage, file_name, file_stream):
     print storage_file.file.getvalue()
     storage_file.close()
 
+def find_highest_file_version_number(directory, basename):
+    angry_prog = re.compile("(?<=\()[0-9]*(?=\))")
+    def angry_search(r, n):
+        s = r.search(n)
+        if s:
+            return s.group()
+        return None
 
+    print "Looking for " + os.path.join(directory, basename) + "*"
+    files = [os.path.basename(f) for f in glob.glob(os.path.join(directory, basename) + "*")]
+    print files
+    if not files:
+        raise ValueError("File with that basename doesn't exist")
+    numbers = map(lambda x: angry_search(angry_prog, x), files)
+    return max(numbers)
 
 class ServeArticleDoc(View):
     dir_path = '/home/jlabarba/fileserve_test/' 
@@ -702,11 +721,20 @@ class ServeArticleDoc(View):
             self.dir_path = schema_item['dir_path']
             self.filename_modifier = schema_item['filename_modifier']
             self.file_extension = schema_item['file_extension']
-
-        pathname = os.path.join(self.dir_path, "%s%s.%s" % (article.doi, self.filename_modifier, self.file_extension))
+            try:
+                self.version_number = find_highest_file_version_number(self.dir_path, article.doi)
+            except ValueError, e:
+                raise Http404()
+            if self.version_number:
+                self.version_number = "(%s)" % self.version_number
+            else:
+                self.version_number = ""
+            print "Version number: " + self.version_number
+            
+        pathname = os.path.join(self.dir_path, "%s%s%s.%s" % (article.doi, self.version_number, self.filename_modifier, self.file_extension))
         
         try:
-            return send_file(pathname)
+            return send_file(pathname, "%s%s.%s" % (article.doi, self.filename_modifier, self.file_extension))
         except IOError, e:
             raise Http404(":( I can't find that file.  This likely means that the associated process in merops hasn't been completed.  If you think this 404 message is in error, please contact your admin.")
 
