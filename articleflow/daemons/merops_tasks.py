@@ -97,8 +97,8 @@ def queue_doc_meropsing(article, doc=None):
     """     
     # TODO move file into queue if specified
     if doc:
-        logger.info("Moving %s into meropsing queue" % article.doi)
-        shutil.move(doc, os.path.join(settings.MEROPS_MEROPSED_WATCH, "%s.doc" % article.doi))
+        logger.info("Copying %s into meropsing queue" % article.doi)
+        shutil.copy(doc, os.path.join(settings.MEROPS_MEROPSED_WATCH, "%s.doc" % article.doi))
 
     # update article status
     meropsed_queued_state = State.objects.get(unique_name="queued_for_meropsing")
