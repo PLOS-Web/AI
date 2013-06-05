@@ -59,7 +59,7 @@ def _get_mtime(file):
     return datetime.datetime.fromtimestamp(os.stat(file).st_mtime)
 
 def _get_filenames_and_mtime_in_dir(path, filename_regex_prog=None):
-    logger.info("Checking for new files in %s matching %s" % (path, filename_regex_prog.pattern))
+    logger.debug("Checking for new files in %s matching %s" % (path, filename_regex_prog.pattern))
     files = [ (os.path.join(path, f), _get_mtime(os.path.join(path, f))) for f in os.listdir(path) if os.path.isfile(os.path.join(path,f))]
     if filename_regex_prog:
         files = filter(lambda x: filename_regex_prog.match(os.path.basename(x[0])), files)
@@ -85,6 +85,7 @@ def scan_directory_for_changes(ws, trigger_func, directory, filename_regex_prog=
             logger.info("Found new file: %s" % f)
             trigger_func(f)
             if ws.gt_last_mtime(m_time):
+                logger.debug("Updating watchstate last m_time to %s" % m_time)
                 ws.update_last_mtime(m_time)
     except Exception, e:
         logger.error(e)
@@ -96,7 +97,7 @@ def queue_doc_meropsing(article, doc=None):
     """     
     # TODO move file into queue if specified
     if doc:
-        logger.debug("Moving %s into meropsing queue" % article.doi)
+        logger.info("Moving %s into meropsing queue" % article.doi)
         shutil.move(doc, os.path.join(settings.MEROPS_MEROPSED_WATCH, "%s.doc" % article.doi))
 
     # update article status
@@ -124,7 +125,7 @@ def watch_docs_from_aries():
         #   extract doi from go.xml
         si_guid = os.path.basename(f).split('.zip')[0]
         doi = PlosDoi(man_e.doi(f)).short
-        logger.debug("Identified new aries-merops delivery {guid: %s} as %s" % (si_guid,doi))
+        logger.info("Identified new aries-merops delivery {guid: %s} as %s" % (si_guid,doi))
         celery_logger.info("watch_docs_from_aries identified new file for %s" % doi)
 
         art, new = Article.objects.get_or_create(doi=doi)
@@ -140,7 +141,7 @@ def watch_docs_from_aries():
             manuscript_name = man_e.manuscript(f)
             z = zipfile.ZipFile(f)
             z.extract(manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION)
-            logger.debug("Extracting manuscript file, %s, to %s" % (manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION))
+            logger.info("Extracting manuscript file, %s, to %s" % (manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION))
             z.close()
             man_f = os.path.join(settings.MEROPS_MANUSCRIPT_EXTRACTION, manuscript_name)
             queue_doc_meropsing(art, man_f)
@@ -159,12 +160,11 @@ def watch_merops_output():
     def process_doc_from_merops(f):
         # Identify article
         filename = os.path.basename(f)
-        logger.debug("Filename: %s" % filename)
         doi_sre_match = re.match(RE_SHORT_DOI_PATTERN, filename)
         if not doi_sre_match:
             raise TypeError("Can't figure out doi from filename: %s" % filename)
         doi = doi_sre_match.group()
-        logger.debug("Found doi from filename: %s" % doi)
+        logger.info("Found doi from filename: %s" % doi)
         celery_logger.info("watch_merops_output identified new file for %s" % doi)
 
         # Update status in AI
@@ -197,12 +197,11 @@ def watch_finishxml_output():
     def process_doc_from_merops(f):
         # Identify article
         filename = os.path.basename(f)
-        logger.debug("Filename: %s" % filename)
         doi_sre_match = re.match(RE_SHORT_DOI_PATTERN, filename)
         if not doi_sre_match:
             raise TypeError("Can't figure out doi from filename: %s" % filename)
         doi = doi_sre_match.group()
-        logger.debug("Found doi from filename: %s" % doi)
+        logger.info("Found doi from filename: %s" % doi)
         celery_logger.info("watch_finishxml_output identified new file for %s" % doi)
 
         # Update status in AI

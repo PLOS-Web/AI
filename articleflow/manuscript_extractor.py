@@ -30,8 +30,7 @@ def manuscript(guidzip):
     meta = etree.parse(meta_xml).getroot()
     m = list(set(go_files(go)) - set(metadata_files(meta)))
     if len(m) != 1:
-        raise ManuscriptExtractionException(str(len(m)) + " potential manuscripts found")
-    print("TESSST ", m[0][-4:])
+        raise ManuscriptExtractionException("%s potential manuscripts found: %s" % (len(m), m) )
     if m[0][-4:] != '.doc' and m[0][-5:] != '.docx':
         raise ManuscriptExtractionException(m[0] + " may not be a doc file")
     return m[0]
