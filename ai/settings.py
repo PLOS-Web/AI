@@ -175,8 +175,7 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler',
         },
         'tasks-file':{
-            'level': 'INFO',
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class':'logging.handlers.TimedRotatingFileHandler',
             'when': 'midnight',
             'filename': os.path.join(LOG_FILE_DIRECTORY, 'tasks.log'),
@@ -184,7 +183,6 @@ LOGGING = {
             'formatter': 'verbose',
             },
         'celery-file':{
-            'level': 'INFO',
             'level': 'INFO',
             'class':'logging.handlers.TimedRotatingFileHandler',
             'when': 'midnight',
