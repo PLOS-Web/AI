@@ -145,7 +145,7 @@ def process_doc_from_aries(f):
         man_f = os.path.join(settings.MEROPS_MANUSCRIPT_EXTRACTION, manuscript_name)
         queue_doc_meropsing(art, man_f)
     except man_e.ManuscriptExtractionException, e:
-        logger.error(e)
+        logger.error(str(e))
 
 @task
 def watch_docs_from_aries():

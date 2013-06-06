@@ -21,7 +21,7 @@ def doi(guidzip):
 class ManuscriptExtractionException(Exception):
     def __init__(self, msg):
         self.msg = msg
-    def __str_(self):
+    def __str__(self):
         return "Error in manuscript extraction: %s" % self.msg
 
 def manuscript(guidzip):
