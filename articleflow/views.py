@@ -668,16 +668,19 @@ class AssignRatios(View):
 def send_file(pathname, attachment_name=None):
     basename = os.path.basename(pathname)
     if not attachment_name:
-        filename = basename
-    else:
-        filename = attachment_name
+        attachment_name = basename
     mime, enc = mimetypes.guess_type(basename, False)
-    logger.debug("Opening file at '%s' for reading." % pathname)
-    wrapper = FileWrapper(file(pathname))
+    print "about to glob: %s " % pathname
+    file_name = glob.glob(pathname)
+    print "Globbed: %s" % file_name
+    if not file_name:
+        raise IOError()
+    logger.debug("Opening file at '%s' for reading." % file_name[0])
+    wrapper = FileWrapper(file(file_name[0]))
 
     response = HttpResponse(wrapper, content_type=mime)
-    response['Content-Length'] = os.path.getsize(pathname)
-    response['Content-Disposition'] = "attachment; filename=%s" % filename
+    response['Content-Length'] = os.path.getsize(file_name[0])
+    response['Content-Disposition'] = "attachment; filename=%s" % attachment_name
     return response
 
 def upload_doc(storage, file_name, file_stream):
@@ -724,6 +727,7 @@ class ServeArticleDoc(View):
             try:
                 self.version_number = find_highest_file_version_number(self.dir_path, article.doi)
             except ValueError, e:
+                logger.error(e)
                 raise Http404()
             if self.version_number:
                 self.version_number = "(%s)" % self.version_number

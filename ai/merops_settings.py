@@ -14,12 +14,12 @@ MEROPS_FILE_SCHEMA = {
     'meropsed.doc': {
         'dir_path': MEROPS_MEROPSED_OUTPUT,
         'filename_modifier': '',
-        'file_extension': 'doc',
+        'file_extension': 'doc*',
         },
     'meropsed-original.doc': {
         'dir_path': MEROPS_MEROPSED_OUTPUT,
         'filename_modifier': '-Original',
-        'file_extension': 'doc',
+        'file_extension': 'doc*',
         },
     'meropsed.xml': {
         'dir_path': MEROPS_MEROPSED_OUTPUT,
@@ -29,12 +29,12 @@ MEROPS_FILE_SCHEMA = {
     'finishxml.doc': {
         'dir_path': MEROPS_FINISH_XML_OUTPUT,
         'filename_modifier': '-FinishXMLCheck',
-        'file_extension': 'doc',
+        'file_extension': 'doc*',
         },
     'finishxml-original.doc': {
         'dir_path': MEROPS_FINISH_XML_OUTPUT,
         'filename_modifier': '-FinishXMLCheck-Original',
-        'file_extension': 'doc',
+        'file_extension': 'doc*',
         },
     'finishxml.xml': {
         'dir_path': MEROPS_FINISH_XML_OUTPUT,
