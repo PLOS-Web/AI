@@ -99,7 +99,7 @@ def queue_doc_meropsing(article, doc=None):
     if doc:
         filename, extension = os.path.splitext(doc)
         logger.info("Copying %s into meropsing queue" % article.doi)
-        shutil.copy(doc, os.path.join(settings.MEROPS_MEROPSED_WATCH, article.doi, extension))
+        shutil.copy(doc, os.path.join(settings.MEROPS_MEROPSED_WATCH, "%s%s" % (article.doi, extension)))
 
     # update article status
     meropsed_queued_state = State.objects.get(unique_name="queued_for_meropsing")
