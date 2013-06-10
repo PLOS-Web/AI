@@ -33,7 +33,7 @@ import transitionrules
 
 from ai import settings
 from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio, Typesetter
-from articleflow.forms import AssignmentForm, ReportsDateRange, FileUpload
+from articleflow.forms import AssignmentForm, ReportsDateRange, FileUpload, AssignArticleForm
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
 
@@ -568,6 +568,21 @@ class AssignToMe(View):
                 }
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
 
+class AssignArticle(View):
+    template_name = 'articleflow/assign_article_form.html'
+
+    def get_context_data(self, *args, **kwargs):
+        a = get_object_or_404(Article, doi=kwargs['doi'])
+        form = AssignArticleForm(a)
+        ctx = {
+            'form': form
+            }
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(*args, **kwargs)
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
 class AssignRatiosMain(View):
     template_name = 'articleflow/assign_ratios_main.html'
 
@@ -673,7 +688,10 @@ def send_file(pathname, attachment_name=None):
         filename = attachment_name
     mime, enc = mimetypes.guess_type(basename, False)
     logger.debug("Opening file at '%s' for reading." % pathname)
-    wrapper = FileWrapper(file(pathname))
+    file_name = glob.glob(pathname+ '*')
+    if not file_name:
+        raise IOError()
+    wrapper = FileWrapper(file(filename[0]))
 
     response = HttpResponse(wrapper, content_type=mime)
     response['Content-Length'] = os.path.getsize(pathname)

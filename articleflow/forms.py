@@ -1,5 +1,6 @@
 from django import forms
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Submit
@@ -26,7 +27,26 @@ class ReportsDateRange(forms.Form):
     group = forms.ChoiceField(choices=group_choices)
     start_date = forms.DateTimeField(input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
     end_date = forms.DateTimeField(input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
- 
+
+class AssignArticleForm(forms.Form):
+    assignee = forms.ModelChoiceField(queryset=User.objects.filter(is_active=True).order_by('username'))
+    article_pk = forms.IntegerField(widget=forms.HiddenInput())
+
+    def __init__(self, article, *args, **kwargs):
+        super(AssignArticleForm, self).__init__(*args, **kwargs)
+        self.fields['article_pk'].initial = article.pk
+
+    @property
+    def helper(self):
+        helper = FormHelper()
+        action_url = reverse('
+        helper.set_form_action(action_url)
+        helper.layout = Layout(
+            Field('assignee'),
+            Field('article_pk'),
+            Submit('submit', 'Submit')
+            )
+        return helper
    
 class FileUpload(forms.Form):
     file = forms.FileField(label="Upload file", widget=forms.FileInput())
