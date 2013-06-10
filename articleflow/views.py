@@ -677,10 +677,10 @@ def send_file(pathname, attachment_name=None):
         raise IOError()
     logger.debug("Opening file at '%s' for reading." % file_name[0])
     wrapper = FileWrapper(file(file_name[0]))
-
+    throwaway, extension = os.path.splitext(file_name[0])
     response = HttpResponse(wrapper, content_type=mime)
     response['Content-Length'] = os.path.getsize(file_name[0])
-    response['Content-Disposition'] = "attachment; filename=%s" % attachment_name
+    response['Content-Disposition'] = "attachment; filename=%s%s" % (attachment_name, extension)
     return response
 
 def upload_doc(storage, file_name, file_stream):
@@ -738,7 +738,7 @@ class ServeArticleDoc(View):
         pathname = os.path.join(self.dir_path, "%s%s%s.%s" % (article.doi, self.version_number, self.filename_modifier, self.file_extension))
         
         try:
-            return send_file(pathname, "%s%s.%s" % (article.doi, self.filename_modifier, self.file_extension))
+            return send_file(pathname, "%s%s" % (article.doi, self.filename_modifier))
         except IOError, e:
             raise Http404(":( I can't find that file.  This likely means that the associated process in merops hasn't been completed.  If you think this 404 message is in error, please contact your admin.")
 
