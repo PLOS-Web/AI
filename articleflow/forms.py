@@ -29,20 +29,21 @@ class ReportsDateRange(forms.Form):
     end_date = forms.DateTimeField(input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
 
 class AssignArticleForm(forms.Form):
-    assignee = forms.ModelChoiceField(queryset=User.objects.filter(is_active=True).order_by('username'))
+    username = forms.ModelChoiceField(queryset=User.objects.filter(is_active=True).order_by('username'))
     article_pk = forms.IntegerField(widget=forms.HiddenInput())
 
     def __init__(self, article, *args, **kwargs):
         super(AssignArticleForm, self).__init__(*args, **kwargs)
+        self.article = article
         self.fields['article_pk'].initial = article.pk
 
     @property
     def helper(self):
         helper = FormHelper()
-        action_url = reverse('
+        action_url = reverse('assign_article', args=(self.article.doi,))
         helper.set_form_action(action_url)
         helper.layout = Layout(
-            Field('assignee'),
+            Field('username'),
             Field('article_pk'),
             Submit('submit', 'Submit')
             )

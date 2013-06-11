@@ -32,7 +32,7 @@ import django_filters
 import transitionrules
 
 from ai import settings
-from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio, Typesetter
+from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio, Typesetter, reassign_article
 from articleflow.forms import AssignmentForm, ReportsDateRange, FileUpload, AssignArticleForm
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
@@ -573,7 +573,7 @@ class AssignArticle(View):
 
     def get_context_data(self, *args, **kwargs):
         a = get_object_or_404(Article, doi=kwargs['doi'])
-        form = AssignArticleForm(a)
+        form = AssignArticleForm()
         ctx = {
             'form': form
             }
@@ -583,6 +583,18 @@ class AssignArticle(View):
         context = self.get_context_data(*args, **kwargs)
         return render_to_response(self.template_name, context, context_instance=RequestContext(request))
 
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated():
+            return HttpResponse("You need to log in dummy")
+        a = get_object_or_404(Article, doi=kwargs['doi'])
+        form = AssignArticleForm(article=a, data = request.POST)
+        if form.is_valid():
+            f_data = form.cleaned_data
+            user = get_object_or_404(User, username=f_data['username'])
+            reassign_article(a, user)
+            return HttpResponse("Valid form!")
+        return HttpResponse("Inlavid form!")
+        
 class AssignRatiosMain(View):
     template_name = 'articleflow/assign_ratios_main.html'
 
@@ -592,8 +604,7 @@ class AssignRatiosMain(View):
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(kwargs)        
-        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
-    
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))    
 
 class AssignRatios(View):
     template_name = 'articleflow/assign_ratios.html'

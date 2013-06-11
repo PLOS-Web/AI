@@ -493,3 +493,10 @@ class AutoAssign():
                 max_deficit = (deficit, u)
 
         return max_deficit[1]
+
+def reassign_article(article, user):
+    """Reassign article to user."""
+    arts_copy = article.current_articlestate
+    arts_copy.pk = None #hacky way to copy model instance
+    arts_copy.assignee = user
+    arts_copy.save()
