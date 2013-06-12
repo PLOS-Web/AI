@@ -98,7 +98,7 @@ def queue_doc_meropsing(article, doc=None):
     # TODO move file into queue if specified
     if doc:
         filename, extension = os.path.splitext(doc)
-        logger.info("Copying %s into meropsing queue" % article.doi)
+        logger.info("%s: copying %s into meropsing queue " % (article.doi, doc))
         shutil.copy(doc, os.path.join(settings.MEROPS_MEROPSED_WATCH, "%s%s" % (article.doi, extension)))
 
     # update article status
