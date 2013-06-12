@@ -106,6 +106,8 @@ def assign_ready_for_qc_article(art):
         a_s.save()
     except ArticleState.DoesNotExist, e:
         # move article to ready for qc state
+        if art.typesetter.name == 'Merops':
+            ready_for_qc_state = State.objects.get(unique_name='ready_for_qc_merops')
         a_s = ArticleState(article=art,
                            state=ready_for_qc_state,
                            assignee=None,
