@@ -21,7 +21,8 @@ def render_assign_to_me_button(context, article, user):
 def render_assign_article_form(context, article):
     form = AssignArticleForm(article)
     ctx = {
-        'form': form
+        'article': article,
+        'form': form,
             }
     return ctx
     
