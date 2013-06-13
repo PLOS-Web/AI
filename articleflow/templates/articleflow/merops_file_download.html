@@ -1,4 +1,5 @@
 <ul>
+  {% if meropsed %}
   <li>Initial processing files
     <ul>
       <li><a href={% url merops_files article.doi 'meropsed.doc' %}>{{ article.doi }}.doc</a></li>
@@ -6,6 +7,8 @@
       <li><a href={% url merops_files article.doi 'meropsed.xml' %} >{{ article.doi }}.xml</a></li>
     </ul>
   </li>
+  {% endif %}
+  {% if finish_xml_complete %}
   <li>Finish XML files
     <ul>
       <li><a href={% url merops_files article.doi 'finishxml.doc' %} >{{ article.doi }}-finishxml.doc</a></li>
@@ -13,4 +16,8 @@
       <li><a href={% url merops_files article.doi 'finishxml.xml' %} >{{ article.doi }}-finishxml.xml</a></li>
     </ul>
   </li>
+  {% endif %}
 </ul>
+{% if not finish_xml_complete and not meropsed %}
+<p>(none)</p>
+{% endif %}
