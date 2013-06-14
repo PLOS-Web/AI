@@ -60,6 +60,8 @@ COLUMN_CHOICES = (
     (7, 'Typesetter'),
     )
 
+DEFAULT_COLUMNS = [0,1,3,4,5,6,7]
+
 def get_journal_from_doi(doi):
     match = re.match('.*(?=\.)', doi)
     
@@ -179,7 +181,7 @@ class ArticleGrid(View):
 
     def get_selected_cols(self):
         if not self.request.GET.getlist('cols'):
-            requested_cols = range(0,7) #default columns
+            requested_cols = DEFAULT_COLUMNS #default columns
         else:
             requested_cols = [0] #make sure DOI is always included
             requested_cols += self.request.GET.getlist('cols')
