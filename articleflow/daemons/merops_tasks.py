@@ -97,8 +97,9 @@ def queue_doc_meropsing(article, doc=None):
     """     
     # TODO move file into queue if specified
     if doc:
-        logger.info("Copying %s into meropsing queue" % article.doi)
-        shutil.copy(doc, os.path.join(settings.MEROPS_MEROPSED_WATCH, "%s.doc" % article.doi))
+        filename, extension = os.path.splitext(doc)
+        logger.info("%s: copying %s into meropsing queue " % (article.doi, doc))
+        shutil.copy(doc, os.path.join(settings.MEROPS_MEROPSED_WATCH, "%s%s" % (article.doi, extension)))
 
     # update article status
     meropsed_queued_state = State.objects.get(unique_name="queued_for_meropsing")
@@ -135,7 +136,7 @@ def process_doc_from_aries(f):
     art_s = ArticleState(article=art, state=delivery_state)
     make_articlestate_if_new(art_s)
 
-    # extract manuscript, rename to doi.doc
+    # extract manuscript, rename to doi.doc(x)
     try:
         manuscript_name = man_e.manuscript(f)
         z = zipfile.ZipFile(f)
@@ -181,7 +182,7 @@ def watch_merops_output():
     ws, new = WatchState.objects.get_or_create(watcher="merops_meropsed_out")
     if new:
         ws.save()
-    meropsed_doc_prog = re.compile(RE_SHORT_DOI_PATTERN + '.*\.doc$')
+    meropsed_doc_prog = re.compile(RE_SHORT_DOI_PATTERN + '.*\.xml')
     scan_directory_for_changes(ws, process_doc_from_merops, settings.MEROPS_MEROPSED_OUTPUT, meropsed_doc_prog)
 
 @task

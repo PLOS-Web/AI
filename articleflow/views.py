@@ -60,6 +60,8 @@ COLUMN_CHOICES = (
     (7, 'Typesetter'),
     )
 
+DEFAULT_COLUMNS = [0,1,3,4,5,6,7]
+
 def get_journal_from_doi(doi):
     match = re.match('.*(?=\.)', doi)
     
@@ -179,7 +181,7 @@ class ArticleGrid(View):
 
     def get_selected_cols(self):
         if not self.request.GET.getlist('cols'):
-            requested_cols = range(0,7) #default columns
+            requested_cols = DEFAULT_COLUMNS #default columns
         else:
             requested_cols = [0] #make sure DOI is always included
             requested_cols += self.request.GET.getlist('cols')
@@ -694,19 +696,21 @@ class AssignRatios(View):
 def send_file(pathname, attachment_name=None):
     basename = os.path.basename(pathname)
     if not attachment_name:
-        filename = basename
-    else:
-        filename = attachment_name
+        attachment_name = basename
     mime, enc = mimetypes.guess_type(basename, False)
-    logger.debug("Opening file at '%s' for reading." % pathname)
-    file_name = glob.glob(pathname+ '*')
+
+    print "about to glob: %s " % pathname
+    file_name = glob.glob(pathname)
+    print "Globbed: %s" % file_name
     if not file_name:
         raise IOError()
-    wrapper = FileWrapper(file(filename[0]))
+    logger.debug("Opening file at '%s' for reading." % file_name[0])
+    wrapper = FileWrapper(file(file_name[0]))
+    throwaway, extension = os.path.splitext(file_name[0])
 
     response = HttpResponse(wrapper, content_type=mime)
-    response['Content-Length'] = os.path.getsize(pathname)
-    response['Content-Disposition'] = "attachment; filename=%s" % filename
+    response['Content-Length'] = os.path.getsize(file_name[0])
+    response['Content-Disposition'] = "attachment; filename=%s%s" % (attachment_name, extension)
     return response
 
 def upload_doc(storage, file_name, file_stream):
@@ -753,6 +757,7 @@ class ServeArticleDoc(View):
             try:
                 self.version_number = find_highest_file_version_number(self.dir_path, article.doi)
             except ValueError, e:
+                logger.error(e)
                 raise Http404()
             if self.version_number:
                 self.version_number = "(%s)" % self.version_number
@@ -763,7 +768,7 @@ class ServeArticleDoc(View):
         pathname = os.path.join(self.dir_path, "%s%s%s.%s" % (article.doi, self.version_number, self.filename_modifier, self.file_extension))
         
         try:
-            return send_file(pathname, "%s%s.%s" % (article.doi, self.filename_modifier, self.file_extension))
+            return send_file(pathname, "%s%s" % (article.doi, self.filename_modifier))
         except IOError, e:
             raise Http404(":( I can't find that file.  This likely means that the associated process in merops hasn't been completed.  If you think this 404 message is in error, please contact your admin.")
 
