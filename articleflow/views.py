@@ -306,7 +306,9 @@ class ArticleDetailTransitionUpload(View):
         form = FileUpload(article, transition, request.POST, request.FILES)
         if form.is_valid():
             if transition in article.possible_transitions():
-                self.handle_uploaded_file(request.FILES['file'], os.path.join(transition.file_upload_destination, "%s.doc" % article.doi))
+                logger.debug("Handling uploaded file: %s . . ." % request.FILES['file'].name)
+                f_name, extension = os.path.splitext(request.FILES['file'].name)
+                self.handle_uploaded_file(request.FILES['file'], os.path.join(transition.file_upload_destination, "%s%s" % (article.doi, extension)))
                 article.execute_transition(transition, request.user)
                 return HttpResponseRedirect(reverse('detail_main', args=(article.doi,)))
 
