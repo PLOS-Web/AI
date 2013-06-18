@@ -275,6 +275,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
             },
+        'articleflow.daemons.transition_tasks': {
+            'handlers': ['debugging', 'tasks-file'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
         'celery': {
             'handlers': ['debugging', 'celery-file'],
             'level': 'DEBUG',
