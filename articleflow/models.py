@@ -113,7 +113,7 @@ class ArticleState(models.Model):
 	if insert and not self.created:
                 self.created = now()
         insert = not self.pk
-        logger.debug("SAVING ARTICLESTATE: %s" % self.verbose_unicode())
+        logger.debug("%s saving articlestate: %s" % (self.article.doi, self.verbose_unicode()))
 
         ret = super(ArticleState, self).save(*args, **kwargs)
         art = self.article
@@ -126,15 +126,15 @@ class ArticleState(models.Model):
                 if self.state.reassign_previous:
                     try:
                         latest_same_articlestate = ArticleState.objects.filter(article=self.article,state=self.state,created__lt=self.created).latest('created')
-                        logger.debug("Found previous same state for %s: %s" % (art.doi, latest_same_articlestate.verbose_unicode()))
+                        logger.debug("%s: found previous same state: %s" % (art.doi, latest_same_articlestate.verbose_unicode()))
                         if latest_same_articlestate.assignee:
-                            logger.info("Found previous same state assignee for %s. Reassigning %s" % (self.article.doi ,latest_same_articlestate.assignee))
+                            logger.info("%s: found previous same state assignee for. Reassigning to %s" % (self.article.doi ,latest_same_articlestate.assignee))
                             self.assign_user(latest_same_articlestate.assignee)
                     except ArticleState.DoesNotExist, e:
-                        logger.info("No previous same state for %s found" % self.article.doi)
+                        logger.info("%s: no previous same state found" % self.article.doi)
                 # Use the autoassigner if applicable
                 if not self.assignee and self.state.auto_assign > 1:
-                    print "Finding worker ..."
+                    logger.info("%s: invoking autoassigner . . ." % self.article.doi)
                     a_user = AutoAssign.pick_worker(self.article, self.state, datetime.date.today())
                     if a_user:
                         self.assign_user(a_user)
@@ -229,19 +229,19 @@ class Article(models.Model):
 
     def save(self, *args, **kwargs):
         insert = not self.pk
-        logger.info("SAVING ARTICLE: %s" % self.verbose_unicode())
+        logger.info("%s: saving article: %s" % (self.doi,self.verbose_unicode()))
 	if insert and not self.created:
                 self.created = now()
         if not self.journal:
-            logger.debug("Automatically figuring out journal")
+            logger.debug("%s: automatically figuring out journal" % self.doi)
             self.journal = get_journal_from_doi(self.doi)
         ret = super(Article, self).save(*args, **kwargs)
 
         # Create a blank articleextras row
         if insert:
             # create new state
-            logger.info("INSERTING NEW ARTICLE: %s" % self.doi)
-            logger.debug("ABOUT TO CREATE A \"NEW\" ArticleState: %s" % self.verbose_unicode())
+            logger.info("%s: inserting new article" % self.doi)
+            logger.debug("%s: about to create a \"NEW\" ArticleState: %s" % (self.doi, self.verbose_unicode()))
             s = ArticleState(article=self, state=State.objects.get(name="New"), created=self.created)
             s.save()
             
@@ -257,7 +257,7 @@ class Article(models.Model):
                 a_as.state, new = State.objects.get_or_create(name="New")
                 a_as.save()
         else:
-            logger.info("UPDATING EXISTING ARTICLE: %s" % self.doi)
+            logger.info("%s: updating existing article model" % self.doi)
 
 class ArticleExtras(models.Model):
     """
