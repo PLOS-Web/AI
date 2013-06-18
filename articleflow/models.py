@@ -438,7 +438,7 @@ class AutoAssign():
 
     @staticmethod
     def pick_worker(article, state, start_time):
-        print "Pick Worker start"
+        logger.info("%s: picking worker . . ." % article.doi)
         total_assigns = AutoAssign.total_assignments(state, start_time)
         total_weight = AutoAssign.total_group_weight(state)
 
@@ -447,49 +447,50 @@ class AutoAssign():
         # if this is returning to an old state, try to reassign to the last person who had it
         try:
             last_state = ArticleState.objects.filter(article=article).filter(state=state).order_by('created')[1]
-            print "last_state: %s" % last_state
-            print "last_state_assignee: %s" % last_state.assignee
+            logger.debug("%s: last state was %s with assignee, %s" % (article.doi, last_state, last_state.assignee))
             if last_state.assignee in possible_assignees.all():
-                print "Old assignee found"
+                logger.info("%s: picking previously assigned user, %s" % (article.doi, last_state.assignee))
                 return last_state.assignee
         except IndexError:
             pass
 
         # if there are no weights defined, don't assign
         if not total_weight:
-            print "No weights defined"
+            logger.info("%s: No weights defined, picking nobody" % article.doi)
             return None
 
         # if nothing has been assigned, give to person with highest weight
         if total_assigns == 0:
-            print "Nothing assigned yet, giving max weighted user"
+            logger.debug("%s: nothing assigned yet in this state" % article.doi)
             max_weight = AssignmentRatio.objects.filter(state=state).aggregate(Max('weight'))['weight__max']
-            print "Max_weight: %s" % max_weight
-            return AssignmentRatio.objects.filter(weight=max_weight)[0].user
+            max_weight_user = AssignmentRatio.objects.filter(weight=max_weight)[0].user
+            logger.debug("%s: found max weight user, %s, with weight, %s" % (article.doi, max_weight_user, max_weight))
+            return max_weight_user
 
     # otherwise figure out who has the biggest assignment deficit
 
-        print "Analying deficits"
+        logger.debug("%s: analying worker deficits ..." % (article.doi))
         r_users = []
         max_deficit = (0, None)
         for u in possible_assignees.all():
-            print "Analyzing %s ..." % u
+            logger.debug("%s: analyzing %s ..." % (article.doi, u))
             work_ratio = AutoAssign.worker_assignments(state, u, start_time) / float(total_assigns)
-            print "work_ratio: %s" % work_ratio
+            logger.debug("%s: %s's work_ratio: %s" % (article.doi, u, work_ratio))
             try:
                 weight_ratio = AssignmentRatio.objects.get(user=u, state=state).weight / float(total_weight)
                 if weight_ratio == 0:
-                    print "Weight ratio is zero, skipping"
+                    logger.debug("%s: %s's weight ratio is zero, skipping" % (article.doi, u))
                     continue
             except AssignmentRatio.DoesNotExist:
-                print "No weight assigned, skipping"
+                logger.debug("%s: %s has no weight assigned, skipping" % (article.doi, u))
                 continue
-            print "weight_ratio: %s" % weight_ratio
+            logger.debug("%s: %s's weight_ratio: %s" % (article.doi, u, weight_ratio))
             deficit = weight_ratio - work_ratio
-            print "deficit: %s" % deficit
+            logger.debug("%s: %s's deficit: %s" % (article.doi, u, deficit))
         
             r_users += [(deficit, u)]
             if deficit > max_deficit[0] or not max_deficit[1]:
                 max_deficit = (deficit, u)
-
+        
+        logger.info("%s: picking worker with biggest deficit.  user: %s, deficit: %s" % (article.doi, max_deficit[1], max_deficit[0]))
         return max_deficit[1]
