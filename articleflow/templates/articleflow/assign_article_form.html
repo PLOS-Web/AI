@@ -1,15 +1,18 @@
 {% load crispy_forms_tags %}
 
-<button id="assign-form-{{ article.pk }}-trigger">Assign to ...</button>
+<a href="#" id="assign-form-{{ article.pk }}-trigger">Assign to ...</a>
 
-<div id="assign-form-{{ article.pk }}">
+<div id="assign-form-{{ article.pk }} hide">
   {% crispy form %}
 </div>
 
+
+<a href="#" data-toggle="tooltip" title="first tooltip">hover over me</a>
+
 <script type="text/javascript">
-  console.log($('#assign-form-{{ article.pk }}').html())
   var data = {
-    "html": $('#assign-form-{{ article.pk }}').html()
+    "html": true,
+    "content": $('#assign-form-{{ article.pk }}').html(),
   };
   $("#assign-form-{{ article.pk }}-trigger").popover(data);
 </script>
