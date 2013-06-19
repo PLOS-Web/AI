@@ -191,7 +191,7 @@ LOGGING = {
             'formatter': 'verbose',
             },
         'requests-file':{
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class':'logging.handlers.TimedRotatingFileHandler',
             'when': 'midnight',
             'filename': os.path.join(LOG_FILE_DIRECTORY, 'requests.log'),
@@ -277,6 +277,11 @@ LOGGING = {
             },
         'articleflow.daemons.transition_tasks': {
             'handlers': ['debugging', 'tasks-file'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
+        'articleflow.models': {
+            'handlers': ['debugging', 'requests-file'],
             'level': 'DEBUG',
             'propagate': True,
             },
