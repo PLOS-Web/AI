@@ -673,7 +673,6 @@ def send_file(pathname, attachment_name=None):
     basename = os.path.basename(pathname)
     if not attachment_name:
         attachment_name = basename
-    mime, enc = mimetypes.guess_type(basename, False)
     print "about to glob: %s " % pathname
     file_name = glob.glob(pathname)
     print "Globbed: %s" % file_name
@@ -681,6 +680,8 @@ def send_file(pathname, attachment_name=None):
         raise IOError()
     logger.debug("Opening file at '%s' for reading." % file_name[0])
     wrapper = FileWrapper(file(file_name[0]))
+    mime, enc = mimetypes.guess_type(file_name[0], False)
+    logger.debug("%s mimetype: %s, encoding: %s" % (file_name[0], mime, enc))
     throwaway, extension = os.path.splitext(file_name[0])
     response = HttpResponse(wrapper, content_type=mime)
     response['Content-Length'] = os.path.getsize(file_name[0])
