@@ -215,6 +215,10 @@ def watch_finishxml_output():
         finish_output_state = State.objects.get(unique_name="finish_out")
         art_s = ArticleState(article=art, state=finish_output_state)
         make_articlestate_if_new(art_s)
+        #move immediately into ready to build article package
+        ready_state = State.objects.get(unique_name="ready_to_build_article_package")
+        art_s = ArticleState(article=art, state=ready_state)
+        make_articlestate_if_new(art_s)
 
     celery_logger.info("Initiating watch_finishxml_output")
     ws, new = WatchState.objects.get_or_create(watcher="merops_finish_out")
@@ -222,6 +226,7 @@ def watch_finishxml_output():
         ws.save()
     finished_xml_prog = re.compile(RE_SHORT_DOI_PATTERN + '.*\.xml$')
     scan_directory_for_changes(ws, process_doc_from_merops, settings.MEROPS_FINISH_XML_OUTPUT, finished_xml_prog)
+
 
 @task
 def test_task():
