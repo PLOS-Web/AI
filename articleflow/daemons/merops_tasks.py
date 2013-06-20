@@ -1,3 +1,4 @@
+from subprocess import call
 import os.path
 import shutil
 import datetime
@@ -227,9 +228,28 @@ def watch_finishxml_output():
     finished_xml_prog = re.compile(RE_SHORT_DOI_PATTERN + '.*\.xml$')
     scan_directory_for_changes(ws, process_doc_from_merops, settings.MEROPS_FINISH_XML_OUTPUT, finished_xml_prog)
 
+@task
+def build_merops_packages():
+    ariesPullMerops = os.path.abspath('/var/local/scripts/production/ariesPullMerops')
+    ingest = os.path.abspath('/var/local/scripts/production/ingest')
+    ingestion_queue = os.path.abspath('/var/spool/ambra/ingestion-queue/')
+
+    articles_ready = Article.objects.filter(current_state__unique_name="ready_to_build_article_package").all()
+    ingested_state = State.objects.get(unique_name='ingested')
+    for a in articles_ready:
+        logger.info("%s: attempting to ariesPullMerops ..." % a.doi)
+        try:
+            call([ariesPullMerops, a.doi], cwd=ingestion_queue)
+            # if first revision, ingest
+            ingest_arts = ArticleState.objects.filter(article=a, state=ingested_state)
+            if not ingest_arts:
+                logger.info("%s: first revision identified, attempting to ingest ..." % a.doi)
+                call([ingest, a.doi], cwd=ingestion_queue)
+        except OSError, ee:
+            logger.exception(ee)
 
 @task
 def test_task():
-    print "*** AM I WORKNIG? ***"
+    print "*** AM I WORKING? ***"
     logger.info("TEST TASK")
     celery_logger.info("TEST TASK")
