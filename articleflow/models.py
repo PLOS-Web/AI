@@ -430,11 +430,11 @@ class AutoAssign():
 
     @staticmethod
     def total_assignments(state, start_time):
-        return AssignmentHistory.objects.filter(created__gte=start_time).count()
+        return AssignmentHistory.objects.filter(created__gte=start_time,article_state__state=state).count()
 
     @staticmethod
     def worker_assignments(state, user, start_time):
-        return AssignmentHistory.objects.filter(user=user).filter(created__gte=start_time).count()
+        return AssignmentHistory.objects.filter(user=user, created__gte=start_time, article_state__state=state).count()
 
     @staticmethod
     def pick_worker(article, state, start_time):
