@@ -267,7 +267,7 @@ class ArticleDetailMain(View):
         return render_to_response(self.template_name, context, context_instance=RequestContext(request))
 
     def get_context_data(self, kwargs):
-        article = Article.objects.get(doi=kwargs['doi'])
+        article = get_object_or_404(Article, doi=kwargs['doi'])
         context = ({
                 'article': article,
             })
