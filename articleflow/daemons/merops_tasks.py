@@ -241,11 +241,13 @@ def build_merops_packages():
         try:
             call([ariesPullMerops, a.doi], cwd=ingestion_queue)
             # if first revision, ingest
-            ingest_arts = ArticleState.objects.filter(article=a, state=ingested_state)
+            ingest_arts = ArticleState.objects.filter(article=a, state=ingested_state).all()
             if not ingest_arts:
                 logger.info("%s: first revision identified, attempting to ingest ..." % a.doi)
                 call([ingest, a.doi], cwd=ingestion_queue)
         except OSError, ee:
+            logger.exception(ee)
+        except Exception, ee:
             logger.exception(ee)
 
 @task
