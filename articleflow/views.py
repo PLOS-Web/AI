@@ -289,11 +289,18 @@ class ArticleDetailTransitionPanel(View):
 
 class ArticleDetailTransitionUpload(View):
 
-    def handle_uploaded_file(self, f, destination_pathname):
-        logger.debug("Writing uploaded file to %s" % destination_pathname)
-        with open(destination_pathname, 'wb+') as destination:
-            for chunk in f.chunks():
-                destination.write(chunk)
+    def handle_uploaded_file(self, f, destinations, filename):
+        logger.debug("Handling file upload for %s" % filename)
+        dests = destinations.split(' ')
+        for dest in dests:
+            if not os.path.exists(dest):
+                logger.error("File upload destination path, %s, does not exist. skipping." % dest)
+                continue
+            destination_pathname = os.path.join(dest, filename)
+            logger.debug("Writing uploaded file to %s" % destination_pathname)
+            with open(destination_pathname, 'wb+') as destination:
+                for chunk in f.chunks():
+                    destination.write(chunk)
 
     def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated():
@@ -308,7 +315,7 @@ class ArticleDetailTransitionUpload(View):
             if transition in article.possible_transitions():
                 logger.debug("Handling uploaded file: %s . . ." % request.FILES['file'].name)
                 f_name, extension = os.path.splitext(request.FILES['file'].name)
-                self.handle_uploaded_file(request.FILES['file'], os.path.join(transition.file_upload_destination, "%s%s" % (article.doi, extension)))
+                self.handle_uploaded_file(request.FILES['file'], transition.file_upload_destination, "%s%s" % (article.doi, extension))
                 article.execute_transition(transition, request.user)
                 return HttpResponseRedirect(reverse('detail_main', args=(article.doi,)))
 
