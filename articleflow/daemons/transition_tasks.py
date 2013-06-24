@@ -9,6 +9,7 @@ from articleflow.daemons.ambra_query import *
 
 from celery.utils.log import get_task_logger
 celery_logger = get_task_logger(__name__)
+print "__name__: %s" % __name__
 logger = logging.getLogger(__name__)
 
 from celery.task import task
@@ -107,7 +108,7 @@ def assign_ready_for_qc_article(art):
         a_s.save()
     except ArticleState.DoesNotExist, e:
         # move article to ready for qc state
-        if art.typesetter.name == 'Merops':
+        if art.typesetter and art.typesetter.name == 'Merops':
             logger.debug("%s: Merops article found, moving to Merops QC track" % art.doi)
             ready_for_qc_state = State.objects.get(unique_name='ready_for_qc_merops')
         a_s = ArticleState(article=art,
