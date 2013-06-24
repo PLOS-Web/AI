@@ -319,7 +319,7 @@ class Transition(models.Model):
     allowed_groups = models.ManyToManyField(Group, related_name="allowed_transitions")
     assign_transition_user = models.BooleanField(default=False)
     preference_weight = models.IntegerField()
-    file_upload_destination = models.CharField(max_length=600, null=True, blank=True, default=None, help_text="If this transition requires an upload, enter the path to the desired destination directory.  If no upload is required, leave this field blank.")
+    file_upload_destination = models.CharField(max_length=600, null=True, blank=True, default=None, help_text="If this transition requires an upload, enter the path to the desired destination directory.  Multiple destinations may be used by listing them separated by spaces.  If no upload is required, leave this field blank.")
     file_upload_description = models.CharField(max_length=600, null=True, blank=True, default=None, help_text="If this transition requires an upload, this is the help text to display")
 
     #Bookkeeping 
@@ -430,11 +430,11 @@ class AutoAssign():
 
     @staticmethod
     def total_assignments(state, start_time):
-        return AssignmentHistory.objects.filter(created__gte=start_time).count()
+        return AssignmentHistory.objects.filter(created__gte=start_time,article_state__state=state).count()
 
     @staticmethod
     def worker_assignments(state, user, start_time):
-        return AssignmentHistory.objects.filter(user=user).filter(created__gte=start_time).count()
+        return AssignmentHistory.objects.filter(user=user, created__gte=start_time, article_state__state=state).count()
 
     @staticmethod
     def pick_worker(article, state, start_time):

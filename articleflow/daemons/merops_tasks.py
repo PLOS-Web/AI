@@ -1,3 +1,4 @@
+from subprocess import call
 import os.path
 import shutil
 import datetime
@@ -215,6 +216,10 @@ def watch_finishxml_output():
         finish_output_state = State.objects.get(unique_name="finish_out")
         art_s = ArticleState(article=art, state=finish_output_state)
         make_articlestate_if_new(art_s)
+        #move immediately into ready to build article package
+        ready_state = State.objects.get(unique_name="ready_to_build_article_package")
+        art_s = ArticleState(article=art, state=ready_state)
+        make_articlestate_if_new(art_s)
 
     celery_logger.info("Initiating watch_finishxml_output")
     ws, new = WatchState.objects.get_or_create(watcher="merops_finish_out")
@@ -224,7 +229,29 @@ def watch_finishxml_output():
     scan_directory_for_changes(ws, process_doc_from_merops, settings.MEROPS_FINISH_XML_OUTPUT, finished_xml_prog)
 
 @task
+def build_merops_packages():
+    ariesPullMerops = os.path.abspath('/var/local/scripts/production/ariesPullMerops')
+    ingest = os.path.abspath('/var/local/scripts/production/ingest')
+    ingestion_queue = os.path.abspath('/var/spool/ambra/ingestion-queue/')
+
+    articles_ready = Article.objects.filter(current_state__unique_name="ready_to_build_article_package").all()
+    ingested_state = State.objects.get(unique_name='ingested')
+    for a in articles_ready:
+        logger.info("%s: attempting to ariesPullMerops ..." % a.doi)
+        try:
+            call([ariesPullMerops, a.doi], cwd=ingestion_queue)
+            # if first revision, ingest
+            ingest_arts = ArticleState.objects.filter(article=a, state=ingested_state).all()
+            if not ingest_arts:
+                logger.info("%s: first revision identified, attempting to ingest ..." % a.doi)
+                call([ingest, a.doi], cwd=ingestion_queue)
+        except OSError, ee:
+            logger.exception(ee)
+        except Exception, ee:
+            logger.exception(ee)
+
+@task
 def test_task():
-    print "*** AM I WORKNIG? ***"
+    print "*** AM I WORKING? ***"
     logger.info("TEST TASK")
     celery_logger.info("TEST TASK")

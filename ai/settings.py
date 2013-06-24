@@ -355,6 +355,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'articleflow.daemons.merops_tasks.watch_finishxml_output',
         'schedule': timedelta(seconds=30)
         },
+    'merops-tasks-build-merops-packages': {
+        'task': 'articleflow.daemons.merops_tasks.build_merops_packages',
+        'schedule': crontab(minute="*/15", day_of_week="*")
+        },
     }
 
 
