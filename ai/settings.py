@@ -290,6 +290,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
             },
+        'commands': {
+            'handlers': ['debugging'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
     }
 }
 
