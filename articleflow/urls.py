@@ -1,8 +1,11 @@
 from django.conf.urls import patterns, include, url
+from django.views.generic import TemplateView
+
 from articleflow.views import *
 from errors.views import Errors
 
 urlpatterns = patterns('articleflow.views',
+                       url(r'^grid/search/$', ArticleGridSearch.as_view(), name='grid_search'),
                        url(r'^grid/$', ArticleGrid.as_view(), name='grid'),
                        url(r'^detail/(?P<doi>[a-z|\.|0-9]{0,50})/$', ArticleDetailMain.as_view(), name='detail_main'),
                        url(r'^detail/(?P<doi>[a-z|\.|0-9]{0,50})/transitions$', ArticleDetailTransition.as_view(), name='detail_transition'),

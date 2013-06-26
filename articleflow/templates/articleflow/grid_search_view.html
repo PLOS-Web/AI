@@ -1,0 +1,27 @@
+{% extends "base.html" %}    
+
+{% load crispy_forms_tags %}
+{% load grid %}
+{% load assignment %}
+
+{% block head %}
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{{ STATIC_URL }}css/grid.css" />
+<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+<script src="{{ STATIC_URL }}js/grid.js"></script>
+{% endblock %}
+
+{% block main_nav %}
+{% include "includes/main_nav.html" with active_tab="grid" %}
+{% endblock %}
+
+{% block sub_title %} - grid{% endblock %}
+
+{% block content %}
+<h2>Article Grid</h2>
+
+<div class="row">
+  {% render_grid_search 1 %}
+</div>
+
+{% endblock %}

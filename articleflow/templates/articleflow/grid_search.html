@@ -1,0 +1,37 @@
+{% load crispy_forms_tags %}
+
+<div class="span12 search-accordion">
+  <a id="search-collapse-toggle" class="accordion-toggle" data-toggle="collapse" data-target="#search-panel">[+] search</a>
+  <div class="{% if expanded %}in {% endif %}collapse" id="search-panel">
+    <form class="form form-horizontal" action="{% url grid %}" method="get">
+      {{ filter_form|crispy }}
+      <hr />
+      <div id="div_id_cols" class="control-group">
+	<label for="id_cols" class="control-label">Select columns</label>
+	<div class="controls">
+	  <select multiple="multiple" id="id_cols" class="selectmultiple" name="cols">
+	    {% for choice in column_choices %}
+	    <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+	    {% endfor %}
+	  </select>
+	</div>
+      </div>
+      <div id="div_id_cols" class="control-group">
+	<label for="id_cols" class="control-label">Results per page</label>
+	<div class="controls">
+	  <select id="id_cols" class="selectmultiple" name="page_size">
+	    <option value="25">25</option>
+	    <option value="50">50</option>
+	    <option value="100">100</option>
+	    <option value="200">200</option>
+	  </select>
+	</div>
+      </div>
+      <div class="control-group">
+	<div class="controls">
+	  <input class="btn-primary" type="submit" name="submit" value="Search">
+	</div>
+      </div>
+    </form>
+  </div>
+</div>
