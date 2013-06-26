@@ -170,6 +170,20 @@ class ArticleFilter(django_filters.FilterSet):
         model = Article
         fields = []
 
+class ArticleGridSearch(View):    
+    template_name = 'articleflow/grid_search_view.html'
+    
+    def get_context_data(self, **kwargs):
+        context = {}
+        raw_list = ArticleFilter(self.request.GET, queryset=Article.objects.all())
+        context['filter_form'] = raw_list.form
+        return context
+    
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+        
+
 class ArticleGrid(View):    
     template_name = 'articleflow/grid.html'
 

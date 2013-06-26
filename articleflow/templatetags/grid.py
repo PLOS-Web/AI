@@ -54,3 +54,7 @@ def preconfigured_grid(user):
 
     return reverse('grid')
     
+@register.inclusion_tag('articleflow/grid_search.html', takes_context=True)
+def render_grid_search(context, expanded=False):
+    context['expanded'] = expanded
+    return context
