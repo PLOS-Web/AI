@@ -97,3 +97,7 @@
 .file-upload-panel h4{
     display: inline;
 }
+
+.align-right {
+    float: right;
+}

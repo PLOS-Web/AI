@@ -40,11 +40,16 @@
       </tr>
       <tr>
 	<td>Assigned to: </td>
-	<td>	    
+	<td>
+	  <span id='assignee'>
 	  {% if article.current_articlestate.assignee.username %}
 	  {{ article.current_articlestate.assignee.username }}
-	  {% elif user.is_authenticated %}
-	  {% render_assign_to_me_button article user %}
+          {% else %}
+          --
+	  {% endif %}
+	  </span>
+	  {% if user.is_authenticated %}
+	  {% render_assign_article_form article %}
 	  {% endif %}
 	</td>
       </tr>

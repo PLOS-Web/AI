@@ -1,5 +1,6 @@
 from django import forms
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Field, Submit
@@ -26,7 +27,27 @@ class ReportsDateRange(forms.Form):
     group = forms.ChoiceField(choices=group_choices)
     start_date = forms.DateTimeField(input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
     end_date = forms.DateTimeField(input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
- 
+
+class AssignArticleForm(forms.Form):
+    username = forms.ModelChoiceField(queryset=User.objects.filter(is_active=True).order_by('username'))
+    article_pk = forms.IntegerField(widget=forms.HiddenInput())
+
+    def __init__(self, article, *args, **kwargs):
+        super(AssignArticleForm, self).__init__(*args, **kwargs)
+        self.article = article
+        self.fields['article_pk'].initial = article.pk
+
+    @property
+    def helper(self):
+        helper = FormHelper()
+        action_url = reverse('assign_article', args=(self.article.doi,))
+        helper.set_form_action(action_url)
+        helper.layout = Layout(
+            Field('username'),
+            Field('article_pk'),
+            Submit('submit', 'Assign')
+            )
+        return helper
    
 class FileUpload(forms.Form):
     file = forms.FileField(label="Upload file", widget=forms.FileInput())

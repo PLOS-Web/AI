@@ -32,8 +32,8 @@ import django_filters
 import transitionrules
 
 from ai import settings
-from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio, Typesetter
-from articleflow.forms import AssignmentForm, ReportsDateRange, FileUpload
+from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio, Typesetter, reassign_article
+from articleflow.forms import AssignmentForm, ReportsDateRange, FileUpload, AssignArticleForm
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
 
@@ -571,6 +571,41 @@ class AssignToMe(View):
                 }
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
 
+class AssignArticle(View):
+    template_name = 'articleflow/assign_article_form.html'
+
+    def get_context_data(self, *args, **kwargs):
+        a = get_object_or_404(Article, doi=kwargs['doi'])
+        form = AssignArticleForm()
+        ctx = {
+            'form': form
+            }
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(*args, **kwargs)
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated():
+            return HttpResponse("You need to log in dummy")
+        a = get_object_or_404(Article, doi=kwargs['doi'])
+        form = AssignArticleForm(article=a, data = request.POST)
+        if form.is_valid():
+            f_data = form.cleaned_data
+            user = get_object_or_404(User, username=f_data['username'])
+            reassign_article(a, user)
+            to_json = {
+                'status': 0,
+                'assignee': a.current_articlestate.assignee.username,
+                }
+            logger.debug("%s: form used to update assignee. response: %s" % (a.doi, simplejson.dumps(to_json)))
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+        to_json = {
+            'status': 1,
+            }        
+        return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+        
 class AssignRatiosMain(View):
     template_name = 'articleflow/assign_ratios_main.html'
 
@@ -580,8 +615,7 @@ class AssignRatiosMain(View):
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(kwargs)        
-        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
-    
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))    
 
 class AssignRatios(View):
     template_name = 'articleflow/assign_ratios.html'
@@ -675,6 +709,7 @@ def send_file(pathname, attachment_name=None):
     mime, enc = mimetypes.guess_type(file_name[0], False)
     logger.debug("%s mimetype: %s, encoding: %s" % (file_name[0], mime, enc))
     throwaway, extension = os.path.splitext(file_name[0])
+
     response = HttpResponse(wrapper, content_type=mime)
     response['Content-Length'] = os.path.getsize(file_name[0])
     response['Content-Disposition'] = "attachment; filename=%s%s" % (attachment_name, extension)
