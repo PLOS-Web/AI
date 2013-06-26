@@ -45,7 +45,7 @@ class AssignArticleForm(forms.Form):
         helper.layout = Layout(
             Field('username'),
             Field('article_pk'),
-            Submit('submit', 'Submit')
+            Submit('submit', 'Assign')
             )
         return helper
    

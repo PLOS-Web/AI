@@ -40,10 +40,14 @@
       </tr>
       <tr>
 	<td>Assigned to: </td>
-	<td>	    
+	<td>
+	  <span id='assignee'>
 	  {% if article.current_articlestate.assignee.username %}
 	  {{ article.current_articlestate.assignee.username }}
+          {% else %}
+          --
 	  {% endif %}
+	  </span>
 	  {% if user.is_authenticated %}
 	  {% render_assign_article_form article %}
 	  {% endif %}

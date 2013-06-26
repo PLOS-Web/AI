@@ -1,18 +1,79 @@
 {% load crispy_forms_tags %}
 
-<a href="#" id="assign-form-{{ article.pk }}-trigger">Assign to ...</a>
+<a id="assign-form-{{ article.pk }}-trigger">Assign to...</a>
 
-<div id="assign-form-{{ article.pk }} hide">
+<div id="assign-form-{{ article.pk }}" class="hide">
   {% crispy form %}
+  <script type="text/javascript">
+  </script>
 </div>
 
-
-<a href="#" data-toggle="tooltip" title="first tooltip">hover over me</a>
-
 <script type="text/javascript">
-  var data = {
-    "html": true,
-    "content": $('#assign-form-{{ article.pk }}').html(),
+  var pt = $.fn.popover.Constructor.prototype.show;
+  $.fn.popover.Constructor.prototype.show = function () {
+    pt.call(this);
+    if (this.options.afterShowed) {
+      this.options.afterShowed();
+    }
+  }
+
+  assignPopoverCallback = function(){
+    $('.popover').on('click', function(evt) {
+      console.log('stopping propagation');
+      evt.stopPropagation()
+    });
+    
+    var form = $('.popover form');
+    console.log(form);
+
+    var options_assign_form = {
+       success: function(response_text, status_text, xhr, form_elem){
+         console.log('yay!');
+         console.log("response: " + response_text.status);
+         if (response_text.status===0){
+            $('#assignee').html(response_text.assignee);
+            $("#assign-form-{{ article.pk }}-trigger").popover('hide');
+         }
+         else if (response_text.status===1) {
+            alert('Invalid form submission');
+         }else{
+            alert('Something went wrong, ask Jack');
+         }
+       }
+    }
+
+    form.ajaxForm(options_assign_form);
   };
-  $("#assign-form-{{ article.pk }}-trigger").popover(data);
+
+  var poped = $("#assign-form-{{ article.pk }}-trigger");
+  $(function()
+  {
+    var options = {
+      trigger: 'manual',
+      html: true,
+      content: $('#assign-form-{{ article.pk }}').html(),
+      afterShowed: assignPopoverCallback
+    };
+    poped.popover(options);
+
+    // Trigger for the popover
+    poped.each(function() {
+      var $this = $(this);
+      $this.on('click',function(evt) {
+        evt.stopPropagation();
+        var popover = $this.data('popover');
+        var shown = popover && popover.tip().is(':visible');
+        if(shown) return;        // Avoids flashing
+        $this.popover('show');
+      });
+    });
+
+    // Trigger for the hiding
+    $('html').on('click.popover.data-api',function() {
+      poped.popover('hide');
+    });
+
+    
+
+  });
 </script>
