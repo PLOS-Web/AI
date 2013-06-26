@@ -195,9 +195,6 @@ class ArticleGrid(View):
         
     def get_context_data(self, **kwargs):
         #context = super(ArticleGrid, self).get_context_data(**kwargs)
-        if self.request.GET:
-            print "QUERY DATA!"
-            print self.request.GET
         context = {}
         
         raw_list = ArticleFilter(self.request.GET, queryset=Article.objects.all())
@@ -205,7 +202,6 @@ class ArticleGrid(View):
         # Order!
         order_col = self.request.GET.getlist('order_col')
         order_mode = self.request.GET.getlist('order_mode')
-        print order_col
         if not order_col:
             qs = ColumnOrder.pubdate(raw_list.qs, 'asc')
         else:
@@ -213,7 +209,6 @@ class ArticleGrid(View):
                 fn = ORDER_CHOICES[order_col[0]]
                 qs = fn(raw_list.qs, order_mode[0] or '')
             except KeyError:
-                print "Can't order by that"
                 qs = ColumnOrder.pubdate(raw_list.qs, 'asc')
 
 
@@ -237,7 +232,6 @@ class ArticleGrid(View):
         r_query = self.request.GET.copy()
         if article_page.has_previous():
             r_query['page'] = article_page.previous_page_number()
-            print r_query
             context['previous_page_qs'] = r_query.urlencode()
         
 
@@ -267,7 +261,7 @@ class ArticleDetailMain(View):
         return render_to_response(self.template_name, context, context_instance=RequestContext(request))
 
     def get_context_data(self, kwargs):
-        article = Article.objects.get(doi=kwargs['doi'])
+        article = get_object_or_404(Article, doi=kwargs['doi'])
         context = ({
                 'article': article,
             })
@@ -289,11 +283,18 @@ class ArticleDetailTransitionPanel(View):
 
 class ArticleDetailTransitionUpload(View):
 
-    def handle_uploaded_file(self, f, destination_pathname):
-        logger.debug("Writing uploaded file to %s" % destination_pathname)
-        with open(destination_pathname, 'wb+') as destination:
-            for chunk in f.chunks():
-                destination.write(chunk)
+    def handle_uploaded_file(self, f, destinations, filename):
+        logger.debug("Handling file upload for %s" % filename)
+        dests = destinations.split(' ')
+        for dest in dests:
+            if not os.path.exists(dest):
+                logger.error("File upload destination path, %s, does not exist. skipping." % dest)
+                continue
+            destination_pathname = os.path.join(dest, filename)
+            logger.debug("Writing uploaded file to %s" % destination_pathname)
+            with open(destination_pathname, 'wb+') as destination:
+                for chunk in f.chunks():
+                    destination.write(chunk)
 
     def post(self, request, *args, **kwargs):
         if not request.user.is_authenticated():
@@ -306,7 +307,9 @@ class ArticleDetailTransitionUpload(View):
         form = FileUpload(article, transition, request.POST, request.FILES)
         if form.is_valid():
             if transition in article.possible_transitions():
-                self.handle_uploaded_file(request.FILES['file'], os.path.join(transition.file_upload_destination, "%s.doc" % article.doi))
+                logger.debug("Handling uploaded file: %s . . ." % request.FILES['file'].name)
+                f_name, extension = os.path.splitext(request.FILES['file'].name)
+                self.handle_uploaded_file(request.FILES['file'], transition.file_upload_destination, "%s%s" % (article.doi, extension))
                 article.execute_transition(transition, request.user)
                 return HttpResponseRedirect(reverse('detail_main', args=(article.doi,)))
 
@@ -393,8 +396,6 @@ class ArticleDetailTransition(View):
                 return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')                
             success = article.execute_transition(transition, user)
             #context = self.get_context_data(kwargs)
-            print "success?"
-            print success
 
             if success:    
                 to_json = {
@@ -594,8 +595,16 @@ class AssignArticle(View):
             f_data = form.cleaned_data
             user = get_object_or_404(User, username=f_data['username'])
             reassign_article(a, user)
-            return HttpResponse("Valid form!")
-        return HttpResponse("Inlavid form!")
+            to_json = {
+                'status': 0,
+                'assignee': a.current_articlestate.assignee.username,
+                }
+            logger.debug("%s: form used to update assignee. response: %s" % (a.doi, simplejson.dumps(to_json)))
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+        to_json = {
+            'status': 1,
+            }        
+        return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
         
 class AssignRatiosMain(View):
     template_name = 'articleflow/assign_ratios_main.html'
@@ -664,10 +673,6 @@ class AssignRatios(View):
         form = AssignmentForm(u_ratios=u_ratios, state_pk=state.pk, data=request.POST)
 
         if form.is_valid():
-            print "request"
-            print request.POST
-            print "form fields"
-            print form.fields
 
             state = State.objects.get(pk=request.POST['state'])
 
@@ -676,9 +681,7 @@ class AssignRatios(View):
                     continue
                     #pass
                 
-                print "key: %s" % key
                 username = re.search('(?<=user_).*', key).group(0)
-                print "username: %s" % username
                 user = User.objects.get(username=username)
 
                 a_s, new = AssignmentRatio.objects.get_or_create(user=user, state=state)
@@ -698,14 +701,13 @@ def send_file(pathname, attachment_name=None):
     if not attachment_name:
         attachment_name = basename
     mime, enc = mimetypes.guess_type(basename, False)
-
-    print "about to glob: %s " % pathname
     file_name = glob.glob(pathname)
-    print "Globbed: %s" % file_name
     if not file_name:
         raise IOError()
     logger.debug("Opening file at '%s' for reading." % file_name[0])
     wrapper = FileWrapper(file(file_name[0]))
+    mime, enc = mimetypes.guess_type(file_name[0], False)
+    logger.debug("%s mimetype: %s, encoding: %s" % (file_name[0], mime, enc))
     throwaway, extension = os.path.splitext(file_name[0])
 
     response = HttpResponse(wrapper, content_type=mime)
@@ -716,7 +718,6 @@ def send_file(pathname, attachment_name=None):
 def upload_doc(storage, file_name, file_stream):
     storage_file = SFTPStorageFile(file_name, storage, 'rw')
     storage_file.write(file_stream)
-    print storage_file.file.getvalue()
     storage_file.close()
 
 def find_highest_file_version_number(directory, basename):
@@ -726,10 +727,8 @@ def find_highest_file_version_number(directory, basename):
         if s:
             return s.group()
         return None
-
-    print "Looking for " + os.path.join(directory, basename) + "*"
+    
     files = [os.path.basename(f) for f in glob.glob(os.path.join(directory, basename) + "*")]
-    print files
     if not files:
         raise ValueError("File with that basename doesn't exist")
     numbers = map(lambda x: angry_search(angry_prog, x), files)
@@ -763,7 +762,6 @@ class ServeArticleDoc(View):
                 self.version_number = "(%s)" % self.version_number
             else:
                 self.version_number = ""
-            print "Version number: " + self.version_number
             
         pathname = os.path.join(self.dir_path, "%s%s%s.%s" % (article.doi, self.version_number, self.filename_modifier, self.file_extension))
         
@@ -784,7 +782,6 @@ class FTPMeropsUpload(View):
         form = FileUpload(request.POST, request.FILES)
         if form.is_valid():
             ctx = context_instance=RequestContext(request)
-            print ctx
             transition = ctx['transition']
             #sftp = CSFTPStorage()
             #print request.FILES

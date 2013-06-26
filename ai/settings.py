@@ -191,7 +191,7 @@ LOGGING = {
             'formatter': 'verbose',
             },
         'requests-file':{
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class':'logging.handlers.TimedRotatingFileHandler',
             'when': 'midnight',
             'filename': os.path.join(LOG_FILE_DIRECTORY, 'requests.log'),
@@ -275,8 +275,23 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
             },
+        'articleflow.daemons.transition_tasks': {
+            'handlers': ['debugging', 'tasks-file'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
+        'articleflow.models': {
+            'handlers': ['debugging', 'requests-file'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
         'celery': {
             'handlers': ['debugging', 'celery-file'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
+        'commands': {
+            'handlers': ['debugging'],
             'level': 'DEBUG',
             'propagate': True,
             },
@@ -344,6 +359,10 @@ CELERYBEAT_SCHEDULE = {
     'merops-tasks-watch-finishxml-output': {
         'task': 'articleflow.daemons.merops_tasks.watch_finishxml_output',
         'schedule': timedelta(seconds=30)
+        },
+    'merops-tasks-build-merops-packages': {
+        'task': 'articleflow.daemons.merops_tasks.build_merops_packages',
+        'schedule': crontab(minute="*/15", day_of_week="*")
         },
     }
 

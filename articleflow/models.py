@@ -113,7 +113,7 @@ class ArticleState(models.Model):
 	if insert and not self.created:
                 self.created = now()
         insert = not self.pk
-        logger.debug("SAVING ARTICLESTATE: %s" % self.verbose_unicode())
+        logger.debug("%s saving articlestate: %s" % (self.article.doi, self.verbose_unicode()))
 
         ret = super(ArticleState, self).save(*args, **kwargs)
         art = self.article
@@ -126,15 +126,15 @@ class ArticleState(models.Model):
                 if self.state.reassign_previous:
                     try:
                         latest_same_articlestate = ArticleState.objects.filter(article=self.article,state=self.state,created__lt=self.created).latest('created')
-                        logger.debug("Found previous same state for %s: %s" % (art.doi, latest_same_articlestate.verbose_unicode()))
+                        logger.debug("%s: found previous same state: %s" % (art.doi, latest_same_articlestate.verbose_unicode()))
                         if latest_same_articlestate.assignee:
-                            logger.info("Found previous same state assignee for %s. Reassigning %s" % (self.article.doi ,latest_same_articlestate.assignee))
+                            logger.info("%s: found previous same state assignee for. Reassigning to %s" % (self.article.doi ,latest_same_articlestate.assignee))
                             self.assign_user(latest_same_articlestate.assignee)
                     except ArticleState.DoesNotExist, e:
-                        logger.info("No previous same state for %s found" % self.article.doi)
+                        logger.info("%s: no previous same state found" % self.article.doi)
                 # Use the autoassigner if applicable
                 if not self.assignee and self.state.auto_assign > 1:
-                    print "Finding worker ..."
+                    logger.info("%s: invoking autoassigner . . ." % self.article.doi)
                     a_user = AutoAssign.pick_worker(self.article, self.state, datetime.date.today())
                     if a_user:
                         self.assign_user(a_user)
@@ -229,19 +229,19 @@ class Article(models.Model):
 
     def save(self, *args, **kwargs):
         insert = not self.pk
-        logger.info("SAVING ARTICLE: %s" % self.verbose_unicode())
+        logger.info("%s: saving article: %s" % (self.doi,self.verbose_unicode()))
 	if insert and not self.created:
                 self.created = now()
         if not self.journal:
-            logger.debug("Automatically figuring out journal")
+            logger.debug("%s: automatically figuring out journal" % self.doi)
             self.journal = get_journal_from_doi(self.doi)
         ret = super(Article, self).save(*args, **kwargs)
 
         # Create a blank articleextras row
         if insert:
             # create new state
-            logger.info("INSERTING NEW ARTICLE: %s" % self.doi)
-            logger.debug("ABOUT TO CREATE A \"NEW\" ArticleState: %s" % self.verbose_unicode())
+            logger.info("%s: inserting new article" % self.doi)
+            logger.debug("%s: about to create a \"NEW\" ArticleState: %s" % (self.doi, self.verbose_unicode()))
             s = ArticleState(article=self, state=State.objects.get(name="New"), created=self.created)
             s.save()
             
@@ -257,7 +257,7 @@ class Article(models.Model):
                 a_as.state, new = State.objects.get_or_create(name="New")
                 a_as.save()
         else:
-            logger.info("UPDATING EXISTING ARTICLE: %s" % self.doi)
+            logger.info("%s: updating existing article model" % self.doi)
 
 class ArticleExtras(models.Model):
     """
@@ -319,7 +319,7 @@ class Transition(models.Model):
     allowed_groups = models.ManyToManyField(Group, related_name="allowed_transitions")
     assign_transition_user = models.BooleanField(default=False)
     preference_weight = models.IntegerField()
-    file_upload_destination = models.CharField(max_length=600, null=True, blank=True, default=None, help_text="If this transition requires an upload, enter the path to the desired destination directory.  If no upload is required, leave this field blank.")
+    file_upload_destination = models.CharField(max_length=600, null=True, blank=True, default=None, help_text="If this transition requires an upload, enter the path to the desired destination directory.  Multiple destinations may be used by listing them separated by spaces.  If no upload is required, leave this field blank.")
     file_upload_description = models.CharField(max_length=600, null=True, blank=True, default=None, help_text="If this transition requires an upload, this is the help text to display")
 
     #Bookkeeping 
@@ -430,15 +430,15 @@ class AutoAssign():
 
     @staticmethod
     def total_assignments(state, start_time):
-        return AssignmentHistory.objects.filter(created__gte=start_time).count()
+        return AssignmentHistory.objects.filter(created__gte=start_time,article_state__state=state).count()
 
     @staticmethod
     def worker_assignments(state, user, start_time):
-        return AssignmentHistory.objects.filter(user=user).filter(created__gte=start_time).count()
+        return AssignmentHistory.objects.filter(user=user, created__gte=start_time, article_state__state=state).count()
 
     @staticmethod
     def pick_worker(article, state, start_time):
-        print "Pick Worker start"
+        logger.info("%s: picking worker . . ." % article.doi)
         total_assigns = AutoAssign.total_assignments(state, start_time)
         total_weight = AutoAssign.total_group_weight(state)
 
@@ -447,51 +447,52 @@ class AutoAssign():
         # if this is returning to an old state, try to reassign to the last person who had it
         try:
             last_state = ArticleState.objects.filter(article=article).filter(state=state).order_by('created')[1]
-            print "last_state: %s" % last_state
-            print "last_state_assignee: %s" % last_state.assignee
+            logger.debug("%s: last state was %s with assignee, %s" % (article.doi, last_state, last_state.assignee))
             if last_state.assignee in possible_assignees.all():
-                print "Old assignee found"
+                logger.info("%s: picking previously assigned user, %s" % (article.doi, last_state.assignee))
                 return last_state.assignee
         except IndexError:
             pass
 
         # if there are no weights defined, don't assign
         if not total_weight:
-            print "No weights defined"
+            logger.info("%s: No weights defined, picking nobody" % article.doi)
             return None
 
         # if nothing has been assigned, give to person with highest weight
         if total_assigns == 0:
-            print "Nothing assigned yet, giving max weighted user"
+            logger.debug("%s: nothing assigned yet in this state" % article.doi)
             max_weight = AssignmentRatio.objects.filter(state=state).aggregate(Max('weight'))['weight__max']
-            print "Max_weight: %s" % max_weight
-            return AssignmentRatio.objects.filter(weight=max_weight)[0].user
+            max_weight_user = AssignmentRatio.objects.filter(weight=max_weight)[0].user
+            logger.debug("%s: found max weight user, %s, with weight, %s" % (article.doi, max_weight_user, max_weight))
+            return max_weight_user
 
     # otherwise figure out who has the biggest assignment deficit
 
-        print "Analying deficits"
+        logger.debug("%s: analying worker deficits ..." % (article.doi))
         r_users = []
         max_deficit = (0, None)
         for u in possible_assignees.all():
-            print "Analyzing %s ..." % u
+            logger.debug("%s: analyzing %s ..." % (article.doi, u))
             work_ratio = AutoAssign.worker_assignments(state, u, start_time) / float(total_assigns)
-            print "work_ratio: %s" % work_ratio
+            logger.debug("%s: %s's work_ratio: %s" % (article.doi, u, work_ratio))
             try:
                 weight_ratio = AssignmentRatio.objects.get(user=u, state=state).weight / float(total_weight)
                 if weight_ratio == 0:
-                    print "Weight ratio is zero, skipping"
+                    logger.debug("%s: %s's weight ratio is zero, skipping" % (article.doi, u))
                     continue
             except AssignmentRatio.DoesNotExist:
-                print "No weight assigned, skipping"
+                logger.debug("%s: %s has no weight assigned, skipping" % (article.doi, u))
                 continue
-            print "weight_ratio: %s" % weight_ratio
+            logger.debug("%s: %s's weight_ratio: %s" % (article.doi, u, weight_ratio))
             deficit = weight_ratio - work_ratio
-            print "deficit: %s" % deficit
+            logger.debug("%s: %s's deficit: %s" % (article.doi, u, deficit))
         
             r_users += [(deficit, u)]
             if deficit > max_deficit[0] or not max_deficit[1]:
                 max_deficit = (deficit, u)
-
+        
+        logger.info("%s: picking worker with biggest deficit.  user: %s, deficit: %s" % (article.doi, max_deficit[1], max_deficit[0]))
         return max_deficit[1]
 
 def reassign_article(article, user):
