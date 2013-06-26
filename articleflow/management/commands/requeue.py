@@ -4,6 +4,8 @@ import glob
 import os.path
 
 from django.core.management.base import BaseCommand, CommandError
+from articleflow.daemons.merops_tasks import process_doc_from_aries
+from articleflow.models import Article
 
 from ai import settings
 
@@ -20,7 +22,16 @@ def requeue(doi, source, dest):
     shutil.copy(f[0], dest)
 
 def requeue_merops(doi):
-    return requeue(doi, settings.MEROPS_MEROPSED_WATCH_BU, settings.MEROPS_MEROPSED_WATCH)
+    try:
+        return requeue(doi, settings.MEROPS_MEROPSED_WATCH_BU, settings.MEROPS_MEROPSED_WATCH)
+    except OSError, ee:
+        try:
+            a = Article.objects.get(doi=doi)
+            guid = a.si_guid
+        except Article.DoesNotExist, e:
+            raise ValueError("I can't find an article with doi, %s" % doi)
+        aries_zip = os.path.join(settings.MEROPS_ARIES_DELIVERY, guid + ".zip")
+        process_doc_from_aries(aries_zip)
 
 def requeue_finishxml(doi):
     return requeue(doi, settings.MEROPS_FINISH_XML_WATCH_BU, settings.MEROPS_FINISH_XML_WATCH)

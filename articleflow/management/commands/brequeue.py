@@ -13,8 +13,8 @@ def brequeue(articles, queue_func):
     if not articles:
         logger.info("Found no articles that are queued.  Exiting.")
         return 0
-    logger.info("Identified %s article(s) that are queued.  Requeueing ..." % len(queued_articles))
-    for a in queued_articles:
+    logger.info("Identified %s article(s) that are queued.  Requeueing ..." % len(articles))
+    for a in articles:
         try:
             logger.info("Requeueing %s" % a.doi)
             queue_func(a.doi)
