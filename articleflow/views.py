@@ -608,7 +608,7 @@ class AssignArticle(View):
         if form.is_valid():
             f_data = form.cleaned_data
             user = get_object_or_404(User, username=f_data['username'])
-            reassign_article(a, user)
+            reassign_article(a, user, from_transition_user=request.user)
             to_json = {
                 'status': 0,
                 'assignee': a.current_articlestate.assignee.username,
