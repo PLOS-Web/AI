@@ -32,7 +32,7 @@ import django_filters
 import transitionrules
 
 from ai import settings
-from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio, Typesetter, reassign_article
+from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio, AssignmentHistory, Typesetter, reassign_article, toUTCc
 from articleflow.forms import AssignmentForm, ReportsDateRange, FileUpload, AssignArticleForm
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
@@ -649,8 +649,14 @@ class AssignRatios(View):
             except AssignmentRatio.DoesNotExist:
                 a_r = None
                 
+
+            midnight = toUTCc(datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0))
+
+            assignments = AssignmentHistory.objects.filter(user=u, article_state__state=state, created__gte=midnight).count()
+                
             u_ratios += [{'user': u,
-                          'assignment_ratio': a_r}]    
+                          'assignment_ratio': a_r,
+                          'assignments': assignments}]    
                     
         ctx = {
             'state': state,

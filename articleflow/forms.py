@@ -13,10 +13,11 @@ class AssignmentForm(forms.Form):
         if u_ratios:
             for u_r in u_ratios:
                 username = u_r['user'].username
+                label = "%s (%s)" % (username, u_r['assignments'])
                 if u_r['assignment_ratio']:
-                    self.fields['user_%s' %username] = forms.IntegerField(initial=u_r['assignment_ratio'].weight, label=username)
+                    self.fields['user_%s' %username] = forms.IntegerField(initial=u_r['assignment_ratio'].weight, label=label)
                 else:
-                    self.fields['user_%s' %username] = forms.IntegerField(initial=0, label=username)
+                    self.fields['user_%s' %username] = forms.IntegerField(initial=0, label=label)
 
         if state_pk:
             self.fields['state'] = forms.IntegerField(widget=forms.HiddenInput(), initial=state_pk)
