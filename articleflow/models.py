@@ -1,6 +1,7 @@
 import pytz
 import datetime
 import re
+import collections
 
 from django.utils.timezone import utc
 from django.db import models
@@ -13,6 +14,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 PAC = pytz.timezone('US/Pacific')
+
+def get_iterable(x):
+    if isinstance(x, collections.Iterable):
+        return x
+    else:
+        return (x,)
 
 def now():
     return datetime.datetime.utcnow().replace(tzinfo=utc)
@@ -495,9 +502,19 @@ class AutoAssign():
         logger.info("%s: picking worker with biggest deficit.  user: %s, deficit: %s" % (article.doi, max_deficit[1], max_deficit[0]))
         return max_deficit[1]
 
-def reassign_article(article, user):
+def reassign_article(article, to_user, from_transition_user=None):
     """Reassign article to user."""
-    arts_copy = article.current_articlestate
-    arts_copy.pk = None #hacky way to copy model instance
-    arts_copy.assignee = user
-    arts_copy.save()
+    arts = get_iterable(article)
+    for a in arts:
+        logger.info("%s: reassigning to %s" % (a.doi, to_user))
+        c_arts = a.current_articlestate
+        n_arts = ArticleState(article=a,
+                              state=c_arts.state,
+                              assignee=to_user,
+                              from_transition_user=from_transition_user)
+
+        n_arts.save()
+
+        if not to_user:
+            n_arts.assignee = None
+            n_arts.save()
