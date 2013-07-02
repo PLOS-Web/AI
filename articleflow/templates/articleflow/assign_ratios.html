@@ -7,6 +7,7 @@
 {% block content %}
 <h2>Assignment Weights: {{ state.name }}</h2>
 <p>Ascribe weights to workers in each state.  Weights don't have to add up anything in particular, they're purely a relative metric.  Those with a weight of zero will receive no new assignments.  Setting everybody's weight to zero will result in the autoassigner not assigning anything to anyboby.</p>
+<p>The number of assignments each user has received today in this category is expressed next to their name in parentheses.</p>
 <form action="." method="post" class="form form-horizontal">
 {% csrf_token %}
 {{ form|crispy }}
