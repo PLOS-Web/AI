@@ -458,6 +458,9 @@ class ExternalSync(models.Model):
     def latest_external_timestamp(self):
         return self.histories.latest('max_external_timestamp')
 
+    def __unicode__(self):
+        return self.name
+    
     class Meta:
         ordering = ['created']
 
@@ -483,6 +486,9 @@ class SyncHistory(models.Model):
                 self.created = now()
         ret = super(SyncHistory, self).save(*args, **kwargs)
         return ret
+
+    def __unicode__(self):
+        return u"%s: %s" % (self.sync, self.created)
 
     class Meta:
         ordering = ['created']

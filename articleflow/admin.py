@@ -27,6 +27,12 @@ class ArticleStateAdmin(admin.ModelAdmin):
 class WatchStateAdmin(admin.ModelAdmin):
     list_display = ('watcher', 'last_mtime')
 
+class ExternalSyncAdmin(admin.ModelAdmin):
+    list_display = ('name', 'source', 'latest_sync')
+
+class SyncHistoryAdmin(admin.ModelAdmin):
+    list_display = ('sync', 'created', 'completion_time', 'max_external_timestamp')
+
 admin.site.register(State, StateAdmin)
 admin.site.register(ArticleState, ArticleStateAdmin)
 admin.site.register(Article, ArticleAdmin)
@@ -37,4 +43,5 @@ admin.site.register(AssignmentHistory)
 admin.site.register(AssignmentRatio)
 admin.site.register(Typesetter)
 admin.site.register(WatchState, WatchStateAdmin)
-
+admin.site.register(ExternalSync, ExternalSyncAdmin)
+admin.site.register(SyncHistory, SyncHistoryAdmin)
