@@ -338,7 +338,11 @@ CELERY_IMPORTS=(
 CELERYBEAT_SCHEDULE = {
     'em-sync': {
         'task': 'articleflow.daemons.em_sync.sync_all_pubdates',
-        'schedule': crontab(hour="*/2", minute="0", day_of_week="*")
+        'schedule': crontab(hour="1", minute="0", day_of_week="*")
+        },
+    'sync-most-recent-em-changes': {
+        'task': 'articleflow.daemons.em_sync.sync_most_recent_em_changes',
+        'schedule': timedelta(minutes=1)
         },
     'transitions-tasks': {
         'task': 'articleflow.daemons.transition_tasks.ongoing_ambra_sync',
