@@ -109,7 +109,7 @@ class EMQueryConnection(EMConnection):
                 WHERE d.doi is not null
                   AND d.revision =
                   (SELECT MAX(d_sub.revision) as rev_max FROM document d_sub WHERE d_sub.documentid = d.documentid) 
-                  AND d.Row_LastModified_Timestamp > '%s'
+                  AND d.Row_LastModified_Timestamp >= '%s'
                 """ % mtime.astimezone(EAST_TZ).strftime('%Y-%m-%d %H:%M:%S'))
             r += self.cursor.fetchall()
         return r
