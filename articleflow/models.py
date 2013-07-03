@@ -452,11 +452,17 @@ class ExternalSync(models.Model):
 
     @property
     def latest_sync(self):
-        return self.histories.latest('created')
+        try:
+            return self.histories.latest('created')
+        except SyncHistory.DoesNotExist, ee:
+            return None
 
     @property
     def latest_external_timestamp(self):
-        return self.histories.latest('max_external_timestamp')
+        try:
+            return self.histories.latest('max_external_timestamp')
+        except SyncHistory.DoesNotExist, ee:
+            return None
 
     def __unicode__(self):
         return self.name
