@@ -89,9 +89,10 @@ def sync_most_recent_em_changes():
                     logger.error("Pubdate update couldn't find doi, %s, in AI" % short_doi)
             else:
                 logger.error("EM provided a null pubdate for %s. Not updating." % a[0])
-        max_mtime = max(map(lambda x: x[5], pubdates))
-        job.max_external_timestamp = EAST_TZ.localize(max_mtime)
-        job.save()
+        if a:
+            max_mtime = max(map(lambda x: x[5], pubdates))
+            job.max_external_timestamp = EAST_TZ.localize(max_mtime)
+            job.save()
         job.complete()
 
 
