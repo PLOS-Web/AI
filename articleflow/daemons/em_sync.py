@@ -65,7 +65,6 @@ def sync_most_recent_em_changes():
         if new: extsync.save()
 
         last_sync = extsync.latest_sync
-        print(vars(last_sync))
         if last_sync:
             mtime = last_sync.max_external_timestamp
             logger.info("Using last mtime: %s" % mtime)
