@@ -430,6 +430,63 @@ class AssignmentRatio(models.Model):
         ret = super(AssignmentRatio, self).save(*args, **kwargs)
         return ret
 
+class ExternalSync(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+    source = models.CharField(max_length=200)
+
+    #Bookkeeping
+    created = models.DateTimeField(null=True, blank=True, default=None)
+    last_modified = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
+        ret = super(ExternalSync, self).save(*args, **kwargs)
+        return ret
+
+    def start_sync(self):
+        hist = SyncHistory(sync=self)
+        hist.save()
+        return hist
+
+    @property
+    def latest_sync(self):
+        return self.histories.latest('created')
+
+    @property
+    def latest_external_timestamp(self):
+        return self.histories.latest('max_external_timestamp')
+
+    class Meta:
+        ordering = ['created']
+
+class SyncHistory(models.Model):
+    sync = models.ForeignKey('ExternalSync', related_name='histories')
+    completion_time = models.DateTimeField(null=True, blank=True, default=None)
+    max_external_timestamp = models.DateTimeField(null=True, blank=True, default=None)
+
+    #Bookkeeping
+    created = models.DateTimeField(null=True, blank=True, default=None)
+    last_modified = models.DateTimeField(auto_now=True)
+
+    def is_done(self):
+        return (self.completion_time)
+
+    def complete(self):
+        self.completion_time = now()
+        self.save()
+
+    def save(self, *args, **kwargs):
+        insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
+        ret = super(SyncHistory, self).save(*args, **kwargs)
+        return ret
+
+    class Meta:
+        ordering = ['created']
+
 class AutoAssign():
     @staticmethod
     def total_group_weight(state):
