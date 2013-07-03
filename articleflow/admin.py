@@ -31,7 +31,7 @@ class ExternalSyncAdmin(admin.ModelAdmin):
     list_display = ('name', 'source', 'latest_sync')
 
 class SyncHistoryAdmin(admin.ModelAdmin):
-    list_display = ('sync', 'created', 'completion_time', 'max_external_timestamp')
+    list_display = ('id', 'sync', 'created', 'completion_time', 'max_external_timestamp')
 
 admin.site.register(State, StateAdmin)
 admin.site.register(ArticleState, ArticleStateAdmin)
