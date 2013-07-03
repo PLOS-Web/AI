@@ -1,12 +1,17 @@
 import pyodbc
 import re
+import pytz
 
 from ai import settings
 
 from articleflow.models import Journal
+import datetime
 
 import logging
 logger = logging.getLogger(__name__)
+
+PAC_TZ = pytz.timezone('US/Pacific')
+EAST_TZ = pytz.timezone('US/Eastern')
 
 def get_journal_from_doi(doi):
     match = re.match('.*(?=\.)', doi)
@@ -83,10 +88,37 @@ class EMQueryConnection(EMConnection):
                 """)
             r += self.cursor.fetchall()
         return r
+    
+    def sync_all_after_mtime(self, mtime=None):
+        if not mtime:
+            mtime = datetime.datetime.now(tz=PAC_TZ) - datetime.timedelta(hours=1)
+        journals = Journal.objects.all()
+        r = []
+        for journal in journals:
+            self.cursor.execute('USE %s' % journal.em_db_name)
+            self.cursor.execute(
+                """
+                SELECT
+                  doi,
+                  actual_online_pub_date as 'pubdate',
+                  documentid,
+                  pubdnumber,
+                  revision as rev_max,
+                  Row_LastModified_Timestamp as last_modified
+                FROM document d
+                WHERE d.doi is not null
+                  AND d.revision =
+                  (SELECT MAX(d_sub.revision) as rev_max FROM document d_sub WHERE d_sub.documentid = d.documentid) 
+                  AND d.Row_LastModified_Timestamp > '%s'
+                """ % mtime.astimezone(EAST_TZ).strftime('%Y-%m-%d %H:%M:%S'))
+            r += self.cursor.fetchall()
+        return r
 
 def main():
     with EMQueryConnection() as emq:
         print emq.get_pubdate('pone.0053871')
+        d = datetime.datetime.now(tz=PAC_TZ)
+        print emq.sync_all_after_mtime()
 
 if __name__ == '__main__':
     main()
