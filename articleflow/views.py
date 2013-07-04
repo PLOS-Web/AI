@@ -686,9 +686,14 @@ class AssignRatios(View):
                 a_r = AssignmentRatio.objects.get(user=u, state=state)
             except AssignmentRatio.DoesNotExist:
                 a_r = None
+
+            midnight = toUTCc(datetime.datetime.today().replace(hour=0, minute=0, second=0, microsecond=0))
+
+            assignments = AssignmentHistory.objects.filter(user=u, article_state__state=state, created__gte=midnight).count()
                 
             u_ratios += [{'user': u,
-                          'assignment_ratio': a_r}]    
+                          'assignment_ratio': a_r,
+                          'assignments': assignments}]    
 
         form = AssignmentForm(u_ratios=u_ratios, state_pk=state.pk, data=request.POST)
 
