@@ -7,6 +7,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from articleflow.models import Article, ArticleExtras
 
+import logging
+logger = logging.getLogger(__name__)
+
 def now():
     return datetime.datetime.utcnow().replace(tzinfo=utc)
 
@@ -60,11 +63,8 @@ class Issue(models.Model):
             ret = super(Issue, self).save(*args, **kwargs)
             
             a_extras, new = ArticleExtras.objects.get_or_create(article=self.article)
-            print "A_EXTRAS"
-            print a_extras
             
             #bad hardcoding for issue counts in articleextras
-            print self.category.name
             if self.category.name == "XML":
                 a_extras.num_issues_xml += 1
             elif self.category.name == "PDF":
@@ -75,8 +75,8 @@ class Issue(models.Model):
                 a_extras.num_issues_si += 1
             elif self.category.name == "Legacy":
                 a_extras.num_issues_legacy += 1
-            else:
-                print "Encountered category unknown to articleextras"
+            else: 
+                logger.error("%s: encountered categoryname unknown to articleextras: %s" % (self.article.doi, self.category.name))
 
             a_extras.num_issues_total += 1
 
