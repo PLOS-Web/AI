@@ -1,0 +1,25 @@
+{% load error_tags %}
+
+<div id='error-block'>
+  <div id='issues' class="rounded-box-list">
+    <div class="rounded-box-header-inner">
+      <h4 class="rounded-box-header">Errors</h4>
+    </div>
+    <div class="error-timestamp rounder-box-card-inner">
+      {% if errorset %}
+      <p>{{ errorset.get_source_display }}: {{ errorset.created }}</p>
+      {% else %}
+      <p>No error sets</p>
+      {% endif %}
+    </div>
+    <div id='holder-{{ errorset.pk }}' class='errorset-holder'>
+      <div class="progress progress-striped active">
+	<div class="bar" style="width: 100%;"></div>
+      </div>
+    </div>
+    <script type='text/javascript'>
+      console.log('Getting {% url errorsetlist errorset.pk %}?level=1&level=2&filter=Filter')
+      $('#holder-{{ errorset.pk }}').load('{% url errorsetlist errorset.pk %}?level=1&level=2&filter=Filter')
+    </script>
+  </div>
+</div>

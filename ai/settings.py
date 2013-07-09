@@ -235,6 +235,11 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
             },
+        'errors.views': {
+            'handlers': ['debugging'],
+            'level': 'DEBUG',
+            'propagate': True,
+            },
         'errors.models': {
             'handlers': ['debugging', 'requests-file'],
             'level': 'DEBUG',

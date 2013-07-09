@@ -101,3 +101,34 @@
 .align-right {
     float: right;
 }
+
+.error-filter-form .control-label{
+    display: none;
+}
+
+.error-filter-form .controls{
+    margin: 6 0 0 0;
+}
+
+.error-filter-form .controls .checkbox{
+    margin-right: 10px;
+    height: 20px;
+    padding: 0px;
+}
+
+.error-filter-form .controls .checkbox input{
+    margin: 2 2 0 0;
+}
+
+.error-filter-form .control-group{
+    float: left;
+}
+
+.error-filter-form {
+    margin: 3 0 0 10;
+}
+
+.errorset-holder .progress{
+    margin: 15 35 15 35;
+}
+
