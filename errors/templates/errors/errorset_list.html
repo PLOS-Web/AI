@@ -17,7 +17,7 @@
         url: "{% url errorsetlist errorset.pk %}",
         data: form_elem.serialize(),
         success: function(msg){
-          $('#holder').html(msg);
+          $('#holder-{{ errorset.pk }}').html(msg);
         }
       });
     }

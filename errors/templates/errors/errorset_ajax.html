@@ -12,14 +12,14 @@
       <p>No error sets</p>
       {% endif %}
     </div>
-    <div id='holder'>
+    <div id='holder-{{ errorset.pk }}' class='errorset-holder'>
       <div class="progress progress-striped active">
 	<div class="bar" style="width: 100%;"></div>
       </div>
     </div>
     <script type='text/javascript'>
       console.log('Getting {% url errorsetlist errorset.pk %}?level=1&level=2&filter=Filter')
-      $('#holder').load('{% url errorsetlist errorset.pk %}?level=1&level=2&filter=Filter')
+      $('#holder-{{ errorset.pk }}').load('{% url errorsetlist errorset.pk %}?level=1&level=2&filter=Filter')
     </script>
   </div>
 </div>
