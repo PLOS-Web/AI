@@ -7,6 +7,10 @@ urlpatterns = patterns('errors.views',
         Errors.as_view(),
         name='article_errors'),
                        url(
+        r'^errorset/(?P<errorset_pk>[0-9]*)$',
+        ErrorSetList.as_view(),
+        name='errorsetlist'),
+                       url(
         r'^error_status/$',
         'toggle_error_status',
         name='toggle_error_status'),

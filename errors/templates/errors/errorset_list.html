@@ -1,0 +1,29 @@
+{% load error_tags %}
+{% load crispy_forms_tags %}
+
+{% crispy errors.form %}
+{% for error in errors %}
+  {% render_error_block error %}
+{% endfor %}
+
+<script type='text/javascript'>
+ console.log('lalal');
+
+  var errorset_filter_form_options_{{ errorset.pk }} = {
+    success: function(response_text, status_text, xhr, form_elem) {
+      console.log(form_elem.serialize());
+      $.ajax({
+        type: "GET",
+        url: "{% url errorsetlist errorset.pk %}",
+        data: form_elem.serialize(),
+        success: function(msg){
+          $('#holder').html(msg);
+        }
+      });
+    }
+  };
+
+  $(function() {
+    $('#errorset-filter-form-{{ errorset.pk }}').ajaxForm(errorset_filter_form_options_{{ errorset.pk }});
+  });
+</script>

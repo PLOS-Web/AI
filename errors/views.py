@@ -1,7 +1,10 @@
+import django_filters
+
+from django import forms
 from django.http import HttpResponse, Http404
-from django.views.generic import ListView
+from django.views.generic import ListView, View
 from django.template import Template, RequestContext
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 import simplejson
 
 from django.contrib.comments.models import Comment
@@ -12,7 +15,11 @@ from django.conf import settings
 from errors.models import ErrorSet, Error, ErrorStatus
 from articleflow.models import Article
 
-from errors.models import STATUS_CODES
+from errors.models import STATUS_CODES, ERROR_LEVEL
+from errors.forms import errorsetlist_form_helper
+
+import logging
+logger = logging.getLogger(__name__)
 
 class Errors(ListView):
     template_name = 'errors/error_list.html'
@@ -27,6 +34,31 @@ class Errors(ListView):
                 'errorset_list': self.get_queryset()
             })
         return context
+
+class ErrorSetFilter(django_filters.FilterSet):
+    checkbox_widget = forms.CheckboxSelectMultiple()
+    level = django_filters.MultipleChoiceFilter(choices=ERROR_LEVEL, widget=checkbox_widget)
+    
+    class Meta:
+        model = Error
+        #fields = ['level']
+
+class ErrorSetList(View):
+    template_name = 'errors/errorset_list.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = {}
+        errorset = get_object_or_404(ErrorSet, pk=kwargs['errorset_pk'])
+        errors = ErrorSetFilter(self.request.GET, queryset=Error.objects.filter(error_set=errorset).all())
+        ctx['errors'] = errors
+        setattr(ctx['errors'].form, 'helper', errorsetlist_form_helper(errorset))
+        ctx['errorset'] = errorset
+        logger.debug(vars(errors))
+        return ctx
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
 
 def comment_list(request, id):
     """

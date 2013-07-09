@@ -20,7 +20,7 @@ def render_comment_block(context, error):
     context.update({'error': error})
     return context
 
-@register.inclusion_tag('errors/errorset.html', takes_context=True)
+@register.inclusion_tag('errors/errorset_ajax.html', takes_context=True)
 def render_latest_errors(context, article):
     sets = article.error_sets
     if sets.all():
@@ -33,4 +33,9 @@ def render_latest_errors(context, article):
 @register.inclusion_tag('errors/error_status_control.html', takes_context=True)
 def render_error_status_control(context, error):
     context.update({'error': error})
+    return context
+
+@register.inclusion_tag('errors/errorset_ajax.html', takes_context=True)
+def render_errorset_block_ajax(context, errorset):
+    context.update({'errorset': errorset})
     return context
