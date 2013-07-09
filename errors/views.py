@@ -53,7 +53,6 @@ class ErrorSetList(View):
         ctx['errors'] = errors
         setattr(ctx['errors'].form, 'helper', errorsetlist_form_helper(errorset))
         ctx['errorset'] = errorset
-        logger.debug(vars(errors))
         return ctx
 
     def get(self, request, *args, **kwargs):
