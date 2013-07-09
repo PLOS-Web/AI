@@ -15,7 +15,7 @@ from merops_settings import *
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 PACKAGE_ROOT = os.path.abspath(os.path.dirname(__file__))
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 # SOUTH_TESTS_MIGRATE = False
@@ -344,6 +344,10 @@ CELERYBEAT_SCHEDULE = {
     'em-sync': {
         'task': 'articleflow.daemons.em_sync.sync_all_pubdates',
         'schedule': crontab(hour="*/2", minute="0", day_of_week="*")
+        },
+    'sync-most-recent-em-changes': {
+        'task': 'articleflow.daemons.em_sync.sync_most_recent_em_changes',
+        'schedule': timedelta(minutes=1)
         },
     'transitions-tasks': {
         'task': 'articleflow.daemons.transition_tasks.ongoing_ambra_sync',

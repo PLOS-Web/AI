@@ -1,6 +1,7 @@
 import pytz
 import datetime
 import re
+import collections
 
 from django.utils.timezone import utc
 from django.db import models
@@ -13,6 +14,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 PAC = pytz.timezone('US/Pacific')
+
+def get_iterable(x):
+    if isinstance(x, collections.Iterable):
+        return x
+    else:
+        return (x,)
 
 def now():
     return datetime.datetime.utcnow().replace(tzinfo=utc)
@@ -423,6 +430,75 @@ class AssignmentRatio(models.Model):
         ret = super(AssignmentRatio, self).save(*args, **kwargs)
         return ret
 
+class ExternalSync(models.Model):
+    name = models.CharField(max_length=200, unique=True)
+    source = models.CharField(max_length=200)
+
+    #Bookkeeping
+    created = models.DateTimeField(null=True, blank=True, default=None)
+    last_modified = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
+        ret = super(ExternalSync, self).save(*args, **kwargs)
+        return ret
+
+    def start_sync(self):
+        hist = SyncHistory(sync=self)
+        hist.save()
+        return hist
+
+    @property
+    def latest_sync(self):
+        try:
+            return self.histories.latest('created')
+        except SyncHistory.DoesNotExist, ee:
+            return None
+
+    @property
+    def latest_external_timestamp(self):
+        try:
+            return self.histories.latest('max_external_timestamp')
+        except SyncHistory.DoesNotExist, ee:
+            return None
+
+    def __unicode__(self):
+        return self.name
+    
+    class Meta:
+        ordering = ['created']
+
+class SyncHistory(models.Model):
+    sync = models.ForeignKey('ExternalSync', related_name='histories')
+    completion_time = models.DateTimeField(null=True, blank=True, default=None)
+    max_external_timestamp = models.DateTimeField(null=True, blank=True, default=None)
+
+    #Bookkeeping
+    created = models.DateTimeField(null=True, blank=True, default=None)
+    last_modified = models.DateTimeField(auto_now=True)
+
+    def is_done(self):
+        return (self.completion_time)
+
+    def complete(self):
+        self.completion_time = now()
+        self.save()
+
+    def save(self, *args, **kwargs):
+        insert = not self.pk
+	if insert and not self.created:
+                self.created = now()
+        ret = super(SyncHistory, self).save(*args, **kwargs)
+        return ret
+
+    def __unicode__(self):
+        return u"%s: %s" % (self.sync, self.created)
+
+    class Meta:
+        ordering = ['created']
+
 class AutoAssign():
     @staticmethod
     def total_group_weight(state):
@@ -495,9 +571,19 @@ class AutoAssign():
         logger.info("%s: picking worker with biggest deficit.  user: %s, deficit: %s" % (article.doi, max_deficit[1], max_deficit[0]))
         return max_deficit[1]
 
-def reassign_article(article, user):
+def reassign_article(article, to_user, from_transition_user=None):
     """Reassign article to user."""
-    arts_copy = article.current_articlestate
-    arts_copy.pk = None #hacky way to copy model instance
-    arts_copy.assignee = user
-    arts_copy.save()
+    arts = get_iterable(article)
+    for a in arts:
+        logger.info("%s: reassigning to %s" % (a.doi, to_user))
+        c_arts = a.current_articlestate
+        n_arts = ArticleState(article=a,
+                              state=c_arts.state,
+                              assignee=to_user,
+                              from_transition_user=from_transition_user)
+
+        n_arts.save()
+
+        if not to_user:
+            n_arts.assignee = None
+            n_arts.save()
