@@ -67,6 +67,7 @@
   <thead>
     <tr>
       <th>Doi</th>
+      <th>Typesetter</th>
       <th>Transition</th>
       <th>Time</th>
     </tr>
@@ -75,6 +76,7 @@
     {% for a_s in c.actions %}
     <tr>
       <td><a href="{% url detail_main a_s.article.doi %}">{{ a_s.article.doi }}</a></td>
+      <td>{{ a_s.article.typesetter.name }}</td>
       <td><a href="{% url detail_history a_s.article.doi %}">{{ a_s.from_transition.name }}</td>
       <td>{{ a_s.created }}</td>
     </tr>

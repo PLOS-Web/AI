@@ -482,6 +482,7 @@ class ReportsPCQCCounts(View):
 
     def form_valid(self, form, **kwargs):
         data = form.cleaned_data
+        print data
         # hacky fix for non-inclusive end date on filter
         data['end_date'] = data['end_date'] + datetime.timedelta(days=1)
         
@@ -501,7 +502,14 @@ class ReportsPCQCCounts(View):
         for j in Journal.objects.all():
             journals += [j.short_name]
 
-        from_transitions = Transition.objects.filter(Q(from_state__name='Ready for QC (CW)')|Q(from_state__name='Urgent QC (CW)')).all()
+        if int(data['typesetter']) == 1:
+            from_transitions = Transition.objects.filter(Q(from_state__name='Ready for QC (CW)')|Q(from_state__name='Urgent QC (CW)')).all()
+        elif int(data['typesetter']) == 2:
+            from_transitions = Transition.objects.filter(Q(from_state__unique_name='ready_for_qc_merops')|Q(from_state__unique_name='urgent_qc_merops')).all()
+        elif int(data['typesetter']) == 3:
+            from_transitions = Transition.objects.filter(Q(from_state__unique_name='ready_for_qc_merops')|Q(from_state__unique_name='urgent_qc_merops')|Q(from_state__unique_name='ready_for_qc_cw')|Q(from_state__unique_name='urgent_qc_cw')).all()
+        elif int(data['typesetter']) == 4:
+            from_transitions = Transition.objects.filter(from_state__unique_name='prepare_manuscript').all()
 
         for u in users.itervalues():
             u['counts'] = {}

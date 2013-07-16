@@ -132,6 +132,7 @@ INSTALLED_APPS = (
     'djcelery',
     'kombu.transport.django',
     'storages',
+    'notification',
 
     'articleflow',
     'issues',
