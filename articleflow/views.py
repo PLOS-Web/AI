@@ -507,7 +507,10 @@ class ReportsPCQCCounts(View):
         elif int(data['typesetter']) == 2:
             from_transitions = Transition.objects.filter(Q(from_state__unique_name='ready_for_qc_merops')|Q(from_state__unique_name='urgent_qc_merops')).all()
         elif int(data['typesetter']) == 3:
+            from_transitions = Transition.objects.filter(Q(from_state__unique_name='ready_for_qc_merops')|Q(from_state__unique_name='urgent_qc_merops')|Q(from_state__unique_name='ready_for_qc_cw')|Q(from_state__unique_name='urgent_qc_cw')).all()
+        elif int(data['typesetter']) == 4:
             from_transitions = Transition.objects.filter(from_state__unique_name='prepare_manuscript').all()
+
         for u in users.itervalues():
             u['counts'] = {}
 

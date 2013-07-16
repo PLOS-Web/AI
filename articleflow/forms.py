@@ -23,7 +23,7 @@ class AssignmentForm(forms.Form):
 
 class ReportsDateRange(forms.Form):
     group_choices = ((1, 'PLOS Production'),(2, "Zyg"), (3, "Both"))
-    typesetter_choices = ((1, 'CW QC'), (2, 'Merops QC'), (3, 'Merops PM'))
+    typesetter_choices = ((1, 'CW QC'), (2, 'Merops QC'), (3, 'Merops+CW QC'), (4, 'Merops PM'))
 
     group = forms.ChoiceField(choices=group_choices)
     typesetter = forms.ChoiceField(choices=typesetter_choices)
