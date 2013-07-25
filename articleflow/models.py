@@ -67,6 +67,8 @@ class State(models.Model):
     auto_assign = models.IntegerField(default=1, choices=AUTO_ASSIGN)
     reassign_previous = models.BooleanField(default=True)
     progress_index = models.IntegerField(default=0)
+    typesetters = models.ManyToManyField('Typesetter', related_name="allowed_states", null=True, blank=True, default=None,
+                                         help_text="typesetter processes to which this state belongs")
 
     #Bookkeeping 
     created = models.DateTimeField(null=True, blank=True, default=None)
