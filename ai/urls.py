@@ -4,6 +4,8 @@ from django.views.generic.simple import direct_to_template
 from django.contrib import admin
 admin.autodiscover()
 
+import notification.urls
+
 urlpatterns = patterns('',
                        url(r'^$', direct_to_template, {
             "template": "homepage.html",
@@ -17,4 +19,5 @@ urlpatterns = patterns('',
                        url(r'^issues/', include('issues.urls')),
                        url(r'^notes/', include('notes.urls')),
                        url(r'^errors/', include('errors.urls')),
+                       url(r'^notifications/', include('notification.urls')),
                        )
