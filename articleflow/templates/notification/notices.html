@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block sub_title %} - Notifications{% endblock %}
+{% block head %}
+<link href="{{ STATIC_URL }}css/articleflow.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<h2>My Notifications</h2>
+<table class='table'>
+  <thead>
+    <tr>
+      <th><i class='icon-eye-open' title="unread?"></i></th>
+      <th>Time</th>
+      <th>Type</th>
+      <th>Message</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for n in notices %}
+    <tr class='{% if n.unseen %}warning{% endif %}'>
+      <td>
+      {% if n.unseen %}
+      <i class='icon-eye-close' title='unread'></i>
+      {% endif %}
+      </td>
+      <td>
+	{{ n.added }}
+      </td>
+      <td>
+	<span title='{{ n.notice_type.description }}'>{{ n.notice_type.display }}</span>
+      </td>
+      <td>
+	{% autoescape off %}
+	{{ n.message }}
+	{% endautoescape %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script type="text/javascript">
+  xmlHttp = new XMLHttpRequest();
+  xmlHttp.open("GET", '{% url notification_mark_all_seen %}', false);
+  xmlHttp.send( null );
+</script>
+{% endblock %}
