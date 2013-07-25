@@ -97,7 +97,11 @@ def assign_ready_for_qc_article(art):
     ready_for_qc_state = State.objects.get(name='Ready for QC (CW)')
     ingested_state_index = ingested_state.progress_index
     try:
-        last_advanced_state = ArticleState.objects.filter(article=art).filter(state__progress_index__gt=ingested_state_index).latest('created')
+        state_history = ArticleState.objects.filter(article=art).filter(state__progress_index__gt=ingested_state_index)
+        last_advanced_state = state_history.latest('created')
+        if art.typesetter and art.typesetter not in last_advanced_state.state.typesetters.all():
+            raise ArticleState.DoesNotExist() # typesetter has changed, start process over
+
         # return article to last advanced state
         a_s = ArticleState(article=art,
                            state=last_advanced_state.state,
