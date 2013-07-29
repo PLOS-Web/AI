@@ -88,7 +88,7 @@ def assign_ingested(stage_conn):
         assign_ingested_article(a, stage_conn)
 
 def assign_ready_for_qc_article(art):
-    logger.info("Checking article, %s, to see if it needs to be changed to 'Ready for QC (CW)'" % art.doi)
+    logger.info("%s: Article found in \'ingested\' state. determining next state . . ." % art.doi)
     ingested_state = State.objects.get(name='Ingested')
     ingested = (art.current_state == ingested_state)    
     if not ingested:
@@ -100,7 +100,8 @@ def assign_ready_for_qc_article(art):
         state_history = ArticleState.objects.filter(article=art).filter(state__progress_index__gt=ingested_state_index)
         last_advanced_state = state_history.latest('created')
         if art.typesetter and art.typesetter not in last_advanced_state.state.typesetters.all():
-            raise ArticleState.DoesNotExist() # typesetter has changed, start process over
+            logger.info("%s: Typesetter has changed to %s, restarting QC track." % (art.doi, art.typesetter))
+            raise ArticleState.DoesNotExist()
 
         # return article to last advanced state
         a_s = ArticleState(article=art,
@@ -129,7 +130,7 @@ def assign_ready_for_qc():
     Resume last state if exists,
     If not, put in ready for qc pool
     '''
-    ingested_state = State.objects.get(name='Ingested')
+    ingested_state = State.objects.get(unique_name='ingested')
     ingested = Article.objects.filter(current_state=ingested_state)
     logger.info("Starting assign_ready_for_qc.  Identified %s articles in 'Ingested' state." % ingested.count())
     
