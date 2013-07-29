@@ -1,7 +1,7 @@
 from articleflow.daemons.transition_tasks import *
 from django.test import TestCase
 
-from articleflow.models import Article, State, ArticleState
+from articleflow.models import Article, State, ArticleState, Typesetter
 
 class TransitionTasksTestCaseNoAmbra(TestCase):
     fixtures = ['initial_data.json', 'articleflow/tests/transitions_seed.json']
@@ -25,12 +25,29 @@ class TransitionTasksTestCaseNoAmbra(TestCase):
         ArticleState(article=self.art_3, state=self.s_ingested).save()
         ArticleState(article=self.art_4, state=self.s_ingested).save()
 
-    def test_typesetter_switch(self):
+        self.t_cw = Typesetter.objects.get(name='CW')
+        self.t_merops = Typesetter.objects.get(name='Merops')
+
+    def test_no_typesetter_switch(self):
         ArticleState(article=self.art_1, state=self.s_wc_merops).save()
         ArticleState(article=self.art_1, state=self.s_ingested).save()
         
-        assign_ready_for_qc_article(self.art_1)
-        self.assertEqual(self.art_1.current_state, self.s_qc_merops)
-        
-    def test_min(self):
-        self.assertEqual(1,1)
+        assign_ready_for_qc()
+        # No switch, should revert to web corrections
+        self.art_1 = Article.objects.get(doi='pone.0000001')
+        self.assertEqual(self.art_1.current_state, self.s_wc_merops)
+
+    def test_typesetter_switch(self):
+        ArticleState(article=self.art_1, state=self.s_wc_merops).save()
+        ArticleState(article=self.art_1, state=self.s_ingested).save()
+
+        # Switch to CW
+        self.art_1.typesetter = self.t_cw
+        self.art_1.save()
+
+        # Switched, should go to CW QC
+        ArticleState(article=self.art_1, state=self.s_ingested).save()
+        assign_ready_for_qc()
+        self.art_1 = Article.objects.get(doi='pone.0000001')
+        self.assertEqual(self.art_1.current_state, self.s_qc_cw)
+
