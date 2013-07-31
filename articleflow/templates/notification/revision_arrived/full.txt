@@ -1,0 +1,1 @@
+A revision has arrived for <a href='{% url detail_main article.doi %}'>{{ article.doi }}</a>

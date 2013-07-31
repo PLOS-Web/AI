@@ -17,5 +17,9 @@ def create_notification_types(verbosity=2):
         default=2,
         verbosity=verbosity)
 
-
-
+    notification.NoticeType.create(\
+        label="revision_arrived,
+        display="Revision arrived",
+        description="An article revision has arrived",
+        default=2,
+        verbosity=verbosity)
