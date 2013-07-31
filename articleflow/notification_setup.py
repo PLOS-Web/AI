@@ -10,3 +10,12 @@ def create_notification_types(verbosity=2):
         default=2,
         verbosity=verbosity)
 
+    notification.NoticeType.create(\
+        label="sent_back_to_production",
+        display="Sent back to production",
+        description="An article was sent back to production",
+        default=2,
+        verbosity=verbosity)
+
+
+
