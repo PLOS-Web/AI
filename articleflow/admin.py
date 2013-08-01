@@ -14,7 +14,7 @@ class ArticleAdmin(admin.ModelAdmin):
     list_filter = ('pubdate', 'current_state', 'journal', 'typesetter')
     search_fields = ('doi', 'current_articlestate__assignee__username')
 class StateAdmin(admin.ModelAdmin):
-    list_display = ('name', 'unique_name', 'progress_index', 'typesetters')
+    list_display = ('name', 'unique_name', 'progress_index')
 
 class TransitionAdmin(admin.ModelAdmin):
     list_display = ('name', 'unique_name', 'from_state', 'to_state')
