@@ -10,6 +10,8 @@ from django.contrib.auth.models import User, Group
 from django.db.models import Sum, Max
 ###import autoassign
 
+import notification.models as notification
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -328,6 +330,7 @@ class Transition(models.Model):
     preference_weight = models.IntegerField()
     file_upload_destination = models.CharField(max_length=600, null=True, blank=True, default=None, help_text="If this transition requires an upload, enter the path to the desired destination directory.  Multiple destinations may be used by listing them separated by spaces.  If no upload is required, leave this field blank.")
     file_upload_description = models.CharField(max_length=600, null=True, blank=True, default=None, help_text="If this transition requires an upload, this is the help text to display")
+    new_assignee_notification = models.ForeignKey(notification.NotificationType, related_name='transitions', null=True, blank=True, default=None, help_text="Notification type that should be sent to the new assignee when this transition happens.")
 
     #Bookkeeping 
     created = models.DateTimeField(null=True, blank=True, default=None)
@@ -352,6 +355,15 @@ class Transition(models.Model):
             if self.assign_transition_user:
                 logger.debug("Assign_transition_user = true, assigning %s to %s" % (user, s))
                 s.assignee = user
+
+            if self.new_assignee_notification and s.assignee:
+                logger.debug("%s Sending notification ..." % art.doi)
+                ctx = {
+                    'article': art,
+                    'assignee': s.assignee,
+                    'from_transition_user': user,
+                    }
+                notification.send(s.assignee, self.new_assignee_notification.label, ctx)
             
             logger.debug("Execute transition is returing this state: %s" % s.verbose_unicode())
             return s
