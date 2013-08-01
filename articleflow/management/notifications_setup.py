@@ -6,4 +6,3 @@ from articleflow.notification_setup import create_notification_types
 @receiver(signals.post_syncdb, sender=notification)
 def init_data(sender, **kwargs):
     create_notification_types(verbosity=1)
-    
