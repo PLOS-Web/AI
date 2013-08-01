@@ -233,10 +233,12 @@ class Article(models.Model):
             return raw_transitions.filter(allowed_groups__user=user).distinct()
         return self.current_state.possible_transitions.distinct()
 
-    def execute_transition(self, transition, user):
-        s = transition.execute_transition(self, user)
-        s.save()
+    def execute_transition(self, transition, user, assignee=None):
+        s = transition.execute_transition(self, user, assignee=assignee)
+        if s:
+            s.save()    
         return s
+        
 
     def save(self, *args, **kwargs):
         insert = not self.pk
@@ -329,6 +331,7 @@ class Transition(models.Model):
     disallow_open_items = models.BooleanField(default=False)
     allowed_groups = models.ManyToManyField(Group, related_name="allowed_transitions")
     assign_transition_user = models.BooleanField(default=False)
+    assign_previous_assignee = models.BooleanField(default=False)
     preference_weight = models.IntegerField()
     file_upload_destination = models.CharField(max_length=600, null=True, blank=True, default=None, help_text="If this transition requires an upload, enter the path to the desired destination directory.  Multiple destinations may be used by listing them separated by spaces.  If no upload is required, leave this field blank.")
     file_upload_description = models.CharField(max_length=600, null=True, blank=True, default=None, help_text="If this transition requires an upload, this is the help text to display")
@@ -344,17 +347,22 @@ class Transition(models.Model):
     def verbose_unicode(self):
         return u'{pk: %s, name: %s,from_state: %s, to_state: %s, disallow_open_items: %s, assign_transition_user: %s, preference_weight: %s , created: %s, last_modified: %s}' % (self.pk, self.name, self.from_state, self.to_state, self.disallow_open_items, self.assign_transition_user, self.preference_weight, self.created, self.last_modified)
     
-    def execute_transition(self, art, user):
+    def execute_transition(self, art, user, assignee=None):
         """
         moves article to a new state.  Creates new ArticleState and a Transition
         to describe what happened
         """
         if (art.current_articlestate.state == self.from_state):
             logger.debug("Creating articlestate for transition %s" % self.verbose_unicode())
+            old_assignee = art.current_articlestate.assignee
             s = art.article_states.create(state=self.to_state,
                                           from_transition=self,
                                           from_transition_user=user)
-            if self.assign_transition_user:
+            if assignee:
+                s.assignee = assignee
+            elif self.assign_previous_assignee and old_assignee:
+                s.assignee = old_assignee
+            elif self.assign_transition_user:
                 logger.debug("Assign_transition_user = true, assigning %s to %s" % (user, s))
                 s.assignee = user
 
@@ -365,11 +373,12 @@ class Transition(models.Model):
                     'assignee': s.assignee,
                     'from_transition_user': user,
                     }
-                notification.send(s.assignee, self.new_assignee_notification.label, ctx)
+                notification.send([s.assignee], self.new_assignee_notification.label, ctx)
             
             logger.debug("Execute transition is returing this state: %s" % s.verbose_unicode())
             return s
         else:
+            logger.warning("%s: incorrectly attempted to perform transition, %s, while in state, %s (needed state, %s" % (art.doi, self, art.current_articlestate.state, self.from_state))
             return False
 
     def save(self, *args, **kwargs):

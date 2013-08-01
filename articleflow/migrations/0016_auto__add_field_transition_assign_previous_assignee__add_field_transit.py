@@ -8,6 +8,11 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding field 'Transition.assign_previous_assignee'
+        db.add_column('articleflow_transition', 'assign_previous_assignee',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
         # Adding field 'Transition.new_assignee_notification'
         db.add_column('articleflow_transition', 'new_assignee_notification',
                       self.gf('django.db.models.fields.related.ForeignKey')(default=None, related_name='transitions', null=True, blank=True, to=orm['notification.NoticeType']),
@@ -15,6 +20,9 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
+        # Deleting field 'Transition.assign_previous_assignee'
+        db.delete_column('articleflow_transition', 'assign_previous_assignee')
+
         # Deleting field 'Transition.new_assignee_notification'
         db.delete_column('articleflow_transition', 'new_assignee_notification_id')
 
@@ -110,6 +118,7 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'progress_index': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'reassign_previous': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'typesetters': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'allowed_states'", 'default': 'None', 'to': "orm['articleflow.Typesetter']", 'blank': 'True', 'symmetrical': 'False', 'null': 'True'}),
             'unique_name': ('django.db.models.fields.CharField', [], {'default': 'None', 'max_length': '100', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'worker_groups': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'state_assignments'", 'default': 'None', 'to': "orm['auth.Group']", 'blank': 'True', 'symmetrical': 'False', 'null': 'True'})
         },
@@ -125,6 +134,7 @@ class Migration(SchemaMigration):
         'articleflow.transition': {
             'Meta': {'object_name': 'Transition'},
             'allowed_groups': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'allowed_transitions'", 'symmetrical': 'False', 'to': "orm['auth.Group']"}),
+            'assign_previous_assignee': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'assign_transition_user': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'created': ('django.db.models.fields.DateTimeField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
             'disallow_open_items': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
