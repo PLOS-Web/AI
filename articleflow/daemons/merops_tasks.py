@@ -5,6 +5,10 @@ import datetime
 import re
 import zipfile
 
+
+from django.db.models import Q
+from django.utils.timezone import utc, localtime
+
 from articleflow.models import Article, ArticleState, State, Typesetter, WatchState
 from ai import settings
 import articleflow.manuscript_extractor as man_e
@@ -228,6 +232,24 @@ def watch_finishxml_output():
     finished_xml_prog = re.compile(RE_SHORT_DOI_PATTERN + '.*\.xml$')
     scan_directory_for_changes(ws, process_doc_from_merops, settings.MEROPS_FINISH_XML_OUTPUT, finished_xml_prog)
 
+@task
+def watch_stuck_queue():
+    celery_logger.info("Initiating watch_stuck_queue . . .")
+    stale_threshold = datetime.timedelta(hours=1)
+    
+    now = datetime.datetime.utcnow().replace(tzinfo=utc)
+
+    stale_articles = Article.objects.filter(\
+        Q(current_articlestate__state__unique_name='queued_for_meropsing')|Q(current_articlestate__state__unique_name='queued_for_finish')).filter(created__lte=now - stale_threshold)
+
+    print stale_articles.count()
+
+    if stale_articles:
+        a_string = ""
+        for a in stale_articles.all():
+            a_string += "%s: %s since %s\n" % (a.doi, a.current_articlestate.state, localtime(a.current_articlestate.created))
+        celery_logger.error("Currently have articles in stuck in a merops queued:\n" + a_string)
+     
 @task
 def build_merops_packages():
     ariesPullMerops = os.path.abspath('/var/local/scripts/production/ariesPullMerops')
