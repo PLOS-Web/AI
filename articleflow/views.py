@@ -56,11 +56,12 @@ COLUMN_CHOICES = (
     (3, 'Issues'),
     (4, 'Errors'),
     (5, 'State'),
-    (6, 'Assigned'),
-    (7, 'Typesetter'),
+    (6, 'State Started'),
+    (7, 'Assigned'),
+    (8, 'Typesetter'),
     )
 
-DEFAULT_COLUMNS = [0,1,3,4,5,6,7]
+DEFAULT_COLUMNS = [0,1,3,4,5,7,8]
 
 def get_journal_from_doi(doi):
     match = re.match('.*(?=\.)', doi)
@@ -138,6 +139,10 @@ class ColumnOrder():
     @staticmethod
     def typesetter(a, type):
         return a.order_by(ColumnOrder.parse_type(type) + 'typesetter__name')
+
+    @staticmethod
+    def state_started(a, type):
+        return a.order_by(ColumnOrder.parse_type(type) + 'current_articlestate__created')
     
 ORDER_CHOICES = {
     'DOI': ColumnOrder.doi,
@@ -146,6 +151,7 @@ ORDER_CHOICES = {
     'Issues' : ColumnOrder.issues,
     'Errors' : ColumnOrder.errors,
     'State' : ColumnOrder.state,
+    'State Started' : ColumnOrder.state_started,
     'Assigned' : ColumnOrder.assigned,
     'Typesetter' : ColumnOrder.typesetter,
 }
@@ -156,13 +162,16 @@ class ArticleFilter(django_filters.FilterSet):
     doi_widget = forms.TextInput(attrs={'placeholder': 'pone.0012345'})
     doi = django_filters.CharFilter(name='doi', label='DOI', widget=doi_widget)
 
-    datepicker_widget = forms.DateInput(attrs={'class': 'datepicker'})
-    pubdate_gte = django_filters.DateFilter(name='pubdate', label='From', lookup_type='gte', widget=datepicker_widget) 
-    pubdate_lte = django_filters.DateFilter(name='pubdate', label='To', lookup_type='lte', widget=datepicker_widget) 
+    datepicker_widget = forms.DateInput(attrs={'class': 'datepicker', 'data-time-icon': 'icon_time'})
+    datetimepicker_widget = forms.DateTimeInput(attrs={'class': 'datetimepicker'})
+    pubdate_gte = django_filters.DateFilter(name='pubdate', label='Pubdate from', lookup_type='gte', widget=datepicker_widget) 
+    pubdate_lte = django_filters.DateFilter(name='pubdate', label='Pubdate to', lookup_type='lte', widget=datepicker_widget) 
 
     checkbox_widget = forms.CheckboxSelectMultiple()
     journal = django_filters.ModelMultipleChoiceFilter(name='journal', label='Journal', queryset=Journal.objects.all(), widget=checkbox_widget)
     current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_state', label='Article state', queryset=State.objects.all(), widget=checkbox_widget)
+    state_started_gte = django_filters.DateTimeFilter(name='current_articlestate__created', label='State started from', lookup_type='gte', widget=datepicker_widget) 
+    state_stated_lte = django_filters.DateTimeFilter(name='current_articlestate__created', label='State started to', lookup_type='lte', widget=datepicker_widget)
     current_assignee = django_filters.ModelMultipleChoiceFilter(name='current_articlestate__assignee', label='Assigned', queryset=User.objects.filter(is_active=True).order_by('username'))
     typesetter = django_filters.ModelMultipleChoiceFilter(name='typesetter__name', label='Typesetter', queryset=Typesetter.objects.all(), widget=checkbox_widget)
     

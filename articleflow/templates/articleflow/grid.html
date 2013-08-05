@@ -85,6 +85,8 @@
 	    {% endif %}
 	{% elif col == "State" %}
 	    {{ article.current_state.name }}
+	{% elif col == "State Started" %}
+	    {{ article.current_articlestate.created }}
 	{% elif col == "Assigned" %}
 	    {% if article.current_articlestate.assignee.username %}
 	    {{ article.current_articlestate.assignee.username }}
