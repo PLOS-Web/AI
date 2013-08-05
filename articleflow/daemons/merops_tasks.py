@@ -19,6 +19,7 @@ celery_logger = get_task_logger(__name__)
 
 import logging
 logger = logging.getLogger(__name__)
+print __name__
 
 RE_SHORT_DOI_PATTERN = "[a-z]*\.[0-9]*"
 
@@ -246,9 +247,10 @@ def watch_stuck_queue():
 
     if stale_articles:
         a_string = ""
-        for a in stale_articles.all():
-            a_string += "%s: %s since %s\n" % (a.doi, a.current_articlestate.state, localtime(a.current_articlestate.created))
-        celery_logger.error("Currently have articles in stuck in a merops queued:\n" + a_string)
+        #for a in stale_articles.all():
+        #    a_string += "%s: %s since %s<br \>" % (a.doi, a.current_articlestate.state, localtime(a.current_articlestate.created))
+        
+        celery_logger.error("%s article(s) are currently stuck in a merops queued state" % stale_articles.count())
      
 @task
 def build_merops_packages():

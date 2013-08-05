@@ -226,6 +226,11 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
             },
+        'celery': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+            },
         'articleflow.management.commands.one_migration': {
             'handlers': ['debugging-info', 'mail_admins'],
             'level': 'INFO',
@@ -373,6 +378,10 @@ CELERYBEAT_SCHEDULE = {
     'merops-tasks-build-merops-packages': {
         'task': 'articleflow.daemons.merops_tasks.build_merops_packages',
         'schedule': crontab(minute="*/15", day_of_week="*")
+        },
+    'merops-tasks-watch_stuck_queue': {
+        'task': 'articleflow.daemons.merops_tasks.watch_stuck_queue',
+        'schedule': crontab(hour="*", minute="0", day_of_week="*")
         },
     }
 
