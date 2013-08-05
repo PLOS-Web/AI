@@ -226,11 +226,6 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
             },
-        'celery': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-            },
         'articleflow.management.commands.one_migration': {
             'handlers': ['debugging-info', 'mail_admins'],
             'level': 'INFO',
@@ -282,7 +277,7 @@ LOGGING = {
             'propagate': True,
             },
         'articleflow.daemons.merops_tasks': {
-            'handlers': ['debugging', 'tasks-file'],
+            'handlers': ['debugging', 'tasks-file', 'mail_admins'],
             'level': 'DEBUG',
             'propagate': True,
             },
