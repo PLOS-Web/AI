@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timedelta, date
 import logging
 
+from django.db.models import Q
 from django.contrib.auth.models import User
 from articleflow.models import Article, State, ArticleState, Transition
 from articleflow.daemons.ambra_query import *
@@ -15,6 +16,9 @@ logger = logging.getLogger(__name__)
 from celery.task import task
 
 daemon_name_format = "daemon_%s"
+
+QC_URGENT_THRESHOLD_DAYS = 3
+WC_URGENT_THRESHOLD_DAYS = 1
 
 def get_or_create_user(username):
     if not username:
@@ -163,6 +167,30 @@ def assign_urgent(urgent_threshold):
     for article in non_urgent_qc:
         assign_urgent_article(article, urgent_threshold)
 
+def assign_urgent_corrections_article(art, urgent_threshold):
+    logger.info("%s: checking to see if it needs to be changed to Urgent Web corrections. Pubdate: %s'" % (art.doi, art.pubdate))
+    non_urgent_wc_states = State.objects.filter(Q(unique_name='needs_web_corrections_cw')|Q(unique_name='needs_web_corrections_merops'))
+    if art.current_state not in non_urgent_wc_states:
+        logger.info("Article, %s, not in web corrections is '%s' instead.  Aborting transition to Urgent Web Corrections" % (art.doi, art.current_state))        
+        return False
+
+    if art.pubdate < add_workdays(date.today(), urgent_threshold):
+        logger.info("Moving %s to Urgent Web Corrections" % art.doi)
+        if art.typesetter.name == 'Merops':
+            urgent_transition = Transition.objects.get(unique_name='assign_to_urgent_web_corrections_merops')
+        elif art.typesetter.name == 'CW':
+            urgent_transition = Transition.objects.get(unique_name='assign_to_urgent_web_corrections_cw')
+        daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
+        art.execute_transition(urgent_transition, daemon_user)
+ 
+        
+def assign_urgent_corrections(urgent_threshold):
+    non_urgent_wc = Article.objects.filter(Q(current_state__unique_name='needs_web_corrections_cw')|Q(current_state__unique_name='needs_web_corrections_merops')
+current_state=non_urgent_qc_state)
+
+    for article in non_urgent_wc:
+        assign_urgent_corrections_article(article, urgent_threshold)
+
 def assign_published_stage_article(art, stage_c):
     logger.info("Checking article, %s, to see if it's pubbed on stage" % art.doi)
     ready_to_publish_state = State.objects.get(name='Ready to Publish')
@@ -291,14 +319,14 @@ def cleanup_published_live(live_c):
     for a in pubbed_live:
         assign_published_live_article(a, live_c, force_any_state=True)
 
-
 def main():
     stage_c = AmbraStageConnection()
     live_c = AmbraProdConnection()
     
     assign_ingested(stage_c)
     assign_ready_for_qc()
-    assign_urgent(3)
+    assign_urgent(QC_URGENT_THRESHOLD_DAYS)
+    assign_urgent_corrections(WC_URGENT_THRESHOLD_DAYS)
     assign_published_stage(stage_c)
     assign_published_live(live_c)
 
@@ -324,7 +352,8 @@ def ongoing_ambra_sync():
     
     assign_ingested(stage_c)
     assign_ready_for_qc()
-    assign_urgent(3)
+    assign_urgent(QC_URGENT_THRESHOLD_DAYS)
+    assign_urgent_corrections(WC_URGENT_THRESHOLD_DAYS)
     assign_published_stage_active(stage_c)
     assign_published_live(live_c)
 
