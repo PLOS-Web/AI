@@ -19,7 +19,7 @@ celery_logger = get_task_logger(__name__)
 
 import logging
 logger = logging.getLogger(__name__)
-print __name__
+
 
 RE_SHORT_DOI_PATTERN = "[a-z]*\.[0-9]*"
 
@@ -126,11 +126,12 @@ def queue_doc_finishxml(doc, article):
     art_s = ArticleState(article=article, state=finish_queued_state)
     make_articlestate_if_new(art_s)
 
-def process_doc_from_aries(f):
+def process_doc_from_aries(go_xml_file):
     # add article to AI
     #   extract doi from go.xml
-    si_guid = os.path.basename(f).split('.zip')[0]
-    doi = PlosDoi(man_e.doi(f)).short
+    si_guid = os.path.basename(go_xml_file).split('.go.xml')[0]
+    zip_file = si_guid + '.zip'
+    doi = PlosDoi(man_e.doi(zip_file)).short
     logger.info("Identified new aries-merops delivery {guid: %s} as %s" % (si_guid,doi))
     celery_logger.info("watch_docs_from_aries identified new file for %s" % doi)
 
@@ -145,8 +146,8 @@ def process_doc_from_aries(f):
 
     # extract manuscript, rename to doi.doc(x)
     try:
-        manuscript_name = man_e.manuscript(f)
-        z = zipfile.ZipFile(f)
+        manuscript_name = man_e.manuscript(zip_file)
+        z = zipfile.ZipFile(zip_file)
         z.extract(manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION)
         logger.info("Extracting manuscript file, %s, to %s" % (manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION))
         z.close()
@@ -161,8 +162,8 @@ def watch_docs_from_aries():
     ws, new = WatchState.objects.get_or_create(watcher="merops_aries_delivery")
     if new:
         ws.save()
-    zip_prog = re.compile('.*\.zip$')
-    scan_directory_for_changes(ws, process_doc_from_aries, settings.MEROPS_ARIES_DELIVERY, zip_prog)
+    go_xml_prog = re.compile('.*\.go\.xml$')
+    scan_directory_for_changes(ws, process_doc_from_aries, settings.MEROPS_ARIES_DELIVERY, go_xml_prog)
 
 @task
 def watch_merops_output():
