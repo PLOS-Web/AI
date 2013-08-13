@@ -181,12 +181,12 @@ def assign_urgent_corrections_article(art, urgent_threshold):
         elif art.typesetter.name == 'CW':
             urgent_transition = Transition.objects.get(unique_name='assign_to_urgent_web_corrections_cw')
         daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
+
         art.execute_transition(urgent_transition, daemon_user)
  
         
 def assign_urgent_corrections(urgent_threshold):
-    non_urgent_wc = Article.objects.filter(Q(current_state__unique_name='needs_web_corrections_cw')|Q(current_state__unique_name='needs_web_corrections_merops')
-current_state=non_urgent_qc_state)
+    non_urgent_wc = Article.objects.filter(Q(current_state__unique_name='needs_web_corrections_cw')|Q(current_state__unique_name='needs_web_corrections_merops'))
 
     for article in non_urgent_wc:
         assign_urgent_corrections_article(article, urgent_threshold)
