@@ -361,13 +361,14 @@ class Transition(models.Model):
             if assignee:
                 s.assignee = assignee
             elif self.assign_previous_assignee and old_assignee:
+                logger.debug("Assigning previous state's assignee ...")
                 s.assignee = old_assignee
             elif self.assign_transition_user:
                 logger.debug("Assign_transition_user = true, assigning %s to %s" % (user, s))
                 s.assignee = user
 
             if self.new_assignee_notification and s.assignee:
-                logger.debug("%s Sending notification ..." % art.doi)
+                logger.debug("%s Sending notification, %s, to %s..." % (art.doi, self.new_assignee_notification, s.assignee))
                 ctx = {
                     'article': art,
                     'assignee': s.assignee,
