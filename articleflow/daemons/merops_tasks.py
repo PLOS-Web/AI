@@ -130,7 +130,7 @@ def process_doc_from_aries(go_xml_file):
     # add article to AI
     #   extract doi from go.xml
     si_guid = os.path.basename(go_xml_file).split('.go.xml')[0]
-    zip_file = si_guid + '.zip'
+    zip_file = os.path.join(os.path.dirname(go_xml_file), si_guid + '.zip')
     doi = PlosDoi(man_e.doi(zip_file)).short
     logger.info("Identified new aries-merops delivery {guid: %s} as %s" % (si_guid,doi))
     celery_logger.info("watch_docs_from_aries identified new file for %s" % doi)
