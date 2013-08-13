@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 from articleflow.models import Article, State, ArticleState, Transition
 from articleflow.daemons.ambra_query import *
+import notification.models as notification
 
 from celery.utils.log import get_task_logger
 celery_logger = get_task_logger(__name__)
@@ -115,6 +116,12 @@ def assign_ready_for_qc_article(art):
                            from_transition_user=None,
                            )
         a_s.save()
+        # send revision arrived notification
+        if a_s.assignee:
+            logger.debug("%s: Sending revision arrived notification ..." % art.doi)
+            ctx = {'article': art}
+            notication.send([a_s.assignee], "revision_arrived", ctx)
+        
     except ArticleState.DoesNotExist, e:
         # move article to ready for qc state
         if art.typesetter and art.typesetter.name == 'Merops':
