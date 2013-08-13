@@ -2,13 +2,19 @@ from datetime import datetime, timedelta, date
 
 from articleflow.daemons.transition_tasks import *
 from django.test import TestCase
+from django.contrib.auth.models import User
 
 from articleflow.models import Article, State, ArticleState, Typesetter
+
+from notification.models import Notice
 
 class TransitionTasksTestCaseNoAmbra(TestCase):
     fixtures = ['initial_data.json', 'articleflow/tests/transitions_seed.json']
 
     def setUp(self):
+        self.u = User(username='test_user')
+        self.u.save()
+
         # merops
         self.art_1 = Article.objects.get(doi='pone.0000001')
         self.art_2 = Article.objects.get(doi='pone.0000002')
@@ -58,7 +64,7 @@ class TransitionTasksTestCaseNoAmbra(TestCase):
 
     def test_urgent_web_corrections(self):
         # CW
-        ArticleState(article=self.art_3, state=self.s_wc_cw).save()
+        ArticleState(article=self.art_3, state=self.s_wc_cw, assignee=self.u).save()
         pubdate = add_workdays(datetime.utcnow(), 3)
         self.art_3.pubdate = pubdate
         self.art_3.save()
@@ -76,7 +82,7 @@ class TransitionTasksTestCaseNoAmbra(TestCase):
         self.assertEqual(self.art_3.current_state, self.s_urg_wc_cw)
     
         # Merops
-        ArticleState(article=self.art_1, state=self.s_wc_merops).save()
+        ArticleState(article=self.art_1, state=self.s_wc_merops, assignee=self.u).save()
         pubdate = add_workdays(datetime.utcnow(), 3)
         self.art_1.pubdate = pubdate
         self.art_1.save()
