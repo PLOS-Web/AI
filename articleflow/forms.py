@@ -31,6 +31,10 @@ class ReportsDateRange(forms.Form):
     start_date = forms.DateTimeField(input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
     end_date = forms.DateTimeField(input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
 
+class ReportsMeropsForm(forms.Form):
+    start_date = forms.DateTimeField(label="Start pubdate", input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
+    end_date = forms.DateTimeField(label="End pubdate", input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
+
 class AssignArticleForm(forms.Form):
     username = forms.ModelChoiceField(queryset=User.objects.filter(is_active=True).order_by('username'))
     article_pk = forms.IntegerField(widget=forms.HiddenInput())

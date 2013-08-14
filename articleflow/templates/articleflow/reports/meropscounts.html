@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+{% load utils %}
+
+{% block head %}
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{{ STATIC_URL }}css/grid.css" />
+<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+<script src="{{ STATIC_URL }}js/grid.js"></script>
+</script>
+{% endblock %}
+
+{% block sub_title %} - Reports: Merops Counts{% endblock %}
+
+{% block content %}
+<h3>Merops counts</h3>
+<h4>Description</h4>
+<p>See QC performance stats for Merops articles published in a specified date range.</p>
+<div>
+  <form action="." class="form form-horizontal" method="get">
+    {{ form|crispy }}
+    <div class="control-group">
+      <div class="controls">
+	<input class="btn-primary" type="submit" name="submit" value="Submit">
+      </div>
+    </div>
+  </form>
+</div>
+{% if results %}
+<ul>
+<li>total papers published: {{ results.total_count }}</li>
+<li>papers with no errors: {{ results.no_errors_count }} ({{ results.no_errors_count_percent }}%)</li>
+<li>papers with no issues: {{ results.no_issues_count }} ({{ results.no_issues_count_percent }}%)</li>
+<li>papers without ingest errors: {{ results.automated_ingest_count }} ({{ results.automated_ingest_count_percent }}%)</li>
+<li>papers that processed cleanly: {{ results.passed_cleanly_count }} ({{ results.passed_cleanly_percent }}%)</li>
+</ul>
+
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th>Doi</th>
+      <th>Pubdate</th>
+      <th>Ingest Automatically?</th>
+      <th>No Issues?</th>
+      <th>No Automated Errors?</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for a in results.articles %}
+    <tr>
+      <td><a href="{% url detail_main a.article.doi %}">{{ a.article.doi }}</a></td>
+      <td>{{ a.article.pubdate }}</td>
+      <td>{{ a.automated_ingest }}</td>
+      <td>{{ a.no_issues }}</td>
+      <td>{{ a.no_errors }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}
