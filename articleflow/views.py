@@ -33,7 +33,7 @@ import transitionrules
 
 from ai import settings
 from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio, AssignmentHistory, Typesetter, reassign_article, toUTCc
-from articleflow.forms import AssignmentForm, ReportsDateRange, FileUpload, AssignArticleForm
+from articleflow.forms import AssignmentForm, ReportsDateRange, ReportsMeropsForm, FileUpload, AssignArticleForm
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
 
@@ -56,12 +56,11 @@ COLUMN_CHOICES = (
     (3, 'Issues'),
     (4, 'Errors'),
     (5, 'State'),
-    (6, 'State Started'),
-    (7, 'Assigned'),
-    (8, 'Typesetter'),
+    (6, 'Assigned'),
+    (7, 'Typesetter'),
     )
 
-DEFAULT_COLUMNS = [0,1,3,4,5,7,8]
+DEFAULT_COLUMNS = [0,1,3,4,5,6,7]
 
 def get_journal_from_doi(doi):
     match = re.match('.*(?=\.)', doi)
@@ -139,10 +138,6 @@ class ColumnOrder():
     @staticmethod
     def typesetter(a, type):
         return a.order_by(ColumnOrder.parse_type(type) + 'typesetter__name')
-
-    @staticmethod
-    def state_started(a, type):
-        return a.order_by(ColumnOrder.parse_type(type) + 'current_articlestate__created')
     
 ORDER_CHOICES = {
     'DOI': ColumnOrder.doi,
@@ -151,7 +146,6 @@ ORDER_CHOICES = {
     'Issues' : ColumnOrder.issues,
     'Errors' : ColumnOrder.errors,
     'State' : ColumnOrder.state,
-    'State Started' : ColumnOrder.state_started,
     'Assigned' : ColumnOrder.assigned,
     'Typesetter' : ColumnOrder.typesetter,
 }
@@ -162,16 +156,13 @@ class ArticleFilter(django_filters.FilterSet):
     doi_widget = forms.TextInput(attrs={'placeholder': 'pone.0012345'})
     doi = django_filters.CharFilter(name='doi', label='DOI', widget=doi_widget)
 
-    datepicker_widget = forms.DateInput(attrs={'class': 'datepicker', 'data-time-icon': 'icon_time'})
-    datetimepicker_widget = forms.DateTimeInput(attrs={'class': 'datetimepicker'})
-    pubdate_gte = django_filters.DateFilter(name='pubdate', label='Pubdate from', lookup_type='gte', widget=datepicker_widget) 
-    pubdate_lte = django_filters.DateFilter(name='pubdate', label='Pubdate to', lookup_type='lte', widget=datepicker_widget) 
+    datepicker_widget = forms.DateInput(attrs={'class': 'datepicker'})
+    pubdate_gte = django_filters.DateFilter(name='pubdate', label='From', lookup_type='gte', widget=datepicker_widget) 
+    pubdate_lte = django_filters.DateFilter(name='pubdate', label='To', lookup_type='lte', widget=datepicker_widget) 
 
     checkbox_widget = forms.CheckboxSelectMultiple()
     journal = django_filters.ModelMultipleChoiceFilter(name='journal', label='Journal', queryset=Journal.objects.all(), widget=checkbox_widget)
     current_articlestate = django_filters.ModelMultipleChoiceFilter(name='current_state', label='Article state', queryset=State.objects.all(), widget=checkbox_widget)
-    state_started_gte = django_filters.DateTimeFilter(name='current_articlestate__created', label='State started from', lookup_type='gte', widget=datepicker_widget) 
-    state_stated_lte = django_filters.DateTimeFilter(name='current_articlestate__created', label='State started to', lookup_type='lte', widget=datepicker_widget)
     current_assignee = django_filters.ModelMultipleChoiceFilter(name='current_articlestate__assignee', label='Assigned', queryset=User.objects.filter(is_active=True).order_by('username'))
     typesetter = django_filters.ModelMultipleChoiceFilter(name='typesetter__name', label='Typesetter', queryset=Typesetter.objects.all(), widget=checkbox_widget)
     
@@ -562,6 +553,87 @@ class ReportsPCQCCounts(View):
                 return {'form': form}
 
         return {'form': ReportsDateRange}
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(kwargs)
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
+class ReportMeropsCounts(View):
+    template_name = 'articleflow/reports/meropscounts.html'
+
+    @method_decorator(login_required())
+    @method_decorator(user_passes_test(lambda u: u.groups.filter(name='management').count()== 1))
+    def dispatch(self, request, *args, **kwargs):
+        return super(ReportMeropsCounts, self).dispatch(request, *args, **kwargs)  
+
+    def form_valid(self, form):
+        data = form.cleaned_data
+
+        # hacky fix for non-inclusive end date on filter
+        data['end_date'] = data['end_date'] + datetime.timedelta(days=1)
+
+        article_objs = Article.objects.filter(typesetter__name='Merops').filter(current_articlestate__state__unique_name='published_live').filter(pubdate__gte=data['start_date']).filter(pubdate__lt=data['end_date']).order_by('pubdate')
+
+        if not article_objs: return {}
+        articles = []
+        ingested_state = State.objects.get(unique_name='ingested')
+        pulled_state = State.objects.get(unique_name='pulled')
+        automatic_threshold = datetime.timedelta(minutes=10)
+
+        total_count = 0
+        no_errors_count = 0
+        no_issues_count = 0
+        automated_ingest_count = 0
+        passed_cleanly_count = 0
+        
+        for a in article_objs:
+            total_count += 1
+            art = {'article': a}
+            try:
+                latest_errorset = ErrorSet.objects.filter(article=a).latest('created')
+                art['no_errors'] = (latest_errorset.errors.filter(level__lt=3).count() == 0)
+            except ErrorSet.DoesNotExist, e:
+                art['no_errors'] = False
+
+            if art['no_errors']: no_errors_count += 1
+
+            art['no_issues'] = (Issue.objects.filter(article=a).count() == 0)
+            latest_ingest = ArticleState.objects.filter(article=a, state=ingested_state).latest('created')
+            if art['no_issues']: no_issues_count += 1
+
+            latest_pull = ArticleState.objects.filter(article=a, state=pulled_state).latest('created')
+            art['automated_ingest'] = (latest_ingest.created < latest_pull.created + automatic_threshold)
+            if art['automated_ingest']: automated_ingest_count += 1
+            if (art['no_issues'] & art['no_errors'] & art['automated_ingest']): passed_cleanly_count += 1
+
+            articles += [art]
+
+        print articles
+        return {'articles': articles,
+                'total_count': total_count,
+                'no_errors_count': no_errors_count,
+                'no_errors_count_percent': no_errors_count/float(total_count)*100,
+                'no_issues_count': no_issues_count,
+                'no_issues_count_percent': no_issues_count/float(total_count)*100,
+                'automated_ingest_count': automated_ingest_count,
+                'automated_ingest_count_percent': automated_ingest_count/float(total_count)*100,
+                'passed_cleanly_count': passed_cleanly_count,
+                'passed_cleanly_percent': passed_cleanly_count/float(total_count)*100
+                }
+
+    def get_context_data(self,request, *args, **kwargs):
+        context = {}
+        if self.request.GET:
+            form = ReportsMeropsForm(self.request.GET)
+            if form.is_valid():
+                print "FORM IS VALID"
+                return {'results': self.form_valid(form),
+                        'form': form}
+            else:
+                print "FORM NOT VALID"
+                return {'form': form}
+
+        return {'form': ReportsMeropsForm}
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(kwargs)
