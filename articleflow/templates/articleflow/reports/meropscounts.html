@@ -11,12 +11,12 @@
 </script>
 {% endblock %}
 
-{% block sub_title %} - Reports: Merops Counts{% endblock %}
+{% block sub_title %} - Reports: QA Automation Performance{% endblock %}
 
 {% block content %}
-<h3>Merops counts</h3>
+<h3>QA Automation Performance</h3>
 <h4>Description</h4>
-<p>See QC performance stats for Merops articles published in a specified date range.</p>
+<p>See QC performance stats for articles published in a specified date range from the specificied typesetter.</p>
 <div>
   <form action="." class="form form-horizontal" method="get">
     {{ form|crispy }}
@@ -41,6 +41,7 @@
     <tr>
       <th>Doi</th>
       <th>Pubdate</th>
+      <th>Typesetter</th>
       <th>Ingest Automatically?</th>
       <th>No Issues?</th>
       <th>No Automated Errors?</th>
@@ -51,6 +52,7 @@
     <tr>
       <td><a href="{% url detail_main a.article.doi %}">{{ a.article.doi }}</a></td>
       <td>{{ a.article.pubdate }}</td>
+      <td>{{ a.article.typesetter.name }}</td>
       <td>{{ a.automated_ingest }}</td>
       <td>{{ a.no_issues }}</td>
       <td>{{ a.no_errors }}</td>

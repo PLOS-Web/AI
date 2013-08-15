@@ -32,6 +32,9 @@ class ReportsDateRange(forms.Form):
     end_date = forms.DateTimeField(input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
 
 class ReportsMeropsForm(forms.Form):
+    typesetter_choices = ((1, 'CW'), (2, 'Merops'), (3, 'Both'))
+
+    typesetter = forms.ChoiceField(choices=typesetter_choices)
     start_date = forms.DateTimeField(label="Start pubdate", input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
     end_date = forms.DateTimeField(label="End pubdate", input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
 
