@@ -595,7 +595,7 @@ class ReportMeropsCounts(View):
         articles = []
         ingested_state = State.objects.get(unique_name='ingested')
         pulled_state = State.objects.get(unique_name='pulled')
-        automatic_threshold = datetime.timedelta(minutes=10)
+        automatic_threshold = datetime.timedelta(minutes=30)
 
         total_count = 0
         no_errors_count = 0
@@ -614,13 +614,15 @@ class ReportMeropsCounts(View):
 
             if art['no_errors']: no_errors_count += 1
 
-            art['no_issues'] = (Issue.objects.filter(article=a).count() == 0)
+            issues = a.issues
+            art['no_issues'] = (issues.count() == 0 or (issues.count() == 1 and issues.get().description.strip().lower() == 'ok')) 
             if art['no_issues']: no_issues_count += 1
 
             try:
                 latest_ingest = ArticleState.objects.filter(article=a, state=ingested_state).latest('created')
                 latest_pull = ArticleState.objects.filter(article=a, state=pulled_state).latest('created')
                 art['automated_ingest'] = (latest_ingest.created < latest_pull.created + automatic_threshold)
+                
             except ArticleState.DoesNotExist, e:
                 art['automated_ingest'] = False
 
