@@ -620,10 +620,10 @@ class ReportMeropsCounts(View):
             try:
                 latest_ingest = ArticleState.objects.filter(article=a, state=ingested_state).latest('created')
                 latest_pull = ArticleState.objects.filter(article=a, state=pulled_state).latest('created')
+                art['automated_ingest'] = (latest_ingest.created < latest_pull.created + automatic_threshold)
             except ArticleState.DoesNotExist, e:
                 art['automated_ingest'] = False
 
-            art['automated_ingest'] = (latest_ingest.created < latest_pull.created + automatic_threshold)
             if art['automated_ingest']: automated_ingest_count += 1
             if (art['no_issues'] & art['no_errors'] & art['automated_ingest']): passed_cleanly_count += 1
 
