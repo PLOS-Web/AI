@@ -572,7 +572,15 @@ class ReportMeropsCounts(View):
         # hacky fix for non-inclusive end date on filter
         data['end_date'] = data['end_date'] + datetime.timedelta(days=1)
 
-        article_objs = Article.objects.filter(typesetter__name='Merops').filter(current_articlestate__state__unique_name='published_live').filter(pubdate__gte=data['start_date']).filter(pubdate__lt=data['end_date']).order_by('pubdate')
+        article_objs = Article.objects.filter(current_articlestate__state__unique_name='published_live').filter(pubdate__gte=data['start_date']).filter(pubdate__lt=data['end_date']).order_by('pubdate')
+
+
+        if data['typesetter'] == '1':
+            article_objs = article_objs.filter(~Q(typesetter__name='Merops'))
+        elif data['typesetter'] == '2':
+            article_objs = article_objs.filter(typesetter__name='Merops')
+        elif data['typesetter'] == '3':
+            pass 
 
         if not article_objs: return {}
         articles = []
@@ -608,7 +616,6 @@ class ReportMeropsCounts(View):
 
             articles += [art]
 
-        print articles
         return {'articles': articles,
                 'total_count': total_count,
                 'no_errors_count': no_errors_count,
