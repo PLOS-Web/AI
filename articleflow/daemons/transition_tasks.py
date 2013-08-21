@@ -16,7 +16,7 @@ from celery.task import task
 
 daemon_name_format = "daemon_%s"
 
-def get_or_create_user(username):
+def get_or_create_user(username, **kwargs):
     if not username:
         logger.debug("Given null username")
         return None
@@ -25,7 +25,7 @@ def get_or_create_user(username):
         logger.debug("Found user: %s" % u.username)
     except User.DoesNotExist:
         logger.debug("Creating user for: %s" % username)
-        u = User(username=username, password='Well this is a fun way to do things')
+        u = User(username=username, password='Well this is a fun way to do things', **kwargs)
         u.save()
     return u
 

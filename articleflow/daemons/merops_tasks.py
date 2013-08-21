@@ -8,6 +8,7 @@ import zipfile
 
 from django.db.models import Q
 from django.utils.timezone import utc, localtime
+from django.contrib.comments.models import Comment
 
 from articleflow.models import Article, ArticleState, State, Typesetter, WatchState
 from ai import settings
@@ -20,6 +21,7 @@ celery_logger = get_task_logger(__name__)
 import logging
 logger = logging.getLogger(__name__)
 
+from transition_tasks import get_or_create_user
 
 RE_SHORT_DOI_PATTERN = "[a-z]*\.[0-9]*"
 
@@ -126,7 +128,28 @@ def queue_doc_finishxml(doc, article):
     art_s = ArticleState(article=article, state=finish_queued_state)
     make_articlestate_if_new(art_s)
 
+def extract_manuscript_from_aries(art):
+    """Extracts document, moves it to extraction target, renames
+    """
+    try:
+        manuscript_name = man_e.manuscript(zip_file)
+        z = zipfile.ZipFile(zip_file)
+        z.extract(manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION)
+        logger.info("Extracting manuscript file, %s, to %s" % (manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION))
+        z.close()
+        man_f = os.path.join(settings.MEROPS_MANUSCRIPT_EXTRACTION, manuscript_name)
+        queue_doc_meropsing(art, man_f)
+    except man_e.ManuscriptExtractionException, e:
+        logger.error(str(e))
+
 def process_doc_from_aries(go_xml_file):
+    def should_restart_merops(art):
+        cutoff_state = State.objects.get(unique_name = 'finish_out')
+        most_advanced_state = art.most_advanced_state(same_typesetter=True)
+        if most_advanced_state:
+            return (most_advanced_state.progress_index < cutoff_state.progress_index)
+        return False
+
     # add article to AI
     #   extract doi from go.xml
     si_guid = os.path.basename(go_xml_file).split('.go.xml')[0]
@@ -144,17 +167,18 @@ def process_doc_from_aries(go_xml_file):
     art_s = ArticleState(article=art, state=delivery_state)
     make_articlestate_if_new(art_s)
 
-    # extract manuscript, rename to doi.doc(x)
-    try:
-        manuscript_name = man_e.manuscript(zip_file)
-        z = zipfile.ZipFile(zip_file)
-        z.extract(manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION)
-        logger.info("Extracting manuscript file, %s, to %s" % (manuscript_name, settings.MEROPS_MANUSCRIPT_EXTRACTION))
-        z.close()
-        man_f = os.path.join(settings.MEROPS_MANUSCRIPT_EXTRACTION, manuscript_name)
-        queue_doc_meropsing(art, man_f)
-    except man_e.ManuscriptExtractionException, e:
-        logger.error(str(e))
+    if should_restart_merops(art):
+        # extract manuscript, rename to doi.doc(x)
+        extract_manuscript_from_aries(art)
+    else:
+        # do nothing but write a note indicating there's a new export
+        user = get_or_create_user("aries_delivery_watch_bot", firstname="Aries Delivery Watch Robot")
+        note = Comment(user=user,
+                       content_type=ContentType.objects.get_for_model(Article),
+                       object_pk = art.pk,
+                       submit_date = datetime.datetime.utcnow(),
+                       comment = "A new article package for this article was just delivered by Aries.")
+        note.save()
 
 @task
 def watch_docs_from_aries():

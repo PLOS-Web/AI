@@ -236,6 +236,15 @@ class Article(models.Model):
         s.save()
         return s
 
+    def most_advanced_state(self, same_typesetter=True):
+        states = self.states
+        if same_typesetter:
+            states.filter(typesetter=self.typesetter)
+        if states:
+            return states.latest('progress_index')
+        else:
+            return None
+
     def save(self, *args, **kwargs):
         insert = not self.pk
         logger.info("%s: saving article: %s" % (self.doi,self.verbose_unicode()))
