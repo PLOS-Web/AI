@@ -87,6 +87,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'django.core.context_processors.request',
     'django.core.context_processors.static',
+    'notification.context_processors.notification',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -377,4 +378,5 @@ CELERYBEAT_SCHEDULE = {
         },
     }
 
-
+# NOTIFICATION
+NOTIFICATION_QUEUE_ALL = True
