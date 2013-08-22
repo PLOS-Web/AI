@@ -1,0 +1,1 @@
+<a href='{% url detail_main article.doi %}'>{{ article.doi }}</a> has been sent back to production by {{ from_transition_user }} and is awaiting your input.

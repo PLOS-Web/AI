@@ -30,8 +30,8 @@ def requeue_merops(doi):
             guid = a.si_guid
         except Article.DoesNotExist, e:
             raise ValueError("I can't find an article with doi, %s" % doi)
-        aries_zip = os.path.join(settings.MEROPS_ARIES_DELIVERY, guid + ".zip")
-        process_doc_from_aries(aries_zip)
+        aries_go_xml = os.path.join(settings.MEROPS_ARIES_DELIVERY, guid + ".go.xml")
+        process_doc_from_aries(aries_go_xml)
 
 def requeue_finishxml(doi):
     return requeue(doi, settings.MEROPS_FINISH_XML_WATCH_BU, settings.MEROPS_FINISH_XML_WATCH)
