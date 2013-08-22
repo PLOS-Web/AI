@@ -25,6 +25,8 @@ def get_or_create_user(username):
     if not username:
         logger.debug("Given null username")
         return None
+    if len(username) > 30:
+        username = username[0:29]
     try:
         u = User.objects.get(username=username)
         logger.debug("Found user: %s" % u.username)
@@ -183,9 +185,9 @@ def assign_urgent_corrections_article(art, urgent_threshold):
 
     if art.pubdate < add_workdays(date.today(), urgent_threshold):
         logger.info("Moving %s to Urgent Web Corrections" % art.doi)
-        if art.typesetter.name == 'Merops':
+        if art.typesetter and art.typesetter.name == 'Merops':
             urgent_transition = Transition.objects.get(unique_name='assign_to_urgent_web_corrections_merops')
-        elif art.typesetter.name == 'CW':
+        else: #assume CW
             urgent_transition = Transition.objects.get(unique_name='assign_to_urgent_web_corrections_cw')
         daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
 
