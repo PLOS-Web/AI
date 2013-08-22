@@ -177,7 +177,7 @@ def process_doc_from_aries(go_xml_file):
                        content_type=ContentType.objects.get_for_model(Article),
                        object_pk = art.pk,
                        submit_date = datetime.datetime.utcnow(),
-                       comment = "A new article package for this article was just delivered by Aries.")
+                       comment = "A new package for this article was just delivered by Aries.")
         note.save()
 
 @task
