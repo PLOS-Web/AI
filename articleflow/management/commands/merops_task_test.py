@@ -1,6 +1,6 @@
 import sys
 
-import articleflow.merops_tasks as merops_tasks
+import articleflow.daemons.merops_tasks as merops_tasks
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -13,7 +13,7 @@ def main(*args, **options):
         print "merops_tasks does not have a function, %s" % args[0]
         sys.exit(1)
         
-    return func()
+    func()
     
 
 class Command(BaseCommand):

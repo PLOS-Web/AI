@@ -240,12 +240,12 @@ class Article(models.Model):
         return s
         
 
-    def most_advanced_state(self, same_typesetter=True):
-        states = self.states
+    def most_advanced_article_state(self, same_typesetter=True):
+        arts = self.article_states
         if same_typesetter:
-            states.filter(typesetter=self.typesetter)
-        if states:
-            return states.latest('progress_index')
+            arts.filter(state__typesetters=self.typesetter)
+        if arts:
+            return arts.latest('state__progress_index')
         else:
             return None
 

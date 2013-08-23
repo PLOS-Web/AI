@@ -1,5 +1,6 @@
 from subprocess import call
 import os.path
+import traceback
 import shutil
 import datetime
 import re
@@ -9,6 +10,7 @@ import zipfile
 from django.db.models import Q
 from django.utils.timezone import utc, localtime
 from django.contrib.comments.models import Comment
+from django.contrib.contenttypes.models import ContentType
 
 from articleflow.models import Article, ArticleState, State, Typesetter, WatchState
 from ai import settings
@@ -96,6 +98,7 @@ def scan_directory_for_changes(ws, trigger_func, directory, filename_regex_prog=
                 logger.debug("Updating watchstate last m_time to %s" % m_time)
                 ws.update_last_mtime(m_time)
     except Exception, e:
+        traceback.print_exc()
         logger.error(str(e))
 
 def queue_doc_meropsing(article, doc=None):
@@ -145,9 +148,9 @@ def extract_manuscript_from_aries(art):
 def process_doc_from_aries(go_xml_file):
     def should_restart_merops(art):
         cutoff_state = State.objects.get(unique_name = 'finish_out')
-        most_advanced_state = art.most_advanced_state(same_typesetter=True)
-        if most_advanced_state:
-            return (most_advanced_state.progress_index < cutoff_state.progress_index)
+        most_advanced_arts = art.most_advanced_article_state(same_typesetter=True)
+        if most_advanced_arts:
+            return (most_advanced_arts.state.progress_index < cutoff_state.progress_index)
         return False
 
     # add article to AI
@@ -163,21 +166,29 @@ def process_doc_from_aries(go_xml_file):
     art.si_guid = si_guid
 
     art.save()
-    delivery_state = State.objects.get(unique_name='delivered_from_aries')
-    art_s = ArticleState(article=art, state=delivery_state)
-    make_articlestate_if_new(art_s)
+
+    old_state = art.current_state
+
+    if art.current_state.unique_name == 'new':
+        delivery_state = State.objects.get(unique_name='delivered_from_aries')
+        art_s = ArticleState(article=art, state=delivery_state)
+        make_articlestate_if_new(art_s)
 
     if should_restart_merops(art):
+        print "LALALLALA"
         # extract manuscript, rename to doi.doc(x)
+        logger.info("%s, delivery arrived, extracting manuscript and queueing for initial processing" % (art.doi, art.current_state.name))
         extract_manuscript_from_aries(art)
     else:
         # do nothing but write a note indicating there's a new export
-        user = get_or_create_user("aries_delivery_watch_bot", firstname="Aries Delivery Watch Robot")
+        logger.info("%s, delivery arrived, but article in too advanced a state to automatically process, %s" % (art.doi, art.current_state.name))
+        user = get_or_create_user("aries_delivery_watch_bot", first_name="Aries Delivery Watch Robot")
         note = Comment(user=user,
                        content_type=ContentType.objects.get_for_model(Article),
                        object_pk = art.pk,
                        submit_date = datetime.datetime.utcnow(),
-                       comment = "A new package for this article was just delivered by Aries.")
+                       comment = "A new package for this article was just delivered by Aries.",
+                       site_id = settings.SITE_ID)
         note.save()
 
 @task
