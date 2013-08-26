@@ -925,3 +925,14 @@ class FTPMeropsUpload(View):
             return HttpResponse("success!")
         context = {'form': form}
         return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
+class CorrectionsControl(View):
+    template_name = 'articleflow/corrections_control.html'
+
+    def get_context_data(self, *args, **kwargs):
+        article = get_object_or_404(Article, doi=kwargs['doi'])
+        return {'article': article}
+        
+    def get(self, request, *args, **kwargs):
+        context=self.get_context_data(*args, **kwargs)
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))

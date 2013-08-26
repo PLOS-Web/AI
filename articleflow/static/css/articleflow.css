@@ -132,3 +132,9 @@
     margin: 15 35 15 35;
 }
 
+.ingest-btn{
+    height: 24px;
+    margin-left: 10px;
+    line-height: 24px;
+    padding: 0px 5px 0px 5px;
+}
