@@ -122,7 +122,7 @@ def assign_ready_for_qc_article(art):
         if a_s.assignee:
             logger.debug("%s: Sending revision arrived notification ..." % art.doi)
             ctx = {'article': art}
-            notication.send([a_s.assignee], "revision_arrived", ctx)
+            notification.send([a_s.assignee], "revision_arrived", ctx)
         
     except ArticleState.DoesNotExist, e:
         # move article to ready for qc state
