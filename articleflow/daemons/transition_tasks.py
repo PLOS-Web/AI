@@ -18,7 +18,7 @@ from celery.task import task
 
 daemon_name_format = "daemon_%s"
 
-QC_URGENT_THRESHOLD_DAYS = 3
+QC_URGENT_THRESHOLD_DAYS = 2
 WC_URGENT_THRESHOLD_DAYS = 1
 
 def get_or_create_user(username):
