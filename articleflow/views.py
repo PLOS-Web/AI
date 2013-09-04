@@ -32,6 +32,7 @@ import django_filters
 import transitionrules
 
 from ai import settings
+from ai import ambra_settings
 from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio, AssignmentHistory, Typesetter, reassign_article, toUTCc
 from articleflow.forms import AssignmentForm, ReportsDateRange, ReportsMeropsForm, FileUpload, AssignArticleForm
 from issues.models import Issue, Category
@@ -931,8 +932,18 @@ class CorrectionsControl(View):
 
     def get_context_data(self, *args, **kwargs):
         article = get_object_or_404(Article, doi=kwargs['doi'])
-        return {'article': article}
+        ingestible_article_filename = os.path.join(ambra_settings.AMBRA_INGESTION_QUEUE, "%s.zip" % article.doi)
+        ingested_article_filename = os.path.join(ambra_settings.AMBRA_INGESTED, "%s.zip" % article.doi)
+        logger.debug("ingestible_filename: %s" % ingestible_article_filename)
+        logger.debug("ingested_filename: %s" % ingested_article_filename)
+
+        return {
+            'article': article,
+            'ingestible_exists': os.path.exists(ingestible_article_filename), 
+            'ingested_exists': os.path.exists(ingested_article_filename),
+            }
         
     def get(self, request, *args, **kwargs):
         context=self.get_context_data(*args, **kwargs)
+        logger.debug(context)
         return render_to_response(self.template_name, context, context_instance=RequestContext(request))

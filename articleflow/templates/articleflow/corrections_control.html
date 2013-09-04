@@ -4,10 +4,17 @@
 <div>
   <span><b>Article Files:</b></span>
   <ul>
-    <li>Ingestible: <a href="#">{{ article.doi }}.zip<i class="icon-download-alt"></i></a>
+    <li>Ingestible:
+      {% if ingestible_exists %}
+      <a href="#">{{ article.doi }}.zip<i class="icon-download-alt"></i></a>
       <button class="btn btn-success ingest-btn">Ingest</button> or <a href="#">upload a new file</a>
+      {% else %}
+      <a href="#">upload a file</a>
+      {% endif %}
     </li>
+    {% if ingested_exists %}
     <li>Ingested: <a href="#">{{ article.doi }}.zip<i class="icon-download-alt"></i></a>
+    {% endif %}
   </ul>
 </div>
   
