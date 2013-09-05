@@ -20,7 +20,7 @@
     </div>
     <script type='text/javascript'>
       console.log('Getting {% url errorsetlist errorset.pk %}?level=1&level=2&filter=Filter')
-      $('#holder-{{ errorset.pk }}').load('{% url errorsetlist errorset.pk %}?level=1&level=2&filter=Filter')
+      $('#holder-{{ errorset.pk }}').load('{% url errorsetlist errorset.pk %}?level=1&level=2&level=4&filter=Filter')
     </script>
     {% endif %}
   </div>
