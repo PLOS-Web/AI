@@ -9,6 +9,7 @@ ERROR_LEVEL = (
     (1, 'Error'),
     (2, 'Warning'),
     (3, 'Correction'),
+    (4, 'Suggested Correction'),
 )
 
 STATUS_CODES = (
