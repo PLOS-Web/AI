@@ -5,6 +5,7 @@ import datetime
 from ai import settings
 from django.test import LiveServerTestCase
 from articleflow.models import Article, Journal, ArticleState, State
+from articleflow.views import separate_errors
 from errors.models import ErrorSet, Error
 
 #host_base = "http://10.135.2.181:8000"
@@ -26,6 +27,10 @@ class APIArticleTestCase(LiveServerTestCase):
             self.fail("article with %s exist" % doi)
         except Article.DoesNotExist:
             pass
+
+    def test_separate_errors(self):
+        e = "correction: lala\nerror: heheh\nsuggested correction: hohoho\n"
+        print separate_errors(e)
 
     def test_article_put_extra(self):
         """

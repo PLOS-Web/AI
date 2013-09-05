@@ -102,6 +102,10 @@
     float: right;
 }
 
+.error-filter-form {
+    margin: 3 0 0 5;
+}
+
 .error-filter-form .control-label{
     display: none;
 }
@@ -124,8 +128,8 @@
     float: left;
 }
 
-.error-filter-form {
-    margin: 3 0 0 10;
+#submit-id-filter{
+    //float: right;
 }
 
 .errorset-holder .progress{
