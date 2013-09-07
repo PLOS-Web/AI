@@ -927,6 +927,29 @@ class FTPMeropsUpload(View):
         context = {'form': form}
         return render_to_response(self.template_name, context, context_instance=RequestContext(request))
 
+class HandleCorrectionsDoc(View):
+    
+    def get(self, request, *args, **kwargs):
+        try:
+            article = Article.objects.get(doi=kwargs['doi'])
+        except Article.DoesNotExist, e:
+            raise Http404("Couldn't find any article with the doi %s" % kwargs['doi'])
+
+        source = request.GET.get('source', None)
+        logger.debug("source: %s" % source)
+
+        if source == 'ingestible':
+            filepath = os.path.join(ambra_settings.AMBRA_INGESTION_QUEUE, "%s.zip" % article.doi)
+        elif source == 'ingested':
+            filepath = os.path.join(ambra_settings.AMBRA_INGESTED, "%s.zip" % article.doi)
+        else:
+            raise Http404("Unknown or missing source query parameter.")
+
+        if not os.path.exists(filepath):
+            raise Http404("I could not find a file at %s" % filepath)
+
+        return send_file(filepath, article.doi)
+
 class CorrectionsControl(View):
     template_name = 'articleflow/corrections_control.html'
 

@@ -6,14 +6,14 @@
   <ul>
     <li>Ingestible:
       {% if ingestible_exists %}
-      <a href="#">{{ article.doi }}.zip<i class="icon-download-alt"></i></a>
+      <a href="{% url corrections_file article.doi%}?source=ingestible">{{ article.doi }}.zip<i class="icon-download-alt"></i></a>
       <button class="btn btn-success ingest-btn">Ingest</button> or <a href="#">upload a new file</a>
       {% else %}
       <a href="#">upload a file</a>
       {% endif %}
     </li>
     {% if ingested_exists %}
-    <li>Ingested: <a href="#">{{ article.doi }}.zip<i class="icon-download-alt"></i></a>
+    <li>Ingested: <a href="{% url corrections_file article.doi%}?source=ingested">{{ article.doi }}.zip<i class="icon-download-alt"></i></a>
     {% endif %}
   </ul>
 </div>
