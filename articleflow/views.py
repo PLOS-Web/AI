@@ -328,7 +328,7 @@ class ArticleDetailTransitionUpload(View):
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
         article = get_object_or_404(Article, pk=request.POST['article_pk'])
         transition = get_object_or_404(Transition, pk=request.POST['requested_transition_pk'])
-        form = FileUpload(article, transition, request.POST, request.FILES)
+        form = FileUpload(article, transition, reverse('detail_transition_upload', args=(article.doi,)), request.POST, request.FILES)
         if form.is_valid():
             if transition in article.possible_transitions():
                 logger.debug("Handling uploaded file: %s . . ." % request.FILES['file'].name)
@@ -337,7 +337,7 @@ class ArticleDetailTransitionUpload(View):
                 article.execute_transition(transition, request.user)
                 return HttpResponseRedirect(reverse('detail_main', args=(article.doi,)))
 
-        return HttpResponse("Failure. Tell Jack")
+        return HttpResponse("Form error: %s Please tell your administrator, Jack LaBarba <jlabarba@plos.org>" % form.errors)
 
 class ArticleDetailTransition(View):
 
@@ -407,7 +407,7 @@ class ArticleDetailTransition(View):
                     {
                         "article": article,
                         "transition": transition,
-                        "form": FileUpload(article, transition)
+                        "form": FileUpload(article, transition, reverse('detail_transition_upload', args=(article.doi,)))
                         },
                     context_instance=RequestContext(request)
                     )
@@ -906,28 +906,21 @@ class ServeArticleDoc(View):
         except IOError, e:
             raise Http404(":( I can't find that file.  This likely means that the associated process in merops hasn't been completed.  If you think this 404 message is in error, please contact your admin.")
 
-class FTPMeropsUpload(View):
-    template_name = 'articleflow/fileupload_form.html'
-
-    def get(self, request, *args, **kwargs):
-        form = FileUpload()
-        context = {'form': form}
-        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
-
-    def post(self, request, *args, **kwargs):
-        form = FileUpload(request.POST, request.FILES)
-        if form.is_valid():
-            ctx = context_instance=RequestContext(request)
-            transition = ctx['transition']
-            #sftp = CSFTPStorage()
-            #print request.FILES
-            #upload_doc(sftp, 'upload_test', request.FILES['file'].read())
-            
-            return HttpResponse("success!")
-        context = {'form': form}
-        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
-
 class HandleCorrectionsDoc(View):
+    template_name = 'articleflow/corrections_upload_form.html'
+
+    def handle_uploaded_file(self, f, destinations, filename):
+        logger.debug("Handling file upload for %s" % filename)
+        dests = destinations.split(' ')
+        for dest in dests:
+            if not os.path.exists(dest):
+                logger.error("File upload destination path, %s, does not exist. skipping." % dest)
+                continue
+            destination_pathname = os.path.join(dest, filename)
+            logger.debug("Writing uploaded file to %s" % destination_pathname)
+            with open(destination_pathname, 'wb+') as destination:
+                for chunk in f.chunks():
+                    destination.write(chunk)
     
     def get(self, request, *args, **kwargs):
         try:
@@ -950,6 +943,22 @@ class HandleCorrectionsDoc(View):
 
         return send_file(filepath, article.doi)
 
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated():
+            to_json = {
+                'error': 'Need to login'
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+        article = get_object_or_404(Article, pk=request.POST['article_pk'])
+        form = FileUpload(article, None, reverse('corrections_file', args=(article.doi,)), request.POST, request.FILES)
+        if form.is_valid():
+            logger.debug("Handling uploaded file: %s . . ." % request.FILES['file'].name)
+            f_name, extension = os.path.splitext(request.FILES['file'].name)
+            self.handle_uploaded_file(request.FILES['file'], ambra_settings.AMBRA_INGESTION_QUEUE, "%s%s" % (article.doi, extension))
+            return HttpResponseRedirect(reverse('detail_main', args=(article.doi,)))
+
+        return HttpResponse("Form error: %s Please tell your administrator, Jack LaBarba <jlabarba@plos.org>" % form.errors)
+
 class CorrectionsControl(View):
     template_name = 'articleflow/corrections_control.html'
 
@@ -960,7 +969,10 @@ class CorrectionsControl(View):
         logger.debug("ingestible_filename: %s" % ingestible_article_filename)
         logger.debug("ingested_filename: %s" % ingested_article_filename)
 
+        upload_action_url = reverse('corrections_file', args=(article.doi,))
+
         return {
+            'form': FileUpload(article, None, upload_action_url),
             'article': article,
             'ingestible_exists': os.path.exists(ingestible_article_filename), 
             'ingested_exists': os.path.exists(ingested_article_filename),
