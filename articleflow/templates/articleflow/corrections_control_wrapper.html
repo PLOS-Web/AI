@@ -1,0 +1,21 @@
+<div class="row margined-top">
+  <div class="span12">
+    <div class="rounded-box-list">
+      <div class="rounded-box-header-inner">
+	<h4 class="rounded-box-header">Corrections Control</h4>
+      </div>
+      <div class="rounded-box-card-inner blue-background">
+	<div id='corrections-control-holder-{{ article.pk }}' class='corrections-control-holder'>
+	  <div class="progress progress-striped active">
+	    <div class="bar" style="width: 100%;"></div>
+	  </div>
+	</div>
+      </div>
+      <script type='text/javascript'>
+	console.log('Getting {% url corrections_control article %} ')
+	$('#corrections-control-holder-{{ article.pk }}').load('{% url corrections_control article %}')
+      </script>
+
+    </div>
+  </div>
+</div>

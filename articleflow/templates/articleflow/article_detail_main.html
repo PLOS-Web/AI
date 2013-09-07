@@ -8,6 +8,7 @@
 {% load transitions %}
 {% load assignment %}
 {% load merops_file_download %}
+{% load corrections_control %}
 
 {% block head %}
 <link href="{{ STATIC_URL }}css/articleflow.css" rel="stylesheet">
@@ -88,6 +89,11 @@
   </div>
 </div>
 {% endif %}
+
+{% if user|is_corrector %}
+  {% render_corrections_control article %}
+{% endif %}
+
 <div class="row article-detail-issues">
   <div class="span6">
     {% render_issues article %}
