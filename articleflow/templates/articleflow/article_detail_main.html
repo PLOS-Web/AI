@@ -90,7 +90,9 @@
 </div>
 {% endif %}
 
-{% render_corrections_control article %}
+{% if user|is_corrector %}
+  {% render_corrections_control article %}
+{% endif %}
 
 <div class="row article-detail-issues">
   <div class="span6">
