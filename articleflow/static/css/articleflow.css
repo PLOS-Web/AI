@@ -170,3 +170,12 @@
 .upload-action-panel {
     width: 600px;
 }
+
+.ingest-output {
+    background-color: #fff;
+}
+
+
+.status-success {
+    color: #51a351;
+}

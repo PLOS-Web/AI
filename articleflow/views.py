@@ -982,3 +982,25 @@ class CorrectionsControl(View):
         context=self.get_context_data(*args, **kwargs)
         logger.debug(context)
         return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
+    def post(self, request, *args, **kwargs):
+        if not request.is_ajax():
+            return HttpResponse("Not allowed.")
+        if not request.user.is_authenticated():
+            to_json = {
+                'error': 'Need to login'
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+        # TODO check that article exists
+
+        # TODO ingestprep
+        # TODO ingest
+
+        to_json = {
+            'status': 'success',
+            'messages': 'Sample output\nAnother line of sample output',
+            'reload-errorset': False,
+            }
+        return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+        
