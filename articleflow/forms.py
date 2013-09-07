@@ -84,7 +84,7 @@ class FileUpload(forms.Form):
             Field('article_pk'),
             Field('requested_transition_pk'),
             Field('file'),
-            Submit('submit', 'Submit', css_class='btn-primary'),
+            Submit('submit', 'Upload', css_class='btn-primary'),
             )
         return helper
 
