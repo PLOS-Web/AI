@@ -46,7 +46,7 @@
 	      $('.corrections-control-panel').append('<div class="ingest-output"><div class="output-head"><h5>Ingestion Results:</h5></div><div class="output-body"><span>Ingest in progress, this may take a few minutes...</span><div class="progress progress-striped active"><div class="bar" style="width: 100%;"></div></div></div>');
 	      $('.upload-action-panel').html('');
 	      $.post("{% url corrections_control article.doi %}", function(data){
-	         $('#article-errors-wrapper').load('{% url render_latest_errorset article.pk %}');
+	         $('#article-errors-wrapper').load('{% url render_latest_errorset article.doi %}');
 	         console.log(data);
 	         var output = $('.output-body');
 	         output.html("<div><span>Status: </span><span class='status-" + data['status'] + "'>" + data['status']+ "</span></div>");
