@@ -6,9 +6,17 @@ register = template.Library()
 
 @register.filter(name='is_corrector')
 def is_corrector(user):
-    print "AM I WORKING?"
     try:
         g = Group.objects.get(name='web correctors')
+    except Group.DoesNotExist, e:
+        return False
+
+    return (g in user.groups.all())
+
+@register.filter(name='is_web_corrections_outsourcer')
+def is_web_corrections_outsourcer(user):
+    try:
+        g = Group.objects.get(name='web corrections outsourcers')
     except Group.DoesNotExist, e:
         return False
 

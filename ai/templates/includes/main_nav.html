@@ -1,10 +1,16 @@
 {% load notification_tags %}
 {% load user_permissions %}
+{% load corrections_control %}
 
 <ul class="nav">
   <li class="{% if active_tab == 'grid' %} active{% endif %}">
     <a href="{% url grid_search %}">Grid</a>
   </li>
+  {% if user|is_web_corrections_outsourcer %}
+  <li class="">
+    <a href="{% url grid %}?doi=&pubdate_gte=&pubdate_lte=&current_articlestate=69&state_started_gte=&state_stated_lte=&page_size=50&submit=Search">Web Corrections Queue</a>
+  </li>
+  {% else %}
   <li class="">
     <a href="{% url grid %}?doi=&pubdate_gte=&pubdate_lte=&current_articlestate=63&submit=Search">Ready for QC</a>
   </li>
@@ -60,6 +66,7 @@
       </li>
     </ul>
   </li>
+  {% endif %}
   {% endif %}
   <li>
     {% notification_badge %}
