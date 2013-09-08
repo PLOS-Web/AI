@@ -183,3 +183,7 @@
 .status-success {
     color: #51a351;
 }
+
+.status-failure {
+    color: #d9534f;
+}

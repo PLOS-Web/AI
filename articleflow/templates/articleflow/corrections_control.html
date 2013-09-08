@@ -53,7 +53,11 @@
 	         if (data['messages']){
 	           output.append("<div>Output:<pre>" + data['messages'] + "</pre></div>");
                  }
-              });
+              })
+	      .fail(function(){
+	        var output = $('.output-body');
+	        output.html("<div><p><span class='status-failure'>System Failure: </span><span>Sorry, something went terribly wrong!</span></p><p>Jack the administrator should have been automatically notified but feel free to bug him anyway at <a href='mailto:jlabarba@plos.org'>jlabarba@plos.org</a> (email and gchat).</p>");
+		  });
 	    });
 	  </script>
 	</td>

@@ -1015,7 +1015,7 @@ class CorrectionsControl(View):
         if ingestPrep_failure:
             to_json = {
                 'status': 'failure',
-                'messages': 'ingestPrep found error(s).  Please review the latest error set.',
+                'messages': 'ingestPrep did not exit successfully.  Please review the latest error set.',
                 'reload-errorset': True,
                 }
             os.chdir(cwd)
