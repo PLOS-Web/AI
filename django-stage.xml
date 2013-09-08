@@ -4,5 +4,5 @@
   <home>/home/ai/ai/env/</home>
   <module>django_wsgi</module>
   <buffer-size>20480</buffer-size>
-  <processes>3</processes>
+  <processes>10</processes>
 </uwsgi>

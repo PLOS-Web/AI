@@ -29,6 +29,7 @@ import simplejson
 import re
 import django_filters
 
+import rhyno
 import transitionrules
 
 from ai import settings
@@ -1007,23 +1008,43 @@ class CorrectionsControl(View):
         cwd = os.getcwd()
         try:
             os.chdir(ambra_settings.AMBRA_INGESTION_QUEUE)
-            ingest_failure = os.system('ingestPrep %s' % ingestible_article_filename)
-            if not ingest_failure:
-                os.system('ingest %s' % article.doi)
-            else:
-                to_json = {
-                    'status': 'failure',
-                    'messages': 'ingestPrep found error(s).  Please review the latest error set.',
-                    'reload-errorset': True,
-                    }
-                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')                
+            ingestPrep_failure = os.system('ingestPrep %s' % ingestible_article_filename)
         finally:
+            os.chdir(cwd)            
+            
+        if ingestPrep_failure:
+            to_json = {
+                'status': 'failure',
+                'messages': 'ingestPrep found error(s).  Please review the latest error set.',
+                'reload-errorset': True,
+                }
             os.chdir(cwd)
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')                
+        # if ingestPrep ran successfully, ingest
+        r = rhyno.Rhyno(ambra_settings.AMBRA_STAGE_HOST)
+        try:
+            response = r.ingest("%s.zip" % article.doi, force_reingest=True)
+        except Exception, e:
+            to_json = {
+                'status': 'failure',
+                'messages': "Ingest error: " + str(e),
+                'reload-errorset': False,
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')            
 
-        to_json = {
-            'status': 'success',
-            'messages': '',
-            'reload-errorset': False,
-            }
-        return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+        if response.startswith('{'):
+            to_json = {
+                'status': 'success',
+                'messages': '',
+                'reload-errorset': False,
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+        else:
+            to_json = {
+                'status': 'failure',
+                'messages': 'Ingest Error:\n%s' % response,
+                'reload-errorset': False,
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
         
