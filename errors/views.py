@@ -28,12 +28,26 @@ class Errors(ListView):
         return ErrorSet.objects.filter(article__doi=self.kwargs['doi']).select_related('Errors')
     
     def get_context_data(self, **kwargs):
-        article = Article.objects.get(doi=self.kwargs['doi'])
+        article = get_object_or_404(Article, doi=kwargs['doi'])
         context = ({
                 'article': article,
                 'errorset_list': self.get_queryset()
             })
         return context
+
+class LatestErrorSetAjax(View):
+    template_name="errors/latest_errorset_ajax.html"
+
+    def get_context_data(self, **kwargs):
+        article = get_object_or_404(Article, doi=kwargs['doi'])
+        context = ({
+                'article': article
+            })
+        return context
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))    
 
 class ErrorSetFilter(django_filters.FilterSet):
     checkbox_widget = forms.CheckboxSelectMultiple()
@@ -130,3 +144,4 @@ def get_error_comment_count(request, pk):
     to_json = {'count': comments}
 
     return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
