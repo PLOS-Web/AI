@@ -993,13 +993,36 @@ class CorrectionsControl(View):
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
 
         # TODO check that article exists
+        article = get_object_or_404(Article, doi=kwargs['doi'])
+        ingestible_article_filename = os.path.join(ambra_settings.AMBRA_INGESTION_QUEUE, "%s.zip" % article.doi)
+        if not os.path.exists(ingestible_article_filename):
+            to_json = {
+                'status': 'failure',
+                'messages': 'No ingestible archive',
+                'reload-errorset': False,
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
 
         # TODO ingestprep
-        # TODO ingest
+        cwd = os.getcwd()
+        try:
+            os.chdir(ambra_settings.AMBRA_INGESTION_QUEUE)
+            ingest_failure = os.system('ingestPrep %s' % ingestible_article_filename)
+            if not ingest_failure:
+                os.system('ingest %s' % article.doi)
+            else:
+                to_json = {
+                    'status': 'failure',
+                    'messages': 'ingestPrep found error(s).  Please review the latest error set.',
+                    'reload-errorset': True,
+                    }
+                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')                
+        finally:
+            os.chdir(cwd)
 
         to_json = {
             'status': 'success',
-            'messages': 'Sample output\nAnother line of sample output',
+            'messages': '',
             'reload-errorset': False,
             }
         return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
