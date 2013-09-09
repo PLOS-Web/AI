@@ -28,7 +28,7 @@ class Errors(ListView):
         return ErrorSet.objects.filter(article__doi=self.kwargs['doi']).select_related('Errors')
     
     def get_context_data(self, **kwargs):
-        article = get_object_or_404(Article, doi=kwargs['doi'])
+        article = get_object_or_404(Article, doi=self.kwargs['doi'])
         context = ({
                 'article': article,
                 'errorset_list': self.get_queryset()
