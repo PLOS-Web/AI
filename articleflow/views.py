@@ -24,6 +24,7 @@ import mimetypes
 from django.contrib.auth.models import Group
 
 import os
+import subprocess
 import sys
 import simplejson
 import re
@@ -1004,22 +1005,28 @@ class CorrectionsControl(View):
                 }
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
 
-        # TODO ingestprep
-        cwd = os.getcwd()
-        try:
-            os.chdir(ambra_settings.AMBRA_INGESTION_QUEUE)
-            ingestPrep_failure = os.system('ingestPrep %s' % ingestible_article_filename)
-        finally:
-            os.chdir(cwd)            
-            
+        # ingestprep
+        ingestPrep = subprocess.Popen(["ingestPrep", ingestible_article_filename],
+                                      cwd = ambra_settings.AMBRA_INGESTION_QUEUE,
+                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE,)
+        ingestPrep.wait()        
+        ingestPrep_failure = (ingestPrep.returncode != 0)
+
         if ingestPrep_failure:
+            msg = "Ingest Prep did not exit successfully. Please review any errors that may have appeared above and the following output ...\n\n"
+            msg += "**Return Code: %s\n\n" % ingestPrep.returncode
+            msg += "**Output**\n"
+            msg += ingestPrep.stdout.read() + "\n"
+            msg += "**Errors**\n"
+            msg += ingestPrep.stderr.read() + "" 
+            
             to_json = {
                 'status': 'failure',
-                'messages': 'ingestPrep did not exit successfully.  Please review the latest error set.',
+                'messages': msg,
                 'reload-errorset': True,
                 }
-            os.chdir(cwd)
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')                
+
         # if ingestPrep ran successfully, ingest
         r = rhyno.Rhyno(ambra_settings.AMBRA_STAGE_HOST)
         try:
