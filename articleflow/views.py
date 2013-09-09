@@ -1034,7 +1034,7 @@ class CorrectionsControl(View):
         except Exception, e:
             to_json = {
                 'status': 'failure',
-                'messages': "Ingest error: " + str(e),
+                'messages': "Error in communicating to ambra: " + str(e),
                 'reload-errorset': False,
                 }
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')            
@@ -1050,7 +1050,7 @@ class CorrectionsControl(View):
         else:
             to_json = {
                 'status': 'failure',
-                'messages': 'Ingest Error:\n%s' % response,
+                'messages': 'Ambra ingestion error.  Ambra says: "%s"\n' % response,
                 'reload-errorset': False,
                 }
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
