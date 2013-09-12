@@ -1028,6 +1028,42 @@ class CorrectionsControl(View):
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')                
 
         # if ingestPrep ran successfully, ingest
+        ingest = subprocess.Popen(["/var/local/scripts/production/mechIngest", "-s", "%s.zip" % ingestible_article_filename, "-f"],
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE,)
+        ingest.wait()
+        ingest_failure = (ingest.returncode != 0)
+        if ingest_failure:
+            msg = "mechIngest did not exit successfully. Please review any errors that may have appeared above and the following output ...\n\n"
+            msg += "**Return Code: %s\n\n" % ingest.returncode
+            msg += "**Output**\n"
+            msg += ingest.stdout.read() + "\n"
+            msg += "**Errors**\n"
+            msg += ingest.stderr.read() + "" 
+            
+            to_json = {
+                'status': 'failure',
+                'messages': msg,
+                'reload-errorset': True,
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+        response = ingest.stdout.read()
+        if response.startswith('Ingested'):
+            to_json = {
+                'status': 'success',
+                'messages': '',
+                'reload-errorset': False,
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+        else:
+            to_json = {
+                'status': 'failure',
+                'messages': 'Ambra ingestion error.  Ambra says: "%s"\n' % response,
+                'reload-errorset': False,
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+        """
         r = rhyno.Rhyno(ambra_settings.AMBRA_STAGE_HOST)
         try:
             response = r.ingest("%s.zip" % article.doi, force_reingest=True)
@@ -1054,4 +1090,4 @@ class CorrectionsControl(View):
                 'reload-errorset': False,
                 }
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
-        
+        """
