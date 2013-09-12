@@ -24,14 +24,17 @@ import mimetypes
 from django.contrib.auth.models import Group
 
 import os
+import subprocess
 import sys
 import simplejson
 import re
 import django_filters
 
+import rhyno
 import transitionrules
 
 from ai import settings
+from ai import ambra_settings
 from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio, AssignmentHistory, Typesetter, reassign_article, toUTCc
 from articleflow.forms import AssignmentForm, ReportsDateRange, ReportsMeropsForm, FileUpload, AssignArticleForm
 from issues.models import Issue, Category
@@ -88,7 +91,7 @@ def separate_errors(e):
         logger.debug("Raw: %s" % error)
         for i, level in ERROR_LEVEL:
             
-            p = re.compile('(?<=%s:).*' % level, re.IGNORECASE)
+            p = re.compile('(?<=^%s:).*' % level, re.IGNORECASE)
             m = p.search(error) 
             if m:
                 logger.debug("Match: %s" % m.group(0))
@@ -327,7 +330,7 @@ class ArticleDetailTransitionUpload(View):
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
         article = get_object_or_404(Article, pk=request.POST['article_pk'])
         transition = get_object_or_404(Transition, pk=request.POST['requested_transition_pk'])
-        form = FileUpload(article, transition, request.POST, request.FILES)
+        form = FileUpload(article, transition, reverse('detail_transition_upload', args=(article.doi,)), request.POST, request.FILES)
         if form.is_valid():
             if transition in article.possible_transitions():
                 logger.debug("Handling uploaded file: %s . . ." % request.FILES['file'].name)
@@ -336,7 +339,7 @@ class ArticleDetailTransitionUpload(View):
                 article.execute_transition(transition, request.user)
                 return HttpResponseRedirect(reverse('detail_main', args=(article.doi,)))
 
-        return HttpResponse("Failure. Tell Jack")
+        return HttpResponse("Form error: %s Please tell your administrator, Jack LaBarba <jlabarba@plos.org>" % form.errors)
 
 class ArticleDetailTransition(View):
 
@@ -406,7 +409,7 @@ class ArticleDetailTransition(View):
                     {
                         "article": article,
                         "transition": transition,
-                        "form": FileUpload(article, transition)
+                        "form": FileUpload(article, transition, reverse('detail_transition_upload', args=(article.doi,)))
                         },
                     context_instance=RequestContext(request)
                     )
@@ -905,23 +908,186 @@ class ServeArticleDoc(View):
         except IOError, e:
             raise Http404(":( I can't find that file.  This likely means that the associated process in merops hasn't been completed.  If you think this 404 message is in error, please contact your admin.")
 
-class FTPMeropsUpload(View):
-    template_name = 'articleflow/fileupload_form.html'
+class HandleCorrectionsDoc(View):
+    template_name = 'articleflow/corrections_upload_form.html'
 
+    def handle_uploaded_file(self, f, destinations, filename):
+        logger.debug("Handling file upload for %s" % filename)
+        dests = destinations.split(' ')
+        for dest in dests:
+            if not os.path.exists(dest):
+                logger.error("File upload destination path, %s, does not exist. skipping." % dest)
+                continue
+            destination_pathname = os.path.join(dest, filename)
+            logger.debug("Writing uploaded file to %s" % destination_pathname)
+            with open(destination_pathname, 'wb+') as destination:
+                for chunk in f.chunks():
+                    destination.write(chunk)
+    
     def get(self, request, *args, **kwargs):
-        form = FileUpload()
-        context = {'form': form}
+        try:
+            article = Article.objects.get(doi=kwargs['doi'])
+        except Article.DoesNotExist, e:
+            raise Http404("Couldn't find any article with the doi %s" % kwargs['doi'])
+
+        source = request.GET.get('source', None)
+        logger.debug("source: %s" % source)
+
+        if source == 'ingestible':
+            filepath = os.path.join(ambra_settings.AMBRA_INGESTION_QUEUE, "%s.zip" % article.doi)
+        elif source == 'ingested':
+            filepath = os.path.join(ambra_settings.AMBRA_INGESTED, "%s.zip" % article.doi)
+        else:
+            raise Http404("Unknown or missing source query parameter.")
+
+        if not os.path.exists(filepath):
+            raise Http404("I could not find a file at %s" % filepath)
+
+        return send_file(filepath, article.doi)
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated():
+            to_json = {
+                'error': 'Need to login'
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+        article = get_object_or_404(Article, pk=request.POST['article_pk'])
+        form = FileUpload(article, None, reverse('corrections_file', args=(article.doi,)), request.POST, request.FILES)
+        if form.is_valid():
+            logger.debug("Handling uploaded file: %s . . ." % request.FILES['file'].name)
+            f_name, extension = os.path.splitext(request.FILES['file'].name)
+            self.handle_uploaded_file(request.FILES['file'], ambra_settings.AMBRA_INGESTION_QUEUE, "%s%s" % (article.doi, extension))
+            return HttpResponseRedirect(reverse('detail_main', args=(article.doi,)))
+
+        return HttpResponse("Form error: %s Please tell your administrator, Jack LaBarba <jlabarba@plos.org>" % form.errors)
+
+class CorrectionsControl(View):
+    template_name = 'articleflow/corrections_control.html'
+
+    def get_context_data(self, *args, **kwargs):
+        article = get_object_or_404(Article, doi=kwargs['doi'])
+        ingestible_article_filename = os.path.join(ambra_settings.AMBRA_INGESTION_QUEUE, "%s.zip" % article.doi)
+        ingested_article_filename = os.path.join(ambra_settings.AMBRA_INGESTED, "%s.zip" % article.doi)
+        logger.debug("ingestible_filename: %s" % ingestible_article_filename)
+        logger.debug("ingested_filename: %s" % ingested_article_filename)
+
+        upload_action_url = reverse('corrections_file', args=(article.doi,))
+
+        return {
+            'form': FileUpload(article, None, upload_action_url),
+            'article': article,
+            'ingestible_exists': os.path.exists(ingestible_article_filename), 
+            'ingested_exists': os.path.exists(ingested_article_filename),
+            }
+        
+    def get(self, request, *args, **kwargs):
+        context=self.get_context_data(*args, **kwargs)
+        logger.debug(context)
         return render_to_response(self.template_name, context, context_instance=RequestContext(request))
 
     def post(self, request, *args, **kwargs):
-        form = FileUpload(request.POST, request.FILES)
-        if form.is_valid():
-            ctx = context_instance=RequestContext(request)
-            transition = ctx['transition']
-            #sftp = CSFTPStorage()
-            #print request.FILES
-            #upload_doc(sftp, 'upload_test', request.FILES['file'].read())
+        if not request.is_ajax():
+            return HttpResponse("Not allowed.")
+        if not request.user.is_authenticated():
+            to_json = {
+                'error': 'Need to login'
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+        # TODO check that article exists
+        article = get_object_or_404(Article, doi=kwargs['doi'])
+        ingestible_article_filename = os.path.join(ambra_settings.AMBRA_INGESTION_QUEUE, "%s.zip" % article.doi)
+        if not os.path.exists(ingestible_article_filename):
+            to_json = {
+                'status': 'failure',
+                'messages': 'No ingestible archive',
+                'reload-errorset': False,
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+        # ingestprep
+        ingestPrep = subprocess.Popen(["ingestPrep", ingestible_article_filename],
+                                      cwd = ambra_settings.AMBRA_INGESTION_QUEUE,
+                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE,)
+        ingestPrep.wait()        
+        ingestPrep_failure = (ingestPrep.returncode != 0)
+
+        if ingestPrep_failure:
+            msg = "Ingest Prep did not exit successfully. Please review any errors that may have appeared above and the following output ...\n\n"
+            msg += "**Return Code: %s\n\n" % ingestPrep.returncode
+            msg += "**Output**\n"
+            msg += ingestPrep.stdout.read() + "\n"
+            msg += "**Errors**\n"
+            msg += ingestPrep.stderr.read() + "" 
             
-            return HttpResponse("success!")
-        context = {'form': form}
-        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+            to_json = {
+                'status': 'failure',
+                'messages': msg,
+                'reload-errorset': True,
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')                
+
+        # if ingestPrep ran successfully, ingest
+        ingest = subprocess.Popen(["/var/local/scripts/production/mechIngest", "-s", "%s.zip" % ingestible_article_filename, "-f"],
+                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE,)
+        ingest.wait()
+        ingest_failure = (ingest.returncode != 0)
+        if ingest_failure:
+            msg = "mechIngest did not exit successfully. Please review any errors that may have appeared above and the following output ...\n\n"
+            msg += "**Return Code: %s\n\n" % ingest.returncode
+            msg += "**Output**\n"
+            msg += ingest.stdout.read() + "\n"
+            msg += "**Errors**\n"
+            msg += ingest.stderr.read() + "" 
+            
+            to_json = {
+                'status': 'failure',
+                'messages': msg,
+                'reload-errorset': True,
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+        response = ingest.stdout.read()
+        if response.startswith('Ingested'):
+            to_json = {
+                'status': 'success',
+                'messages': '',
+                'reload-errorset': False,
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+        else:
+            to_json = {
+                'status': 'failure',
+                'messages': 'Ambra ingestion error.  Ambra says: "%s"\n' % response,
+                'reload-errorset': False,
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+        """
+        r = rhyno.Rhyno(ambra_settings.AMBRA_STAGE_HOST)
+        try:
+            response = r.ingest("%s.zip" % article.doi, force_reingest=True)
+        except Exception, e:
+            to_json = {
+                'status': 'failure',
+                'messages': "Error in communicating to ambra: " + str(e),
+                'reload-errorset': False,
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')            
+
+        if response.startswith('{'):
+            to_json = {
+                'status': 'success',
+                'messages': '',
+                'reload-errorset': False,
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+        else:
+            to_json = {
+                'status': 'failure',
+                'messages': 'Ambra ingestion error.  Ambra says: "%s"\n' % response,
+                'reload-errorset': False,
+                }
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+        """

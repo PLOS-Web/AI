@@ -62,25 +62,29 @@ class AssignArticleForm(forms.Form):
 class FileUpload(forms.Form):
     file = forms.FileField(label="Upload file", widget=forms.FileInput())
 
-    def __init__(self, article, transition, *args, **kwargs):
+    def __init__(self, article, transition, action_url, *args, **kwargs):
         super(FileUpload, self).__init__(*args, **kwargs)
         self.article = article
         self.fields['article_pk'] = forms.IntegerField(widget=forms.HiddenInput(), initial=article.pk)
         self.transition = transition
-        self.fields['requested_transition_pk'] = forms.IntegerField(widget=forms.HiddenInput(), initial=transition.pk)
+        if transition:
+            self.fields['requested_transition_pk'] = forms.IntegerField(widget=forms.HiddenInput(), initial=transition.pk)
+        else:
+            self.fields['requested_transition_pk'] = forms.IntegerField(widget=forms.HiddenInput(), initial=-1)
+
+        self.action_url = action_url
 
     @property
     def helper(self):
         helper = FormHelper()
         helper.form_class = 'form upload-form'
         #print "Helper: doi: %s" % reverse('detail_transition', args=(self.article.doi,))
-        action_url = reverse('detail_transition_upload', args=(self.article.doi,))
-        helper.set_form_action(action_url)
+        helper.set_form_action(self.action_url)
         helper.layout = Layout(
             Field('article_pk'),
             Field('requested_transition_pk'),
             Field('file'),
-            Submit('submit', 'Submit', css_class='btn-primary'),
+            Submit('submit', 'Upload', css_class='btn-primary'),
             )
         return helper
 

@@ -336,10 +336,15 @@ CELERY_IMPORTS=(
     'articleflow.daemons.em_sync',
     'articleflow.daemons.transition_tasks',
     'articleflow.daemons.merops_tasks',
+    'articleflow.daemons.misc_tasks',
 )
 
 # CELERY beat schedule
 CELERYBEAT_SCHEDULE = {
+    'emit_notices': {
+        'task': 'articleflow.daemons.misc_tasks.emit_notices',
+        'schedule': timedelta(seconds=30)
+        },
     'em-sync': {
         'task': 'articleflow.daemons.em_sync.sync_all_pubdates',
         'schedule': crontab(hour="*/2", minute="0", day_of_week="*")

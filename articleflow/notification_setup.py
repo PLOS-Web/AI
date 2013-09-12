@@ -23,3 +23,10 @@ def create_notification_types(verbosity=2):
         description="An article revision has arrived",
         default=2,
         verbosity=verbosity)
+
+    notification.NoticeType.create(\
+        label="sent_back_to_pm",
+        display="Sent back to prepare manuscript",
+        description="An article was sent back to prepare manuscript",
+        default=2,
+        verbosity=verbosity)

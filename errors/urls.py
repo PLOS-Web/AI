@@ -23,4 +23,9 @@ urlpatterns = patterns('errors.views',
         'comment_block',
         name='render_error_comment_block'
         ),
+                       url(
+        r'^latest_errorset/(?P<doi>[a-z|\.|0-9]{0,50})$',
+        LatestErrorSetAjax.as_view(),
+        name='render_latest_errorset'
+        ),
                        )
