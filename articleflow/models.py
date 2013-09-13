@@ -7,7 +7,7 @@ from django.utils.timezone import utc
 from django.db import models
 from django.contrib.auth.models import User, Group
 
-from django.db.models import Sum, Max
+from django.db.models import Sum, Max, Q
 ###import autoassign
 
 import notification.models as notification
@@ -30,13 +30,10 @@ def toUTCc(d):
     if not d:
         return None
 
-    logger.debug("Ensuring datetime is UTC: %s" % d)
     if d.tzinfo == pytz.utc:
-        logger.debug("Datetime already UTC")
         return d
     else:
         d_utc = PAC.normalize(PAC.localize(d)).astimezone(pytz.utc)
-        logger.debug("Datetime converted to: %s" % d_utc)
         return d_utc
 
 AUTO_ASSIGN = (
@@ -242,10 +239,11 @@ class Article(models.Model):
 
     def most_advanced_article_state(self, same_typesetter=True):
         arts = self.article_states
+        logger.info("arts: %s" % arts.order_by('state__progress_index').all())
         if same_typesetter:
-            arts.filter(state__typesetters=self.typesetter)
+            arts.filter(Q(state__typesetters=self.typesetter)|Q(state__typesetters__isnull=True))
         if arts:
-            return arts.latest('state__progress_index')
+            return arts.latest('state')
         else:
             return None
 

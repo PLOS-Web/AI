@@ -131,7 +131,7 @@ def queue_doc_finishxml(doc, article):
     art_s = ArticleState(article=article, state=finish_queued_state)
     make_articlestate_if_new(art_s)
 
-def extract_manuscript_from_aries(art):
+def extract_manuscript_from_aries(zip_file):
     """Extracts document, moves it to extraction target, renames
     """
     try:
@@ -148,7 +148,8 @@ def extract_manuscript_from_aries(art):
 def process_doc_from_aries(go_xml_file):
     def should_restart_merops(art):
         cutoff_state = State.objects.get(unique_name = 'finish_out')
-        most_advanced_arts = art.most_advanced_article_state(same_typesetter=True)
+        most_advanced_arts = art.most_advanced_article_state(same_typesetter=False)
+        logger.debug("most_advanced_arts: %s" % most_advanced_arts)
         if most_advanced_arts:
             return (most_advanced_arts.state.progress_index < cutoff_state.progress_index)
         return False
@@ -175,9 +176,8 @@ def process_doc_from_aries(go_xml_file):
         make_articlestate_if_new(art_s)
 
     if should_restart_merops(art):
-        print "LALALLALA"
         # extract manuscript, rename to doi.doc(x)
-        logger.info("%s, delivery arrived, extracting manuscript and queueing for initial processing" % (art.doi, art.current_state.name))
+        logger.info("%s, delivery arrived, extracting manuscript and queueing for initial processing" % art.doi)
         extract_manuscript_from_aries(art)
     else:
         # do nothing but write a note indicating there's a new export
