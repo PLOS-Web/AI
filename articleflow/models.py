@@ -209,6 +209,8 @@ class Article(models.Model):
     em_ms_number = models.CharField(max_length=50, null=True, blank=True, default=None)
     em_max_revision = models.IntegerField(null=True, blank=True, default=None)
     
+    pdf_page_count = models.IntegerField(null=True, blank=True, default=None)
+    
     #Bookkeeping
     created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)
