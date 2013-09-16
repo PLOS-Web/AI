@@ -1028,7 +1028,7 @@ class CorrectionsControl(View):
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')                
 
         # if ingestPrep ran successfully, ingest
-        ingest = subprocess.Popen(["/var/local/scripts/production/mechIngest", "-s", "%s.zip" % ingestible_article_filename, "-f"],
+        ingest = subprocess.Popen(["/var/local/scripts/production/mechIngest", "-s", "%s.zip" % article.doi, "-f"],
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE,)
         ingest.wait()
         ingest_failure = (ingest.returncode != 0)
