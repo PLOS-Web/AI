@@ -131,7 +131,7 @@ def queue_doc_finishxml(doc, article):
     art_s = ArticleState(article=article, state=finish_queued_state)
     make_articlestate_if_new(art_s)
 
-def extract_manuscript_from_aries(zip_file):
+def extract_manuscript_from_aries(zip_file, art):
     """Extracts document, moves it to extraction target, renames
     """
     try:
@@ -178,7 +178,7 @@ def process_doc_from_aries(go_xml_file):
     if should_restart_merops(art):
         # extract manuscript, rename to doi.doc(x)
         logger.info("%s, delivery arrived, extracting manuscript and queueing for initial processing" % art.doi)
-        extract_manuscript_from_aries(art)
+        extract_manuscript_from_aries(zip_file, art )
     else:
         # do nothing but write a note indicating there's a new export
         logger.info("%s, delivery arrived, but article in too advanced a state to automatically process, %s" % (art.doi, art.current_state.name))
@@ -187,7 +187,7 @@ def process_doc_from_aries(go_xml_file):
                        content_type=ContentType.objects.get_for_model(Article),
                        object_pk = art.pk,
                        submit_date = datetime.datetime.utcnow(),
-                       comment = "A new package for this article was just delivered by Aries.",
+                       comment = "A new package for this article was just delivered by Aries but was not automatically processed.  Please review this package and repull the article if desired.",
                        site_id = settings.SITE_ID)
         note.save()
 
