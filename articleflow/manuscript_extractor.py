@@ -29,7 +29,12 @@ def manuscript(guidzip):
     meta_xml = z.ZipFile(guidzip).open(metadata(go))
     meta = etree.parse(meta_xml).getroot()
     m = list(set(go_files(go)) - set(metadata_files(meta)))
+    m = filter(lambda f: f.endswith('.docx') or f.endswith('.doc'), m)
     if len(m) != 1:
+        # try eliminating anything that's not a word file
+        m = filter(lambda f: f.endswith('.docx') or f.endswith('.doc'), m)
+        if len(m) == 1:
+            return m[0]
         raise ManuscriptExtractionException("%s potential manuscripts found: %s" % (len(m), m) )
     if m[0][-4:] != '.doc' and m[0][-5:] != '.docx':
         raise ManuscriptExtractionException(m[0] + " may not be a doc file")
