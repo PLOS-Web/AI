@@ -6,7 +6,7 @@
 {% get_comment_count for issue as comment_count %}
 
 <div class="issue rounded-box-card-inner">
-  <div id="issue-status-icon-{{ issue.pk }}" class="issue-status-{{ issue.current_status.status }} issue-status-icon rounded-box-cell-left" href="javascript:void(0)" title="Status set by {{ issue.current_status.set_by_user.username }} at {{ issue.current_status.created }}"></div>
+  <div id="issue-status-icon-{{ issue.pk }}" class="issue-status-{{ issue.current_status.status }} issue-status-icon rounded-box-cell-left" href="javascript:void(0)" {% if issue.current_status.set_by_user %}title="Status set by {{ issue.current_status.set_by_user.username }} at {{ issue.current_status.created }}"{% endif %}></div>
   <div class="issue-text rounded-box-cell-right">
   <div class="issue-description">
     <span class="label label-{{ issue.category.name|sanitize_class_name }} issue-category">{{ issue.category }}</span>
