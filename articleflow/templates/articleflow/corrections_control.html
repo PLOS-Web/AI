@@ -23,6 +23,10 @@
 	  {% if ingestible_exists %}
 	  <span class="correction-upload-toggle-hide">
 	    <button id='ingest-button' class="btn btn-success btn-smallish" title="Attempt to prepare and ingest the ingestible article">Ingest</button>
+	  {% if article.typesetter.name == 'Merops' %}
+	    <span>
+	    (<input type="checkbox" id="run-make-pdf" checked="checked"></input> run makePDF)</span>
+	  {% endif %}
 	    <span>or</span>
 	    <btn title="Upload a file to replace what's currently in Ingestible." class="btn btn-primary correction-upload-toggle btn-smallish">Upload a new article .zip file</btn>
 	  </span>
@@ -36,29 +40,44 @@
 	  </span>
 	  <script>
 	    $('.correction-upload-toggle').click(function(){
-	      console.log('clicky');
 	      $('.correction-upload').removeClass('hidden');
 	      $('.correction-upload-toggle-hide').addClass('gone');
 	    });
 
 	    $('#ingest-button').click(function(){
 	      console.log('ingesting');
+	      var runmakepdf = $('#run-make-pdf').attr('checked');
+	      console.log("run makepdf: " + runmakepdf);
 	      $('.corrections-control-panel').append('<div class="ingest-output"><div class="output-head"><h5>Ingestion Results:</h5></div><div class="output-body"><span>Ingest in progress, this may take a few minutes...</span><div class="progress progress-striped active"><div class="bar" style="width: 100%;"></div></div></div>');
 	      $('.upload-action-panel').html('');
-	      $.post("{% url corrections_control article.doi %}", function(data){
-	         $('#article-errors-wrapper').load('{% url render_latest_errorset article.doi %}');
-	         console.log(data);
-	         var output = $('.output-body');
-	         output.html("<div><span>Status: </span><span class='status-" + data['status'] + "'>" + data['status']+ "</span></div>");
-	         if (data['messages']){
+	      if (runmakepdf === 'checked'){
+	        var data_obj = {'run_make_pdf': true};
+	      }else{
+	        var data_obj = {'run_make_pdf': false};
+	      }
+
+	      $.ajax({
+	        type: "POST",
+	        url: "{% url corrections_control article.doi %}",
+	        dataType: "json",
+	        data: data_obj,
+	        success: function(data){
+	          $('#article-errors-wrapper').load('{% url render_latest_errorset article.doi %}');
+	          console.log(data);
+	          var output = $('.output-body');
+	          output.html("<div><span>Status: </span><span class='status-" + data['status'] + "'>" + data['status']+ "</span></div>");
+	          if (data['messages']){
 	           output.append("<div>Output:<pre>" + data['messages'] + "</pre></div>");
-                 }
-              })
-	      .fail(function(){
-	        var output = $('.output-body');
-	        output.html("<div><p><span class='status-failure'>System Failure: </span><span>Sorry, something went terribly wrong!</span></p><p>Jack the administrator should have been automatically notified but feel free to bug him anyway at <a href='mailto:jlabarba@plos.org'>jlabarba@plos.org</a> (email and gchat).</p>");
-		  });
-	    });
+	          }
+                 },
+	        fail: function(){
+	          var output = $('.output-body');
+	          output.html("<div><p><span class='status-failure'>System Failure: </span><span>Sorry, something went terribly wrong!</span></p><p>Jack the administrator should have been automatically notified but feel free to bug him anyway at <a href='mailto:jlabarba@plos.org'>jlabarba@plos.org</a> (email and gchat).</p>");
+		  }
+		});
+
+	      });
+
 	  </script>
 	</td>
       </tr>

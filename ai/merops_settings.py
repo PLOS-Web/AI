@@ -12,6 +12,8 @@ MEROPS_FINISH_XML_OUTPUT = os.path.abspath("/var/spool/delivery/merops/finish/ou
 
 MEROPS_MANUSCRIPT_EXTRACTION = os.path.abspath("/tmp/merops/manuscript-extraction/")
 
+MAKEPDF_LOCATION = os.path.abspath("/var/local/scripts/production/makePDF")
+
 MEROPS_FILE_SCHEMA = {
     'meropsed.doc': {
         'dir_path': MEROPS_MEROPSED_OUTPUT,
