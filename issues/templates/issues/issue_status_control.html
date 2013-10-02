@@ -6,11 +6,15 @@
     $('#wont-fix-button-issue-{{ issue.id }}').on("click", function(){switch_status_ajax({{ issue.id }}, 'issue-status-icon-', 'issue-status-control-', 3, '{% url toggle_issue_status %}');});
   </script>
 {% elif issue.current_status.status == 2 %}
+  <span class="issue-author" title="Status set by {{ issue.current_status.set_by_user.username }} at {{ issue.current_status.created }}">closed by {{ issue.current_status.set_by_user.username }}</span>
   <button id="reopen-button-issue-{{ issue.id }}" class="btn btn-link">reopen</button>
   <script type="text/javascript">
     $('#reopen-button-issue-{{ issue.id }}').on("click", function(){switch_status_ajax({{ issue.id }}, 'issue-status-icon-', 'issue-status-control-', 1, '{% url toggle_issue_status %}');});
   </script>
 {% elif issue.current_status.status == 3 %}
+  {% if issue.current_status.set_by_user %}
+  <span class="issue-author" title="Status set by {{ issue.current_status.set_by_user.username }} at {{ issue.current_status.created }}">closed by {{ issue.current_status.set_by_user.username }}</span>
+  {% endif %}
   <button id="reopen-button-issue-{{ issue.id }}" class="btn btn-link">reopen</button>
   <script type="text/javascript">
     $('#reopen-button-issue-{{ issue.id }}').on("click", function(){switch_status_ajax({{ issue.id }}, 'issue-status-icon-', 'issue-status-control-', 1, '{% url toggle_issue_status %}');});

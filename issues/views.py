@@ -2,6 +2,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponse, Http404
 from django.template import Template, RequestContext
 from django.shortcuts import render_to_response
+from django.utils import timezone
+from datetime import datetime
 import simplejson
 
 from django.db.models import Count
@@ -15,6 +17,10 @@ from issues.forms import IssueForm
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+def localftime(d_t):
+    return datetime.strftime(timezone.localtime(d_t), "%b %d, %Y, %I:%M%p")
 
 
 def comment_list(request, id):
@@ -140,17 +146,12 @@ def toggle_issue_status(request):
 
     issue = Issue.objects.get(pk=request.POST['issue_pk'])
     requested_status = int(request.POST['status'])
-    
-    print requested_status
 
     if requested_status in map((lambda x: x[0]), STATUS_CODES):
-        print "in status codes"
-        i = IssueStatus(status=requested_status,issue=issue)
-        print "entering IssueStatus save"
+        i = IssueStatus(status=requested_status,
+                        issue=issue,
+                        set_by_user=request.user)
         i.save()
-        print "exited IssueStatus save"
-
-    print issue.current_status.pk
 
     # render issue status control
     t = Template("{% load ajax_issues %} {% render_issue_status_control issue %}")
@@ -160,6 +161,9 @@ def toggle_issue_status(request):
 
     to_json = {'status': issue.current_status.status,
                'issue-status-control': control_buttons}
+    if issue.current_status.set_by_user:
+        to_json['set_by_user'] = issue.current_status.set_by_user.username
+        to_json['set_time'] = localftime(issue.current_status.created)
     return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
     
 def get_issue_comment_count(request, pk):

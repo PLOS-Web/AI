@@ -72,6 +72,11 @@ function switch_status_ajax(issue_pk, issue_id_base, issue_status_control, new_s
 	    }
 	    status_icon.addClass('issue-status-' + returnedData.status);
 	    status_control.html(returnedData['issue-status-control']);
+	    if (returnedData['set_by_user']){
+		msg = 'Status set by ' + returnedData['set_by_user'] +
+		    ' at ' + returnedData['set_time'];
+		status_icon.attr('title', msg);
+	    }
         }
     }).error(function (errorMsg){
         console.log(errorMsg);
