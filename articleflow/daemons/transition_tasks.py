@@ -159,7 +159,7 @@ def assign_urgent_article(art, urgent_threshold):
         return False
 
     urgent_qc_state = State.objects.get(name='Urgent QC (CW)')
-    if art.pubdate < add_workdays(date.today(), urgent_threshold):
+    if art.pubdate <= add_workdays(date.today(), urgent_threshold):
         logger.info("Moving %s to Urgent QC (CW)" % art.doi)
         daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
         a_s = ArticleState(article=art,
@@ -184,7 +184,7 @@ def assign_urgent_corrections_article(art, urgent_threshold):
         logger.info("Article, %s, not in web corrections is '%s' instead.  Aborting transition to Urgent Web Corrections" % (art.doi, art.current_state))        
         return False
 
-    if art.pubdate < add_workdays(date.today(), urgent_threshold):
+    if art.pubdate <= add_workdays(date.today(), urgent_threshold):
         logger.info("Moving %s to Urgent Web Corrections" % art.doi)
         if art.typesetter and art.typesetter.name == 'Merops':
             urgent_transition = Transition.objects.get(unique_name='assign_to_urgent_web_corrections_merops')

@@ -1025,7 +1025,31 @@ class CorrectionsControl(View):
                 'messages': msg,
                 'reload-errorset': True,
                 }
-            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')                
+            return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
+        # if ingestPrep worked and user specified, run makePDF
+        if request.POST.get('run_make_pdf') == 'true':
+            makePDF = subprocess.Popen([settings.MAKEPDF_LOCATION,
+                                        ingestible_article_filename],
+                                      cwd = ambra_settings.AMBRA_INGESTION_QUEUE,
+                                      stdout=subprocess.PIPE, stderr=subprocess.PIPE,)
+            makePDF.wait()    
+            makePDF_failure = (makePDF.returncode != 0)
+
+            if makePDF_failure:
+                msg = "makePDF did not exit successfully. Please review any errors that may have appeared above and the following output ...\n\n"
+                msg += "**Return Code: %s\n\n" % makePDF.returncode
+                msg += "**Output**\n"
+                msg += makePDF.stdout.read() + "\n"
+                msg += "**Errors**\n"
+                msg += makePDF.stderr.read() + "" 
+            
+                to_json = {
+                    'status': 'failure',
+                    'messages': msg,
+                    'reload-errorset': True,
+                }
+                return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
 
         # if ingestPrep ran successfully, ingest
         ingest = subprocess.Popen(["/var/local/scripts/production/mechIngest", "-s", "%s.zip" % article.doi, "-f"],
@@ -1063,6 +1087,7 @@ class CorrectionsControl(View):
                 'reload-errorset': False,
                 }
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
+
         """
         r = rhyno.Rhyno(ambra_settings.AMBRA_STAGE_HOST)
         try:
