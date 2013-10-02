@@ -140,17 +140,12 @@ def toggle_issue_status(request):
 
     issue = Issue.objects.get(pk=request.POST['issue_pk'])
     requested_status = int(request.POST['status'])
-    
-    print requested_status
 
     if requested_status in map((lambda x: x[0]), STATUS_CODES):
-        print "in status codes"
-        i = IssueStatus(status=requested_status,issue=issue)
-        print "entering IssueStatus save"
+        i = IssueStatus(status=requested_status,
+                        issue=issue,
+                        set_by_user=request.user)
         i.save()
-        print "exited IssueStatus save"
-
-    print issue.current_status.pk
 
     # render issue status control
     t = Template("{% load ajax_issues %} {% render_issue_status_control issue %}")
