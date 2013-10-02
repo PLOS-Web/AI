@@ -87,7 +87,7 @@ class Issue(models.Model):
 
 class IssueStatus(models.Model):
     status = models.IntegerField(choices=STATUS_CODES)
-    
+    set_by_user = models.ForeignKey(User, related_name='statuses_set', null=True, blank=True, default=None)
     issue = models.ForeignKey('Issue', related_name='statuses')
 
     #Bookkeeping
