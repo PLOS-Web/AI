@@ -162,9 +162,10 @@ def assign_urgent_article(art, urgent_threshold):
     if art.pubdate <= add_workdays(date.today(), urgent_threshold):
         logger.info("Moving %s to Urgent QC (CW)" % art.doi)
         daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
+        currently_assigned = art.current_articlestate.assignee
         a_s = ArticleState(article=art,
                            state=urgent_qc_state,
-                           assignee=None,
+                           assignee=currently_assigned,
                            from_transition=None,
                            from_transition_user=daemon_user,
                            )
@@ -211,9 +212,10 @@ def assign_published_stage_article(art, stage_c):
         published_on_stage_state = State.objects.get(name='Published on Stage')
         logger.info("Article, %s, is published on stage. Moving to 'Published on Stage'" % art.doi)
         daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
+        currently_assigned = art.current_articlestate.assignee
         a_s = ArticleState(article=art,
                            state=published_on_stage_state,
-                           assignee=None,
+                           assignee=currently_assigned,
                            from_transition=None,
                            from_transition_user=daemon_user,
                            )
