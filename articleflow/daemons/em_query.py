@@ -96,7 +96,8 @@ class EMQueryConnection(EMConnection):
         r = []
         for journal in journals:
             self.cursor.execute('USE %s' % journal.em_db_name)
-            self.cursor.execute(
+            try:
+                self.cursor.execute(
                 """
                 SELECT
                   doi,
@@ -111,7 +112,10 @@ class EMQueryConnection(EMConnection):
                   (SELECT MAX(d_sub.revision) as rev_max FROM document d_sub WHERE d_sub.documentid = d.documentid) 
                   AND d.Row_LastModified_Timestamp >= '%s'
                 """ % mtime.astimezone(EAST_TZ).strftime('%Y-%m-%d %H:%M:%S'))
-            r += self.cursor.fetchall()
+                r += self.cursor.fetchall()
+            except Exception, e:
+                logger.error("Error fetching pubdates from %s: %s" % (journal, str(e)))
+                
         return r
 
 def main():
