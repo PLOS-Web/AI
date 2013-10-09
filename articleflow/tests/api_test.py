@@ -31,6 +31,8 @@ class APIArticleTestCase(LiveServerTestCase):
     def test_separate_errors(self):
         e = "correction: lala\nerror: heheh\nsuggested correction: hohoho\n"
         print separate_errors(e)
+        e = 'suggested correction: set supplementary material section title to Supporting Information\\n\\n\\t\\t\\t\\t\\t\\t<title>Docking-based binding mode of KuwE.</title><p>The binding mode of KuwE within the catalytic site of PtpB, as predicted by docking. KuwE is shown as cyan sticks; PtpB is represented as green cartoon and lines. Polar contacts between KuwE and PtpB are highlighted as black dotted lines. Residues Phe161, Lys164 and Asp165 that are not conserved in the human PTP1B are showed as green sticks. Residues numbering follows the PDB: <error>web links checking: ext-link-type attribute should be set to \'uri\' for web links</error><ext-link ext-link-type=\\"pdb\\" xlink:href=\\"http://2OZ5\\" xlink:type=\\"simple\\">2OZ5</ext-link> numbering scheme.</p>\\n\\n\\n'
+        print separate_errors(e)        
 
     def test_article_put_extra(self):
         """
@@ -215,7 +217,7 @@ class APIErrorSetTestCase(LiveServerTestCase):
     def test_errorset_put(self):
         data = {
             'source': 'ariesPull',
-            'errors': 'error: stuff\nerror: other stuff\nwarning: a warning\ncorrection: a correction'
+            'errors': 'error: stuff\nerror: other stuff\nwarning: a warning\ncorrection: a correction\nsuggested correction: lololo'
             }
         r = requests.put(self.live_server_url + '/api/article/%s/errorset/' % self.doi_1, data=simplejson.dumps(data)) 
 
@@ -225,6 +227,7 @@ class APIErrorSetTestCase(LiveServerTestCase):
         self.assertEqual(errors[0].level, 1)
         self.assertEqual(errors[2].level, 2)
         self.assertEqual(errors[3].level, 3)
+        self.assertEqual(errors[4].level, 4)
    
 class APITransitionTestCase(LiveServerTestCase):
 

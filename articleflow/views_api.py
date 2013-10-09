@@ -32,10 +32,11 @@ def separate_errors(e):
         logger.debug("Raw: %s" % error)
         for i, level in ERROR_LEVEL:
             
-            p = re.compile('(?<=%s:).*' % level, re.IGNORECASE)
+            p = re.compile('(?<=^%s:).*' % level, re.IGNORECASE)
             m = p.search(error) 
             if m:
-                logger.debug("Match: %s" % m.group(0))
+                logger.debug("Match on (%s, %s): %s" %
+                             (i, level, m.group(0)))
                 error_tuple = (m.group(0).strip(), i)
                 break
 
