@@ -159,7 +159,7 @@ def assign_urgent_article(art, urgent_threshold):
         return False
 
     urgent_qc_state = State.objects.get(name='Urgent QC (CW)')
-    if art.pubdate <= add_workdays(date.today(), urgent_threshold):
+    if art.pubdate and art.pubdate <= add_workdays(date.today(), urgent_threshold):
         logger.info("Moving %s to Urgent QC (CW)" % art.doi)
         daemon_user = get_or_create_user(daemon_name_format % sys._getframe().f_code.co_name)
         currently_assigned = art.current_articlestate.assignee
