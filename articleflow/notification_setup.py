@@ -30,3 +30,10 @@ def create_notification_types(verbosity=2):
         description="An article was sent back to prepare manuscript",
         default=2,
         verbosity=verbosity)
+
+    notification.NoticeType.create(\
+        label="reassign",
+        display="Reassigned to you",
+        description="An article was reassigned to you",
+        default=2,
+        verbosity=verbosity)
