@@ -145,8 +145,10 @@ def extract_manuscript_from_aries(zip_file, art):
     except man_e.ManuscriptExtractionException, e:
         logger.error(str(e))
 
-def process_doc_from_aries(go_xml_file):
+def process_doc_from_aries(go_xml_file, force=False):
     def should_restart_merops(art):
+        if force:
+            return True
         cutoff_state = State.objects.get(unique_name = 'finish_out')
         most_advanced_arts = art.most_advanced_article_state(same_typesetter=False)
         logger.debug("most_advanced_arts: %s" % most_advanced_arts)

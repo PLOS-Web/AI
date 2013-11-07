@@ -46,11 +46,11 @@ def preconfigured_grid(user):
     prod_group = Group.objects.get(name='production')
     web_group = Group.objects.get(name='web')
     if (prod_group in user_groups or web_group in user_groups):
-        return reverse('grid') + ('?doi=&pubdate_gte=&pubdate_lte=&current_assignee=%s&page_size=25&submit=Search' % user.pk)
+        return reverse('grid') + ('?doi=&pubdate_gte=&pubdate_lte=&current_assignee=%s&page_size=100&submit=Search' % user.pk)
 
     zyg_group = Group.objects.get(name='zyg')
     if zyg_group in user_groups:
-        return reverse('grid') + '?doi=&pubdate_gte=&pubdate_lte=&journal=1&current_articlestate=63&page_size=25&submit=Search'
+        return reverse('grid') + '?doi=&pubdate_gte=&pubdate_lte=&journal=1&current_articlestate=63&current_articlestate=86&state_started_gte=&state_stated_lte=&page_size=50&submit=Search'
 
     return reverse('grid')
     

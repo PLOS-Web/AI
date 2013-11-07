@@ -2,6 +2,7 @@ import sys
 import shutil
 import glob
 import os.path
+from optparse import make_option
 
 from django.core.management.base import BaseCommand, CommandError
 from articleflow.daemons.merops_tasks import process_doc_from_aries
@@ -21,7 +22,7 @@ def requeue(doi, source, dest):
 
     shutil.copy(f[0], dest)
 
-def requeue_merops(doi):
+def requeue_merops(doi, **kwargs):
     try:
         return requeue(doi, settings.MEROPS_MEROPSED_WATCH_BU, settings.MEROPS_MEROPSED_WATCH)
     except OSError, ee:
@@ -31,7 +32,7 @@ def requeue_merops(doi):
         except Article.DoesNotExist, e:
             raise ValueError("I can't find an article with doi, %s" % doi)
         aries_go_xml = os.path.join(settings.MEROPS_ARIES_DELIVERY, guid + ".go.xml")
-        process_doc_from_aries(aries_go_xml)
+        process_doc_from_aries(aries_go_xml, kwargs)
 
 def requeue_finishxml(doi):
     return requeue(doi, settings.MEROPS_FINISH_XML_WATCH_BU, settings.MEROPS_FINISH_XML_WATCH)
@@ -43,7 +44,7 @@ def main(*args, **options):
         sys.exit(1)
         
     if args[0] == 'merops':
-        requeue_merops(args[1])
+        requeue_merops(args[1], force=options['force'])
     elif args[0] == 'finishxml':
         requeue_finishxml(args[1])
     else:
@@ -52,5 +53,12 @@ def main(*args, **options):
         sys.exit(1)
 
 class Command(BaseCommand):
+    option_list = BaseCommand.option_list + (
+        make_option('-f',
+                    action='store_true',
+                    dest='force',
+                    default=False,
+                    help='Force merops requeue'),
+        )
     def handle(self, *args, **options):
         main(*args, **options)

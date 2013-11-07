@@ -18,10 +18,9 @@ def get_live_articles():
     cutoff_state_index = State.objects.get(name='Published Live').progress_index
     return Article.objects.filter(current_state__progress_index__lt=cutoff_state_index).order_by('journal')
     
-def sync_live_pubdates():
-    articles = get_live_articles()
-    logger.info("Found %s pre-publication articles.  Updating pubdates . . ." % articles.count())
-    articles = articles[:5]
+def sync_null_pubdates():
+    articles = Article.objects.filter(pubdate__isnull=True)
+    logger.info("Found %s articles without pubdates.  Updating pubdates . . ." % articles.count())
 
     with EMQueryConnection() as eqc:
         for a in articles:
@@ -30,8 +29,27 @@ def sync_live_pubdates():
                 s_time = datetime.now()
                 pubdate = eqc.get_pubdate(a.doi)
                 logger.info("Completed query in %s seconds" % (datetime.now() - s_time))
-                #a.pubdate = pubdate
-                #a.save()
+                a.pubdate = pubdate
+                a.save()
+            except LookupError, e:
+                logger.error(e)
+            except ValueError, e:
+                logger.error(e)
+
+
+def sync_live_pubdates():
+    articles = get_live_articles()
+    logger.info("Found %s pre-publication articles.  Updating pubdates . . ." % articles.count())
+
+    with EMQueryConnection() as eqc:
+        for a in articles:
+            logger.info("Pulling new pubdate for %s" % a.doi)
+            try:
+                s_time = datetime.now()
+                pubdate = eqc.get_pubdate(a.doi)
+                logger.info("Completed query in %s seconds" % (datetime.now() - s_time))
+                a.pubdate = pubdate
+                a.save()
             except LookupError, e:
                 logger.error(e)
             except ValueError, e:
