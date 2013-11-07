@@ -626,3 +626,14 @@ def reassign_article(article, to_user, from_transition_user=None):
         if not to_user:
             n_arts.assignee = None
             n_arts.save()
+            
+        if (from_transition_user and to_user and
+            to_user.email and
+            from_transition_user != to_user):
+            logger.info("%s: Sending reassignment notification to %s" % (a.doi, to_user.username))
+            ctx = {
+                'article': a,
+                'assignee': to_user,
+                'from_transition_user': from_transition_user,
+                }
+            notification.send([to_user], 'reassign', ctx)
