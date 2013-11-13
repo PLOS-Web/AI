@@ -180,6 +180,14 @@ def process_doc_from_aries(go_xml_file, force=False):
     if should_restart_merops(art):
         # extract manuscript, rename to doi.doc(x)
         logger.info("%s, delivery arrived, extracting manuscript and queueing for initial processing" % art.doi)
+        user = get_or_create_user("aries_delivery_watch_bot", first_name="Aries Delivery Watch Robot")
+        note = Comment(user=user,
+                       content_type=ContentType.objects.get_for_model(Article),
+                       object_pk = art.pk,
+                       submit_date = datetime.datetime.utcnow().replace(tzinfo=utc),
+                       comment = "A new package for this article was just delivered by Aries and AI will automatically attempt to extract a manuscript for Merops initial processing.",
+                       site_id = settings.SITE_ID)
+        note.save()
         extract_manuscript_from_aries(zip_file, art )
     else:
         # do nothing but write a note indicating there's a new export
@@ -188,7 +196,7 @@ def process_doc_from_aries(go_xml_file, force=False):
         note = Comment(user=user,
                        content_type=ContentType.objects.get_for_model(Article),
                        object_pk = art.pk,
-                       submit_date = datetime.datetime.utcnow(),
+                       submit_date = datetime.datetime.utcnow().replace(tzinfo=utc),
                        comment = "A new package for this article was just delivered by Aries but was not automatically processed.  Please review this package and repull the article if desired.",
                        site_id = settings.SITE_ID)
         note.save()
