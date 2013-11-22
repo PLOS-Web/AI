@@ -39,6 +39,14 @@
 	<td>Typesetter: </td>
 	<td>{{ article.typesetter.name }}</td>
       </tr>
+      {% for group in user.groups.all %}
+        {% if group.name == 'admin' %}
+      <tr>
+	<td>GUID: </td>
+	<td>{{ article.si_guid }}</td>
+      </tr>
+        {% endif %}
+      {% endfor %}
       <tr>
 	<td>Assigned to: </td>
 	<td>
@@ -66,6 +74,13 @@
       <tr>
 	<td><a href="http://{{ article.journal.em_ambra_stage_prefix }}-stage.plos.org/article/fetchObjectAttachment.action?uri=info%3Adoi%2F10.1371%2Fjournal.{{ article.doi }}&representation=PDF" target="_blank">PDF on Stage</a></td>
       </tr>
+      {% for group in user.groups.all %}
+        {% if group.name == 'admin' %}
+      <tr>
+	<td><a href="http://ai.plos.org/admin/articleflow/article/{{ article.pk }}/">Admin page</a></td>
+      </tr>
+        {% endif %}
+      {% endfor %}
     </table>
     <div>
     </div>
