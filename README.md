@@ -43,6 +43,6 @@ Log into the site using the account you made in step 9 above.  Add Articles and 
 
 ### Test it
 
-Run a bunch of (extremely out-of-date) tests with django's awesome unit testing framework:
+Run a bunch of (extremely out-of-date and almost certain to fail) tests with django's awesome unit testing framework:
 
 `python manage.py test`
