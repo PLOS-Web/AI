@@ -28,7 +28,7 @@ in ubuntu, for instance:
 4.	Activate the virtual environment `source env/bin/activate`
 5.	Install python requriments `cd ai ; pip install -r requirements.pip`
 6.	Install rhyno `pip install git+ssh://git@github.com/PLOS-Web/rhyno.git`
-7.	Create local settings from template: `cp ai/local_settings_sample.py to ai/local_settings.py`
+7.	Create local settings from template: `cp ai/local_settings_sample.py ai/local_settings.py`
 8.	Look through new ai/local_settings.py and fill in required information
 9.	`python manage.py syncdb`.  Make yourself an admin account.
 10.	`python manage.py migrate` (At the end of this, a seed DB fixture should be loaded that should mirror the config on the production server.)
