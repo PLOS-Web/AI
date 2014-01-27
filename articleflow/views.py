@@ -1052,7 +1052,7 @@ class CorrectionsControl(View):
                 return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
 
         # if ingestPrep ran successfully, ingest
-        
+        """
         ingest = subprocess.Popen(["/var/local/scripts/production/mechIngest", "-s", "%s.zip" % article.doi, "-f"],
                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE,)
         ingest.wait()
@@ -1116,4 +1116,4 @@ class CorrectionsControl(View):
                 'reload-errorset': False,
                 }
             return HttpResponse(simplejson.dumps(to_json), mimetype='application/json')
-        """
+        
