@@ -31,7 +31,7 @@ in ubuntu, for instance:
 7.	Create local settings from template: `cp ai/local_settings_sample.py to ai/local_settings.py`
 8.	Look through new ai/local_settings.py and fill in required information
 9.	`python manage.py syncdb`.  Make yourself an admin account.
-10.	`python manage.py migrate`
+10.	`python manage.py migrate` (At the end of this, a seed DB fixture should be loaded that should mirror the config on the production server.)
 11.	`python manage.py runserver --insecure 0.0.0.0:8000` (0.0.0.0 tells the django servlet that it can respond to remote requests. 8000 tells it to listen on port 8000)
 12.	Verify the site is working on your localhost: http://localhost:8000
 13.	(Very optional last step that won't work at all unless you got _all_ the config set up) To start the task scheduler `python ./manage.py celeryd -v 2 -B -s celery -E -l INFO`
