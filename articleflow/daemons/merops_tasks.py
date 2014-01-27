@@ -14,7 +14,10 @@ from django.contrib.contenttypes.models import ContentType
 
 from articleflow.models import Article, ArticleState, State, Typesetter, WatchState
 from ai import settings
+from ai import ambra_settings
 import articleflow.manuscript_extractor as man_e
+
+import rhyno
 
 from celery.task import task
 from celery.utils.log import get_task_logger
@@ -306,6 +309,8 @@ def build_merops_packages():
 
     articles_ready = Article.objects.filter(current_state__unique_name="ready_to_build_article_package").all()
     ingested_state = State.objects.get(unique_name='ingested')
+    r = rhyno.Rhyno(ambra_settings.AMBRA_STAGE_HOST)
+
     for a in articles_ready:
         logger.info("%s: attempting to ariesPullMerops ..." % a.doi)
         try:
@@ -314,7 +319,7 @@ def build_merops_packages():
             ingest_arts = ArticleState.objects.filter(article=a, state=ingested_state).all()
             if not ingest_arts:
                 logger.info("%s: first revision identified, attempting to ingest ..." % a.doi)
-                call([ingest, a.doi], cwd=ingestion_queue)
+                r.ingest("%s.zip" % a.doi)
         except OSError, ee:
             logger.exception(ee)
         except Exception, ee:
