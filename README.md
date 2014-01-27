@@ -38,7 +38,7 @@ in ubuntu, for instance:
 
 ### Play around with it
 
-Log into the site using the account you made in step 9 above.  Articles and stuff to play with.
+Log into the site using the account you made in step 9 above.  Add Articles and other objects to play with.
 
 
 ### Test it
