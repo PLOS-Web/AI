@@ -15,7 +15,6 @@ django-debug-toolbar==0.9.4
 -e git+https://github.com/alex/django-filter.git@b2b69617fab8d9a9288e0e86b617c65dc37bfee7#egg=django_filter-dev
 django-notification==0.1.5
 django-storages==1.1.8
-importlib==1.0.2
 kombu==2.5.6
 lxml==3.2.1
 ordereddict==1.1
