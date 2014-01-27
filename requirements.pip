@@ -13,7 +13,6 @@ django-celery==3.0.11
 django-crispy-forms==1.2.2
 django-debug-toolbar==0.9.4
 -e git+https://github.com/alex/django-filter.git@b2b69617fab8d9a9288e0e86b617c65dc37bfee7#egg=django_filter-dev
-django-notification==1.1.1
 django-storages==1.1.8
 kombu==2.5.6
 lxml==3.2.1
