@@ -205,6 +205,7 @@ class Article(models.Model):
     current_state = models.ForeignKey('State', related_name="current_articles", null=True, blank=True, default=None)
     article_extras = models.ForeignKey('ArticleExtras', related_name="article_dont_use", null=True, blank=True, default=None)
     typesetter = models.ForeignKey('Typesetter', related_name='articles_typeset', null=True, blank=True, default=None)
+    article_type = models.ForeignKey('ArticleType', related_name="articles", null=True, blank=True, default=None)
     em_pk = models.IntegerField(null=True, blank=True, default=None)
     em_ms_number = models.CharField(max_length=50, null=True, blank=True, default=None)
     em_max_revision = models.IntegerField(null=True, blank=True, default=None)
