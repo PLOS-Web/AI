@@ -324,7 +324,15 @@ class ArticleExtras(models.Model):
             pass
 
         return "Article_extras: (doi: %s)" % doi        
-            
+
+
+class ArticleType(models.Model):
+    name = models.CharField(max_length=200)
+
+    #Bookkeeping
+    created = models.DateTimeField(null=True, blank=True, default=None)
+    last_modified = models.DateTimeField(auto_now=True)
+
 class Transition(models.Model):
     """
     Defines the possible transitions between states
