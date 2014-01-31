@@ -13,7 +13,9 @@ Switches platform to Django, adds tons of junk.  Hopefully isn't bad.
 
 in ubuntu, for instance:
 
-`sudo apt-get install libmysqlclient-dev python-dev libldap2-dev libsasl2-dev libssl-dev unixodbc-dev libxml2-dev libxslt1-dev`
+```
+sudo apt-get install libmysqlclient-dev python-dev libldap2-dev libsasl2-dev libssl-dev unixodbc-dev libxml2-dev libxslt1-dev build-essential python-pip python-virtualenv
+```
 
 (warning, this might not be all of them!  If you're getting weird errors from the `pip install -r requirements.pip step` it's probably because you're missing a c dependency.)
 
