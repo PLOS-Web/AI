@@ -205,7 +205,8 @@ class Article(models.Model):
     current_state = models.ForeignKey('State', related_name="current_articles", null=True, blank=True, default=None)
     article_extras = models.ForeignKey('ArticleExtras', related_name="article_dont_use", null=True, blank=True, default=None)
     typesetter = models.ForeignKey('Typesetter', related_name='articles_typeset', null=True, blank=True, default=None)
-    article_type = models.ForeignKey('ArticleType', related_name="articles", null=True, blank=True, default=None)
+    article_type = models.ForeignKey('ArticleType', related_name='articles_typed', null=True, blank=True, default=None)
+    related_articles = models.ManyToManyField('Article', related_name='related_by_articles', blank=True)
     em_pk = models.IntegerField(null=True, blank=True, default=None)
     em_ms_number = models.CharField(max_length=50, null=True, blank=True, default=None)
     em_max_revision = models.IntegerField(null=True, blank=True, default=None)
@@ -333,6 +334,9 @@ class ArticleType(models.Model):
     #Bookkeeping
     created = models.DateTimeField(null=True, blank=True, default=None)
     last_modified = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return self.name
 
 class Transition(models.Model):
     """
