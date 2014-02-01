@@ -11,11 +11,11 @@
 {% load corrections_control %}
 
 {% block head %}
-<link href="{{ STATIC_URL }}css/articleflow.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/articleflow.css" rel="stylesheet">
 {% endblock %}
 
 {% block detail_nav %}
-{% include "articleflow/includes/detail_nav.html" with active_tab='detail_main' %}
+    {% include "articleflow/includes/detail_nav.html" with active_tab='detail_main' %}
 {% endblock %}
 
 {% block sub_title %} - {{ article.doi }}{% endblock %}
@@ -24,111 +24,143 @@
 
 {% block article_detail_content %}
 
-<div class="row article-detail-summary">
-  <div class="span6">
-    <table>
-      <tr>
-	<td>PubDate:</td>
-	<td>{{ article.pubdate }}</td>
-      </tr>
-      <tr>
-	<td>Current state: </td>
-	<td>{{ article.current_articlestate.state.name }}</td>
-      </tr>
-      <tr>
-	<td>Typesetter: </td>
-	<td>{{ article.typesetter.name }}</td>
-      </tr>
-      {% for group in user.groups.all %}
-        {% if group.name == 'admin' %}
-      <tr>
-	<td>GUID: </td>
-	<td>{{ article.si_guid }}</td>
-      </tr>
-        {% endif %}
-      {% endfor %}
-      <tr>
-	<td>Assigned to: </td>
-	<td>
+    <div class="row article-detail-summary">
+        <div class="span6">
+            <table>
+                <tr>
+                    <td>PubDate:</td>
+                    <td>{{ article.pubdate }}</td>
+                </tr>
+                <tr>
+                    <td>Current state:</td>
+                    <td>{{ article.current_articlestate.state.name }}</td>
+                </tr>
+                <tr>
+                    <td>Typesetter:</td>
+                    <td>{{ article.typesetter.name }}</td>
+                </tr>
+                {% for group in user.groups.all %}
+                    {% if group.name == 'admin' %}
+                        <tr>
+                            <td>GUID:</td>
+                            <td>{{ article.si_guid }}</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+                <tr>
+                    <td>Assigned to:</td>
+                    <td>
 	  <span id='assignee'>
 	  {% if article.current_articlestate.assignee.username %}
-	  {{ article.current_articlestate.assignee.username }}
-          {% else %}
+          {{ article.current_articlestate.assignee.username }}
+      {% else %}
           --
-	  {% endif %}
+      {% endif %}
 	  </span>
-	  {% if user.is_authenticated %}
-	  {% render_assign_article_form article %}
-	  {% endif %}
-	</td>
-      </tr>
-      <tr>
-	<td>&nbsp;</td>
-      </tr>
-      <tr>
-	<td><a href="http://www.editorialmanager.com/{{ article.journal.em_url_prefix }}/downloadSubFilesList.asp?docID={{ article.em_pk }}&docRevision={{ article.em_max_revision }}&msNum={{ article.em_ms_number }}&approvalType=2" target="_blank">EM file inventory</a></td>
-      </tr>
-      <tr>
-	<td><a href="http://{{ article.journal.em_ambra_stage_prefix }}-stage.plos.org/article/info:doi/10.1371/journal.{{ article.doi }}" target="_blank">Article on Stage</a></td>
-      </tr>
-      <tr>
-	<td><a href="http://{{ article.journal.em_ambra_stage_prefix }}-stage.plos.org/article/fetchObjectAttachment.action?uri=info%3Adoi%2F10.1371%2Fjournal.{{ article.doi }}&representation=PDF" target="_blank">PDF on Stage</a></td>
-      </tr>
-      {% for group in user.groups.all %}
-        {% if group.name == 'admin' %}
-      <tr>
-	<td><a href="http://ai.plos.org/admin/articleflow/article/{{ article.pk }}/">Admin page</a></td>
-      </tr>
+                        {% if user.is_authenticated %}
+                            {% render_assign_article_form article %}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% if article.related_articles.all %}
+                    <tr>
+                        <td>Related to:</td>
+                        <td>
+                            <ul>
+                                {% for rel_a in article.related_articles.all %}
+                                    <li><a href="{%  url detail_main rel_a.doi %}">{{ rel_a.doi }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if article.related_by_articles.all %}
+                    <tr>
+                        <td>Related by:</td>
+                        <td>
+                            <ul>
+                                {% for rel_a in article.related_by_articles.all %}
+                                    <li><a href="{%  url detail_main rel_a.doi %}">{{ rel_a.doi }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                {% endif %}
+                <tr>
+                    <td>&nbsp;</td>
+                </tr>
+                <tr>
+                    <td>
+                        <a href="http://www.editorialmanager.com/{{ article.journal.em_url_prefix }}/downloadSubFilesList.asp?docID={{ article.em_pk }}&docRevision={{ article.em_max_revision }}&msNum={{ article.em_ms_number }}&approvalType=2"
+                           target="_blank">EM file inventory</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <a href="http://{{ article.journal.em_ambra_stage_prefix }}-stage.plos.org/article/info:doi/10.1371/journal.{{ article.doi }}"
+                           target="_blank">Article on Stage</a></td>
+                </tr>
+                <tr>
+                    <td>
+                        <a href="http://{{ article.journal.em_ambra_stage_prefix }}-stage.plos.org/article/fetchObjectAttachment.action?uri=info%3Adoi%2F10.1371%2Fjournal.{{ article.doi }}&representation=PDF"
+                           target="_blank">PDF on Stage</a></td>
+                </tr>
+                {% for group in user.groups.all %}
+                    {% if group.name == 'admin' %}
+                        <tr>
+                            <td><a href="http://ai.plos.org/admin/articleflow/article/{{ article.pk }}/">Admin page</a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </table>
+            <div>
+            </div>
+        </div>
+        <div class="span5">
+            <h4>Notes</h4>
+            {% render_article_note_block article user %}
+        </div>
+    </div>
+    {% if article.typesetter.name == 'Merops' %}
+        <div class="row margined-top">
+            <div class="span12">
+                <div class="rounded-box-list">
+                    <div class="rounded-box-header-inner">
+                        <h4 class="rounded-box-header">Merops File Downloads</h4>
+                    </div>
+                    <div class="rounded-box-card-inner blue-background">
+                        {% render_merops_hopper_downloads article %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="row article-detail-issues">
+        <div class="span6">
+            {% render_issues article %}
+        </div>
+        <div class="span6" id="article-errors-wrapper">
+            {% render_latest_errors article %}
+        </div>
+    </div>
+
+    {% if user.is_authenticated %}
+
+        {% if user|is_corrector %}
+            {% render_corrections_control article %}
         {% endif %}
-      {% endfor %}
-    </table>
-    <div>
-    </div>
-  </div>
-  <div class="span5">
-      <h4>Notes</h4>
-      {% render_article_note_block article user %}
-  </div>
-</div>
-{% if article.typesetter.name == 'Merops' %}
-<div class="row margined-top">
-  <div class="span12">
-    <div class="rounded-box-list">
-      <div class="rounded-box-header-inner">
-	<h4 class="rounded-box-header">Merops File Downloads</h4>
-      </div>
-      <div class="rounded-box-card-inner blue-background">
-	{% render_merops_hopper_downloads article %}
-      </div>
-    </div>
-  </div>
-</div>
-{% endif %}
 
-<div class="row article-detail-issues">
-  <div class="span6">
-    {% render_issues article %}
-  </div>
-  <div class="span6" id="article-errors-wrapper">
-    {% render_latest_errors article %}
-  </div>
-</div>
+        <div class="row">
+            <div class="span12">
+                <div class="clear"></div>
+                <div>
+                    {% render_article_state_control article user %}
+                </div>
+            </div>
+        </div>
 
-{% if user.is_authenticated %}
-
-{% if user|is_corrector %}
-  {% render_corrections_control article %}
-{% endif %}
-
-<div class="row">
-  <div class="span12">
-    <div class="clear"></div>
-    <div>
-      {% render_article_state_control article user %}
-    </div>
-  </div>
-</div>
-
-{% endif %}
+    {% endif %}
 
 {% endblock %}
