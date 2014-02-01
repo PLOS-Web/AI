@@ -256,7 +256,10 @@ class Article(models.Model):
                 self.created = now()
         if not self.journal:
             logger.debug("%s: automatically figuring out journal" % self.doi)
-            self.journal = get_journal_from_doi(self.doi)
+            try:
+                self.journal = get_journal_from_doi(self.doi)
+            except ValueError, e:
+                logger.warning("doi: %s: %s" % (self.doi, e))
         ret = super(Article, self).save(*args, **kwargs)
 
         # Create a blank articleextras row

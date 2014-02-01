@@ -24,3 +24,5 @@ site_media/
 log/
 logs/
 *.sqlite
+.idea/
+*.sql
