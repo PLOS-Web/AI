@@ -24,7 +24,7 @@ urlpatterns = patterns('articleflow.views',
                        #url(r'^sftp-serve-down/(?P<doi>.*)$', FTPMeropsdOrig.as_view(), name='sftp_serve_down'),
                        #url(r'^sftp_test_upload/$', FTPMeropsUpload.as_view(), name='sftp_test_upload'),                       
                        url(r'^detail/(?P<doi>.*)/merops_files/(?P<file_type>.*)$', ServeArticleDoc.as_view(), name='merops_files'),
-                       url(r'^detail/(?P<doi>.*)/corrections_file/$', HandleCorrectionsDoc.as_view(), name='corrections_file'),
+                       url(r'^detail/(?P<doi>.*)/corrections_file$', HandleCorrectionsDoc.as_view(), name='corrections_file'),
                        url(r'^detail/(?P<doi>.*)/corrections_control$', CorrectionsControl.as_view(), name='corrections_control'),
                        )
 
