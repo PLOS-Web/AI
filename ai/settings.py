@@ -265,7 +265,7 @@ LOGGING = {
             'propagate': True,
             },
         'articleflow.views': {
-            'handlers': ['debugging', 'requests-file'],
+            'handlers': ['debugging', 'requests-file', 'console'],
             'level': 'INFO',
             'propagate': True,
             },
