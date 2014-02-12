@@ -252,13 +252,13 @@ class Article(models.Model):
     def save(self, *args, **kwargs):
         insert = not self.pk
         logger.info("%s: saving article: %s" % (self.doi,self.verbose_unicode()))
-	if insert and not self.created:
-                self.created = now()
+        if insert and not self.created:
+            self.created = now()
         if not self.journal:
             logger.debug("%s: automatically figuring out journal" % self.doi)
             try:
                 self.journal = get_journal_from_doi(self.doi)
-            except ValueError, e:
+            except ValueError as e:
                 logger.warning("doi: %s: %s" % (self.doi, e))
         ret = super(Article, self).save(*args, **kwargs)
 

@@ -95,6 +95,8 @@
 	    {% endif %}
 	{% elif col == "Typesetter" %}
 	    {{ article.typesetter.name }}
+    {% elif col == "Article Type" %}
+	    {{ article.article_type.name }}
 	{% else %}
 	  {{ value }}
 	{% endif %}

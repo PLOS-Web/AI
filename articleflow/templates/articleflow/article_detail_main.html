@@ -39,6 +39,10 @@
                     <td>Typesetter:</td>
                     <td>{{ article.typesetter.name }}</td>
                 </tr>
+                <tr>
+                    <td>Article Type:</td>
+                    <td>{{ article.article_type.name }}</td>
+                </tr>
                 {% for group in user.groups.all %}
                     {% if group.name == 'admin' %}
                         <tr>

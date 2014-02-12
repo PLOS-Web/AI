@@ -35,7 +35,7 @@ import transitionrules
 
 from ai import settings
 from ai import ambra_settings
-from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio, AssignmentHistory, Typesetter, reassign_article, toUTCc
+from articleflow.models import Article, ArticleState, ArticleType, State, Transition, Journal, AssignmentRatio, AssignmentHistory, Typesetter, reassign_article, toUTCc
 from articleflow.forms import AssignmentForm, ReportsDateRange, ReportsMeropsForm, FileUpload, AssignArticleForm
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
@@ -62,9 +62,10 @@ COLUMN_CHOICES = (
     (6, 'State Started'),
     (7, 'Assigned'),
     (8, 'Typesetter'),
+    (9, 'Article Type')
     )
 
-DEFAULT_COLUMNS = [0,1,3,4,5,7,8]
+DEFAULT_COLUMNS = [0,1,3,4,5,7,9]
 
 def get_journal_from_doi(doi):
     match = re.match('.*(?=\.)', doi)
@@ -144,19 +145,24 @@ class ColumnOrder():
         return a.order_by(ColumnOrder.parse_type(type) + 'typesetter__name')
 
     @staticmethod
+    def article_type(a, type):
+        return a.order_by(ColumnOrder.parse_type(type) + 'article_type__name')
+
+    @staticmethod
     def state_started(a, type):
         return a.order_by(ColumnOrder.parse_type(type) + 'current_articlestate__created')
     
 ORDER_CHOICES = {
     'DOI': ColumnOrder.doi,
-    'PubDate' : ColumnOrder.pubdate,
-    'Journal' : ColumnOrder.journal,
-    'Issues' : ColumnOrder.issues,
-    'Errors' : ColumnOrder.errors,
-    'State' : ColumnOrder.state,
-    'State Started' : ColumnOrder.state_started,
-    'Assigned' : ColumnOrder.assigned,
-    'Typesetter' : ColumnOrder.typesetter,
+    'PubDate': ColumnOrder.pubdate,
+    'Journal': ColumnOrder.journal,
+    'Issues': ColumnOrder.issues,
+    'Errors': ColumnOrder.errors,
+    'State': ColumnOrder.state,
+    'State Started': ColumnOrder.state_started,
+    'Assigned': ColumnOrder.assigned,
+    'Typesetter': ColumnOrder.typesetter,
+    'Article Type': ColumnOrder.article_type,
 }
 
 
@@ -177,6 +183,8 @@ class ArticleFilter(django_filters.FilterSet):
     state_stated_lte = django_filters.DateTimeFilter(name='current_articlestate__created', label='State started to', lookup_type='lte', widget=datepicker_widget)
     current_assignee = django_filters.ModelMultipleChoiceFilter(name='current_articlestate__assignee', label='Assigned', queryset=User.objects.filter(is_active=True).order_by('username'))
     typesetter = django_filters.ModelMultipleChoiceFilter(name='typesetter__name', label='Typesetter', queryset=Typesetter.objects.all(), widget=checkbox_widget)
+    article_type = django_filters.ModelMultipleChoiceFilter(name='article_type__name', label='Article Type', queryset=ArticleType.objects.all(), widget=checkbox_widget)
+
     
     class Meta:
         model = Article
