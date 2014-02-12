@@ -28,7 +28,7 @@ sudo apt-get install libmysqlclient-dev python-dev libldap2-dev libsasl2-dev lib
 2.	git clone this repo
 3.	Create a virtual environment: `cd .. ; virtualenv --no-site-packages env`
 4.	Activate the virtual environment `source env/bin/activate`
-5.	Install python requriments `cd ai ; pip install -r requirements.pip`
+5.	Install python requriments `cd ai ; pip install -r requirements.pip`.  If you have problems here, you're either missing some dependencies from above, or pip is misconfigured.  If Pip is getting angry about not being able to find or verify packages or something about Wheel, try downgrading it with `pip install -U pip==1.4.1`
 6.	Install rhyno `pip install git+ssh://git@github.com/PLOS-Web/rhyno.git`
 7.	Create local settings from template: `cp ai/local_settings_sample.py ai/local_settings.py`
 8.	Look through new ai/local_settings.py and fill in required information

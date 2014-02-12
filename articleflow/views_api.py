@@ -2,7 +2,7 @@ from django.views.generic.base import View
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 
-from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio, Typesetter
+from articleflow.models import Article, ArticleState, State, Transition, Journal, AssignmentRatio, Typesetter, ArticleType
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
 from django.contrib.auth.models import Group, User
 
@@ -158,13 +158,21 @@ class TransactionArticle(BaseTransaction):
                                                journal=Journal.objects.get(pk=self.get_val('journal')))
 
         if self.get_val('pubdate'):
-            a.pubdate=self.get_val('pubdate')
+            a.pubdate = self.get_val('pubdate')
         if self.get_val('md5'):
-            a.md5=self.get_val('md5')
+            a.md5 = self.get_val('md5')
         if self.get_val('si_guid'):
-            a.si_guid=self.get_val('si_guid')
+            a.si_guid = self.get_val('si_guid')
         if self.get_val('typesetter'):
-            a.typesetter=Typesetter.objects.get(name=self.get_val('typesetter'))
+            a.typesetter = Typesetter.objects.get(name=self.get_val('typesetter'))
+
+        if self.get_val('article_type'):
+            a.article_type, new = ArticleType.objects.get_or_create(name=self.get_val('article_type'))
+            if new:
+                logger.info("Found and created new article type: %s" %
+                            a.article_type.name)
+
+        # TODO add related_article
 
         logger.debug("API finding journal: %s" % self.payload['journal'])
         a.journal=Journal.objects.get(pk=self.get_val('journal'))
