@@ -64,7 +64,7 @@ def sync_all_pubdates():
             if a[1]:
                 try:
                     short_doi = short_doi_prog.search(a[0]).group(0)
-                    article = Article.objects.get(doi=short_doi)
+                    article, new  = Article.objects.get_or_create(doi=short_doi)
                     article.pubdate = a[1]
                     article.em_pk = a[2]
                     article.em_ms_number = a[3]
@@ -96,7 +96,7 @@ def sync_most_recent_em_changes():
             if a[1]:
                 try:
                     short_doi = short_doi_prog.search(a[0]).group(0)
-                    article = Article.objects.get(doi=short_doi)
+                    article, new  = Article.objects.get_or_create(doi=short_doi)
                     article.pubdate = a[1]
                     article.em_pk = a[2]
                     article.em_ms_number = a[3]
