@@ -80,7 +80,8 @@ class EMQueryConnection(EMConnection):
                   actual_online_pub_date as 'pubdate',
                   documentid,
                   pubdnumber,
-                  revision as rev_max
+                  revision as rev_max,
+                  category
                 FROM document d
                 WHERE d.doi is not null
                   AND d.revision =

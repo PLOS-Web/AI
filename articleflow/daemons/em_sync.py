@@ -6,7 +6,7 @@ from celery.task import task
 
 import em_query
 from em_query import EMQueryConnection
-from articleflow.models import Article, State, ExternalSync, SyncHistory
+from articleflow.models import Article, State, ExternalSync, SyncHistory, ArticleType
 
 EAST_TZ = pytz.timezone('US/Eastern')
 
@@ -69,6 +69,7 @@ def sync_all_pubdates():
                     article.em_pk = a[2]
                     article.em_ms_number = a[3]
                     article.em_max_revision = a[4]
+                    article.article_type, new = ArticleType.objects.get_or_create(name=a[5].strip())
                     logger.info("Updating %s with pubdate, %s" % (article, a[1]))
                     article.save()
                 except Article.DoesNotExist, e:

@@ -933,9 +933,11 @@ class HandleCorrectionsDoc(View):
                     destination.write(chunk)
     
     def get(self, request, *args, **kwargs):
+        print(kwargs)
         try:
             article = Article.objects.get(doi=kwargs['doi'])
         except Article.DoesNotExist, e:
+
             raise Http404("Couldn't find any article with the doi %s" % kwargs['doi'])
 
         source = request.GET.get('source', None)
@@ -956,6 +958,7 @@ class HandleCorrectionsDoc(View):
         return send_file(filepath, article.doi)
 
     def post(self, request, *args, **kwargs):
+        print(kwargs)
         if not request.user.is_authenticated():
             to_json = {
                 'error': 'Need to login'
