@@ -65,7 +65,7 @@ COLUMN_CHOICES = (
     (9, 'Article Type')
     )
 
-DEFAULT_COLUMNS = [0,1,3,4,5,7,9]
+DEFAULT_COLUMNS = [0,1,3,4,5,6,7,9]
 
 def get_journal_from_doi(doi):
     match = re.match('.*(?=\.)', doi)
