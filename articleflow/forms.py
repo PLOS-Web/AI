@@ -33,10 +33,19 @@ class ReportsDateRange(forms.Form):
 
 class ReportsMeropsForm(forms.Form):
     typesetter_choices = ((1, 'CW'), (2, 'Merops'), (3, 'Both'))
-
+    
     typesetter = forms.ChoiceField(choices=typesetter_choices)
     start_date = forms.DateTimeField(label="Start pubdate", input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
     end_date = forms.DateTimeField(label="End pubdate", input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
+
+class ReportsCorrectiontoReadytoPublishForm(forms.Form):
+    typesetter_choices = ((1, 'CW'), (2, 'Merops'), (3, 'Both'))
+    group_choices = ((1, 'PLOS'), (2, 'Stan'), (3, 'Both'))
+
+    typesetter = forms.ChoiceField(choices=typesetter_choices)
+    group = forms.ChoiceField(choices=group_choices)
+    start_date = forms.DateTimeField(label="Start Date", input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
+    end_date = forms.DateTimeField(label="End Date", input_formats=['%m/%d/%Y'], widget=forms.DateInput(attrs={'class':'datepicker dateinput'}))
 
 class AssignArticleForm(forms.Form):
     username = forms.ModelChoiceField(queryset=User.objects.filter(is_active=True).order_by('username'))

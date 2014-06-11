@@ -36,7 +36,7 @@ import transitionrules
 from ai import settings
 from ai import ambra_settings
 from articleflow.models import Article, ArticleState, ArticleType, State, Transition, Journal, AssignmentRatio, AssignmentHistory, Typesetter, reassign_article, toUTCc
-from articleflow.forms import AssignmentForm, ReportsDateRange, ReportsMeropsForm, FileUpload, AssignArticleForm
+from articleflow.forms import AssignmentForm, ReportsDateRange, ReportsMeropsForm, ReportsCorrectiontoReadytoPublishForm, FileUpload, AssignArticleForm
 from issues.models import Issue, Category
 from errors.models import ErrorSet, Error, ERROR_LEVEL, ERROR_SET_SOURCES
 
@@ -667,6 +667,81 @@ class ReportMeropsCounts(View):
                 return {'form': form}
 
         return {'form': ReportsMeropsForm}
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(kwargs)
+        return render_to_response(self.template_name, context, context_instance=RequestContext(request))
+
+class WebCxnsReport(View):
+    template_name = 'articleflow/reports/webcxns.html'
+
+    @method_decorator(login_required())
+    @method_decorator(user_passes_test(lambda u: u.groups.filter(name='management').count()== 1))
+    def dispatch(self, request, *args, **kwargs):
+        return super(WebCxnsReport, self).dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        data=form.cleaned_data
+
+        # hacky fix for non-inclusive end date on filter
+        end_date_end = data['end_date'] + datetime.timedelta(days=1)
+        start_date_begin = data['start_date']
+
+        # Create acceptable typesetter names list
+        if data['typesetter'] == '1':
+            typesetters = ["CW"]
+        elif data['typesetter'] == '2':
+            typesetters = ["Merops"]
+        elif data['typesetter'] == '3':
+            typesetters = ["CW", "Merops"]
+
+        #Base query
+        ready_to_pub_objs = ArticleState.objects.filter(state__name="Ready to Publish").filter(created__gte=start_date_begin).filter(created__lte=end_date_end)
+        
+        # Filter for Ready to Publish articles by requested Group(s)
+        if data['group'] == '1': #PLOS
+            ready_to_pub_objs = ready_to_pub_objs.filter(from_transition_user__groups__name="web")
+        elif data['group'] == '2': #Stan
+            ready_to_pub_objs = ready_to_pub_objs.filter(from_transition_user__groups__name="web corrections outsourcers")
+        elif data['group'] == '3': #Both
+            pass
+        
+        ready_to_pub_dict = {}
+        # For each article in list of ready to pub state, filter previous ArticleState info
+        for art in ready_to_pub_objs:
+            for a in ArticleState.objects.filter(article=art.article):#.filter(created__gte=cxn_date_begin).filter(created__lte=cxn_date_end):
+
+                if a.state.name == art.from_transition.from_state.name and a.article.typesetter.name in typesetters:
+                    ready_to_pub_dict[art.article] = {"ready_to_pub": art.state.name, 
+                                                    "ready_to_pub_created": art.created, 
+                                                    "cxn_state": a.state.name, 
+                                                    "cxn_state_created": a.created, 
+                                                    "user": art.from_transition_user, 
+                                                    "issues": str(len(a.article.issues.all()))}
+                    # Create pretty variable for total time from cxn to ready to pub state
+                    t = art.created - a.created
+                    days, remainder = divmod(t.seconds, 86400)
+                    hours, min_rem = divmod(remainder, 3600)
+                    minutes, seconds = divmod(min_rem, 60)
+                    ready_to_pub_dict[art.article]['total_time'] = str(days)+" days, "+str(hours)+' hrs, '+str(minutes)+' mins, '+str(seconds)+' secs'
+
+        if len(ready_to_pub_dict) == 0:
+            return {}
+
+        return {'articles': ready_to_pub_dict}
+
+
+    def get_context_data(self,request, *args, **kwargs):
+        context = {}
+        if self.request.GET:
+            form = ReportsCorrectiontoReadytoPublishForm(self.request.GET)
+            if form.is_valid():
+                return {'results': self.form_valid(form),
+                        'form': form}
+            else:
+                return {'form': form}
+
+        return {'form': ReportsCorrectiontoReadytoPublishForm}
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(kwargs)
