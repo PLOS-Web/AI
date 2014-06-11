@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+{% load utils %}
+
+{% block head %}
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css" />
+<link rel="stylesheet" href="{{ STATIC_URL }}css/grid.css" />
+<script src="http://code.jquery.com/ui/1.9.2/jquery-ui.js"></script>
+<script src="{{ STATIC_URL }}js/grid.js"></script>
+</script>
+{% endblock %}
+
+{% block sub_title %} - Reports: Web Correction Performance{% endblock %}
+
+{% block content %}
+<h3>Web Correction Performance</h3>
+<h4>Description</h4>
+<p>See articles changed to Ready To Publish in a specified date range.</p>
+<div>
+  <form action="." class="form form-horizontal" method="get">
+    {{ form|crispy }}
+    <div class="control-group">
+      <div class="controls">
+	<input class="btn-primary" type="submit" name="submit" value="Submit">
+      </div>
+    </div>
+  </form>
+</div>
+{% if results %}
+
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th>Doi</th>
+      <th>Current State</th>
+      <th>Pubdate</th>
+      <th>Ready to Publish Info</th>
+      <th>Issues</th>
+      <th>Transition User</th>
+      <th>Previous state Info</th>
+      <th>Time in Cxns Needed State</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for art,info in results.articles.items %}
+    <tr>
+      <td><a href="{% url detail_main art %}">{{ art }}</a></td>
+      <td>{{ art.current_state.name }}</td>
+      <td>{{ art.pubdate }}</td>
+      <td>{{ info.ready_to_pub }}, {{ info.ready_to_pub_created }}</td>
+      <td>{{ info.issues }}</td>
+      <td>{{ info.user }}</td>
+      <td>{{ info.cxn_state }}, {{ info.cxn_state_created }}</td>
+      <td>{{ info.total_time }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}
