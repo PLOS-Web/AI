@@ -704,7 +704,7 @@ class WebCxnsReport(View):
         elif data['group'] == '2': #Stan
             ready_to_pub_objs = ready_to_pub_objs.filter(from_transition_user__groups__name="web corrections outsourcers")
         elif data['group'] == '3': #Both
-            pass
+            ready_to_pub_objs = ready_to_pub_objs.filter(Q(from_transition_user__groups__name="web corrections outsourcers")|Q(from_transition_user__groups__name="web")).all()
         
         ready_to_pub_dict = {}
         # For each article in list of ready to pub state, filter previous ArticleState info
