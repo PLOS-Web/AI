@@ -335,7 +335,7 @@ CELERYBEAT_PIDFILE = '/tmp/celerybeat.pid'
 CELERY_IMPORTS=(
     'articleflow.daemons.em_sync',
     'articleflow.daemons.transition_tasks',
-    'articleflow.daemons.merops_tasks',
+    #'articleflow.daemons.merops_tasks',
     'articleflow.daemons.misc_tasks',
 )
 
@@ -347,7 +347,7 @@ CELERYBEAT_SCHEDULE = {
         },
     'em-sync': {
         'task': 'articleflow.daemons.em_sync.sync_all_pubdates',
-        'schedule': crontab(hour="*/2", minute="0", day_of_week="*")
+        'schedule': crontab(hour="12", minute="0", day_of_week="*")
         },
     'sync-most-recent-em-changes': {
         'task': 'articleflow.daemons.em_sync.sync_most_recent_em_changes',
@@ -356,30 +356,6 @@ CELERYBEAT_SCHEDULE = {
     'transitions-tasks': {
         'task': 'articleflow.daemons.transition_tasks.ongoing_ambra_sync',
         'schedule': timedelta(seconds=30)
-        },
-    'merops-tasks-watch-docs-from-aries': {
-        'task': 'articleflow.daemons.merops_tasks.watch_docs_from_aries',
-        'schedule': timedelta(seconds=30)
-        },
-    'merops-tasks-watch-merops-output': {
-        'task': 'articleflow.daemons.merops_tasks.watch_merops_output',
-        'schedule': timedelta(seconds=30)
-        },
-    'merops-tasks-move-to-pm': {
-        'task': 'articleflow.daemons.merops_tasks.move_to_pm',
-        'schedule': timedelta(seconds=30)
-        },
-    'merops-tasks-watch-finishxml-output': {
-        'task': 'articleflow.daemons.merops_tasks.watch_finishxml_output',
-        'schedule': timedelta(seconds=30)
-        },
-    'merops-tasks-build-merops-packages': {
-        'task': 'articleflow.daemons.merops_tasks.build_merops_packages',
-        'schedule': crontab(minute="*/15", day_of_week="*")
-        },
-    'merops-tasks-watch_stuck_queue': {
-        'task': 'articleflow.daemons.merops_tasks.watch_stuck_queue',
-        'schedule': crontab(hour="*", minute="0", day_of_week="*")
         },
     }
 
