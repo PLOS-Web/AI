@@ -115,11 +115,11 @@ def sync_most_recent_em_changes():
         job.complete()
 
 
-@task
-def cron_test():
-    for i in range(0,11):
-        logger.info("Cron test activated %s" % i)
-    return True
+#@task
+#def cron_test():
+#    for i in range(0,11):
+#        logger.info("Cron test activated %s" % i)
+#    return True
     
 def main():
     sync_most_recent_em_changes()
