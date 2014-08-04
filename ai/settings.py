@@ -339,6 +339,11 @@ CELERY_IMPORTS=(
     'articleflow.daemons.misc_tasks',
 )
 
+# MAX TASKS
+CELERYD_MAX_TASKS_PER_CHILD = 10
+# 30 MINUTES TIME LIMIT
+CELERYD_TASK_TIME_LIMIT = 1800
+
 # CELERY beat schedule
 CELERYBEAT_SCHEDULE = {
     'emit_notices': {
