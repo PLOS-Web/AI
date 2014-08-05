@@ -512,7 +512,9 @@ class ReportsPCQCCounts(View):
         if data['group'] == '2':
             workers = User.objects.filter(groups__name='zyg')
         if data['group'] == '3':
-            workers = User.objects.filter(Q(groups__name='production')|Q(groups__name='zyg')).all()
+            workers = User.objects.filter(groups__name='staninfo')
+        if data['group'] == '4':
+            workers = User.objects.filter(Q(groups__name='production')|Q(groups__name='zyg')|Q(groups__name='staninfo')).all()
 
         for w in workers.order_by('username').all():
             users[w.username] = {'user': w}
