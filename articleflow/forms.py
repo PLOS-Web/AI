@@ -23,7 +23,7 @@ class AssignmentForm(forms.Form):
             self.fields['state'] = forms.IntegerField(widget=forms.HiddenInput(), initial=state_pk)
 
 class ReportsDateRange(forms.Form):
-    group_choices = ((1, 'PLOS Production'),(2, "Zyg"), (3, "Both"))
+    group_choices = ((1, 'PLOS Production'),(2, "Zyg"), (3, 'StanInfo'), (4, "All"))
     typesetter_choices = ((1, 'CW QC'), (2, 'Merops QC'), (3, 'Merops+CW QC'), (4, 'Merops PM'))
 
     group = forms.ChoiceField(choices=group_choices)
