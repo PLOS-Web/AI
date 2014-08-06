@@ -103,6 +103,18 @@ def separate_errors(e):
     
     return errors
 
+def time_between_states(previous, current):
+    """
+    Accepts to datetime objects, and returns
+    a string of the time difference between the two.
+    """
+    t = current - previous
+    days, remainder = divmod(t.seconds, 86400)
+    hours, min_rem = divmod(remainder, 3600)
+    minutes, seconds = divmod(min_rem, 60)
+    return str(days)+" days, "+str(hours)+' hrs, '+str(minutes)+' mins, '+str(seconds)+' secs'
+
+
 class ColumnOrder():
     @staticmethod
     def parse_type(type):
@@ -533,6 +545,10 @@ class ReportsPCQCCounts(View):
         elif int(data['typesetter']) == 4:
             from_transitions = Transition.objects.filter(from_state__unique_name='prepare_manuscript').all()
 
+        arts =[]
+        total_papers_with_issues = 0
+        total_issues = 0
+
         for u in users.itervalues():
             u['counts'] = {}
 
@@ -544,10 +560,32 @@ class ReportsPCQCCounts(View):
                 u['counts'][j.short_name] = journal_base.count()
             
             u['actions'] = user_as_base.order_by('created').all()
+
+            u['actions_dict'] = {}
+            for art in user_as_base.order_by('created').all():
+                for a in ArticleState.objects.filter(article=art.article):
+                    if a.state.name == art.from_transition.from_state.name:
+                        u['actions_dict'][a] = {'start_time': art.created,
+                                                'end_time': a.created,
+                                                'total_time': time_between_states(a.created, art.created),
+                                                'state': art.state.name, 'poop': 'poop'}
+            print "actions_dict", u['user'], u['actions_dict']
             
             u['total'] = 0
             for c in u['counts'].itervalues():
                 u['total'] += c
+
+            # Let's try and get some totals. Add the articles to a list we'll use outside the loop.
+            # Only add them if they don't exist already (no dupes)
+            for art in user_as_base:
+                if art.article not in arts:
+                    arts.append(art.article)
+    
+        for a in arts:
+            if a.issues.count() > 0:
+                total_issues += a.issues.count()
+                total_papers_with_issues += 1
+
     
         journal_totals = {}
         for j in Journal.objects.all():
@@ -559,10 +597,15 @@ class ReportsPCQCCounts(View):
         for c in journal_totals.itervalues():
             journal_total += c
 
+        totes = {'Total Papers': journal_total,
+                 'Total Papers with Issues': total_papers_with_issues,
+                 'Total # of Issues': total_issues}
+
         return {'users': users,
                 'journal_totals': journal_totals,
                 'journal_total': journal_total,
-                'journals': journals}
+                'journals': journals,
+                'totes': totes}
 
     def get_context_data(self,request, *args, **kwargs):
         context = {}
@@ -719,13 +762,9 @@ class WebCxnsReport(View):
                                                     "cxn_state": a.state.name, 
                                                     "cxn_state_created": a.created, 
                                                     "user": art.from_transition_user, 
-                                                    "issues": str(len(a.article.issues.all()))}
-                    # Create pretty variable for total time from cxn to ready to pub state
-                    t = art.created - a.created
-                    days, remainder = divmod(t.seconds, 86400)
-                    hours, min_rem = divmod(remainder, 3600)
-                    minutes, seconds = divmod(min_rem, 60)
-                    ready_to_pub_dict[art.article]['total_time'] = str(days)+" days, "+str(hours)+' hrs, '+str(minutes)+' mins, '+str(seconds)+' secs'
+                                                    "issues": str(a.article.issues.count())}
+                    
+                    ready_to_pub_dict[art.article]['total_time'] = time_between_states(a.created, art.created)
 
         if len(ready_to_pub_dict) == 0:
             return {}

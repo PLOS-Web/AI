@@ -28,7 +28,22 @@
   </form>
 </div>
 
+
 {% if results %}
+
+<h4>Totals</h4>
+<table class='table table-hover'>
+  <thead>
+    <tr>
+      {% for t, n in results.totes|ordered_flat_dict %}
+      <th>{{ t }}</th>
+      <th>{{ n }}</th>
+    </tr>
+      {% endfor %}
+    
+  </thead>
+</table>
+
 <h4>Results</h4>
 <table class='table table-hover'>
   <thead>
@@ -82,6 +97,26 @@
     </tr>
     {% endfor %}
   </tbody>
+</table>
+<table>
+  <thead>
+    <tr>
+      <th>Doi</th>
+      <th>QC Start</th>
+      <th>QC End</th>
+      <th>Total Time in QC</th>
+    </tr>
+  </thead>
+  <tbody>
+{% for a, k in c.actions_dict.items %}
+  <tr>
+    <td>{{ a }}</td>
+    <td>{{ k.start_time }}</td>
+    <td>{{ k.end_time }}</td>
+    <td>{{ k.total_time }}</td>
+  </tr>
+{% endfor %}
+</tbody>
 </table>
 {% else %}
 <p>--</p>
