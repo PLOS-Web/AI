@@ -565,11 +565,27 @@ class ReportsPCQCCounts(View):
             for art in user_as_base.order_by('created').all():
                 for a in ArticleState.objects.filter(article=art.article):
                     if a.state.name == art.from_transition.from_state.name:
-                        u['actions_dict'][a] = {'start_time': art.created,
-                                                'end_time': a.created,
-                                                'total_time': time_between_states(a.created, art.created),
-                                                'state': art.state.name, 'poop': 'poop'}
-            print "actions_dict", u['user'], u['actions_dict']
+                        if len(u['actions_dict'].items()) > 0:
+                            for e,v in u['actions_dict'].items():
+                                print e.article, a.article
+                                if a.article == e.article:
+                                    if v['start_time'] > a.created:
+                                        v['start_time'] = a.created
+                                        v['total_time_datetime'] = v['start_time'] - v['end_time']
+                                        v['total_time'] = time_between_states(v['start_time'], v['end_time'])
+                                else:
+                                    u['actions_dict'][a] = {'end_time': art.created,
+                                                    'start_time': a.created,
+                                                    'total_time_datetime': (a.created - art.created),
+                                                    'total_time': time_between_states(a.created, art.created),
+                                                    'state': art.state.name}
+                        else:
+                            u['actions_dict'][a] = {'end_time': art.created,
+                                                    'start_time': a.created,
+                                                    'total_time_datetime': (a.created - art.created),
+                                                    'total_time': time_between_states(a.created, art.created),
+                                                    'state': art.state.name}
+
             
             u['total'] = 0
             for c in u['counts'].itervalues():
