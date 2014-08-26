@@ -35,13 +35,22 @@
 <table class='table table-hover'>
   <thead>
     <tr>
-      {% for t, n in results.totes|ordered_flat_dict %}
-      <th>{{ t }}</th>
-      <th>{{ n }}</th>
+      <th>Total Papers</th>
+      <th>{{ results.totes.total_papers }}</th>
     </tr>
-      {% endfor %}
-    
-  </thead>
+    <tr>
+      <th>Total Papers with Issues</th>
+      <th>{{ results.totes.total_papers_with_issues }}</th>
+    </tr>
+    <tr>
+      <th>Total # of Issues</th>
+      <th>{{ results.totes.total_no_of_issues }}</th>
+    </tr>
+    <tr>
+      <th>Average Issues per Paper</th>
+      <th>{{ results.totes.average_issues_per_paper }}</th>
+    </tr>
+  </thead> 
 </table>
 
 <h4>Results</h4>
@@ -77,31 +86,13 @@
 
 {% for u_name, c in results.users|ordered_flat_dict %}
 <h5 id="actions_{{ u_name }}">{{ u_name }}</h5>
-{% if c.actions %}
+{% if c.actions_dict %}
 <table class="table table-hover">
   <thead>
     <tr>
       <th>Doi</th>
       <th>Typesetter</th>
       <th>Transition</th>
-      <th>Time</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for a_s in c.actions %}
-    <tr>
-      <td><a href="{% url detail_main a_s.article.doi %}">{{ a_s.article.doi }}</a></td>
-      <td>{{ a_s.article.typesetter.name }}</td>
-      <td><a href="{% url detail_history a_s.article.doi %}">{{ a_s.from_transition.name }}</td>
-      <td>{{ a_s.created }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-<table>
-  <thead>
-    <tr>
-      <th>Doi</th>
       <th>QC Start</th>
       <th>QC End</th>
       <th>Total Time in QC</th>
@@ -110,7 +101,9 @@
   <tbody>
 {% for a, k in c.actions_dict.items %}
   <tr>
-    <td>{{ a }}</td>
+    <td><a href="{% url detail_main a %}">{{ a }}</a></td>
+    <td>{{ k.typesetter }}</td>
+    <td><a href="{% url detail_history a %}">{{ k.transition }}</a></td>
     <td>{{ k.start_time }}</td>
     <td>{{ k.end_time }}</td>
     <td>{{ k.total_time }}</td>
