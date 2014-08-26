@@ -20,6 +20,7 @@ import re
 import glob
 import datetime
 import mimetypes
+from decimal import *
 
 from django.contrib.auth.models import Group
 
@@ -102,6 +103,18 @@ def separate_errors(e):
         errors += [error_tuple]
     
     return errors
+
+def time_between_states(previous, current):
+    """
+    Accepts to datetime objects, and returns
+    a string of the time difference between the two.
+    """
+    t = current - previous
+    days, remainder = divmod(t.seconds, 86400)
+    hours, min_rem = divmod(remainder, 3600)
+    minutes, seconds = divmod(min_rem, 60)
+    return str(days)+" days, "+str(hours)+' hrs, '+str(minutes)+' mins, '+str(seconds)+' secs'
+
 
 class ColumnOrder():
     @staticmethod
@@ -502,7 +515,7 @@ class ReportsPCQCCounts(View):
 
     def form_valid(self, form, **kwargs):
         data = form.cleaned_data
-        print data
+
         # hacky fix for non-inclusive end date on filter
         data['end_date'] = data['end_date'] + datetime.timedelta(days=1)
         
@@ -533,6 +546,10 @@ class ReportsPCQCCounts(View):
         elif int(data['typesetter']) == 4:
             from_transitions = Transition.objects.filter(from_state__unique_name='prepare_manuscript').all()
 
+        arts =[]
+        total_papers_with_issues = 0
+        total_issues = 0
+
         for u in users.itervalues():
             u['counts'] = {}
 
@@ -544,10 +561,55 @@ class ReportsPCQCCounts(View):
                 u['counts'][j.short_name] = journal_base.count()
             
             u['actions'] = user_as_base.order_by('created').all()
+
+            # Somewhat ugly algorithm that gathers/calculates the time an article sits in
+            # Ready for QC/Urgent QC states and stores them in a dict.
+            u['actions_dict'] = {}
+            prev_states_list = []
+            for art in user_as_base.order_by('created').all():
+                for a in ArticleState.objects.filter(article=art.article):
+                    if a.state.name == art.from_transition.from_state.name:
+                        prev_states_list.append(a)
+
+                for a in prev_states_list:     
+                    if len(u['actions_dict'].items()) > 0:
+                        # If state exists in dict, check created time, and take the oldest one.
+                        if a.article.doi in u['actions_dict'].keys():
+                            if u['actions_dict'][a.article.doi]['start_time'] > a.created:
+                                u['actions_dict'][a.article.doi]['start_time'] = a.created
+                                u['actions_dict'][a.article.doi]['total_time_datetime'] = u['actions_dict'][a.article.doi]['start_time'] - u['actions_dict'][a.article.doi]['end_time']
+                                u['actions_dict'][a.article.doi]['total_time'] = time_between_states(u['actions_dict'][a.article.doi]['start_time'], u['actions_dict'][a.article.doi]['end_time'])
+                        else:
+                            u['actions_dict'][a.article.doi] = {'end_time': art.created,
+                                            'start_time': a.created,
+                                            'total_time_datetime': (a.created - art.created),
+                                            'total_time': time_between_states(a.created, art.created),
+                                            'transition': art.from_transition.name,
+                                            'typesetter': a.article.typesetter}
+                    else:
+                        u['actions_dict'][a.article.doi] = {'end_time': art.created,
+                                                'start_time': a.created,
+                                                'total_time_datetime': (a.created - art.created),
+                                                'total_time': time_between_states(a.created, art.created),
+                                                'transition': art.from_transition.name,
+                                                'typesetter': a.article.typesetter}
+
             
             u['total'] = 0
             for c in u['counts'].itervalues():
                 u['total'] += c
+
+            # Let's try and get some totals. Add the articles to a list we'll use outside the loop.
+            # Only add them if they don't exist already (no dupes)
+            for art in user_as_base:
+                if art.article not in arts:
+                    arts.append(art.article)
+    
+        for a in arts:
+            if a.issues.count() > 0:
+                total_issues += a.issues.count()
+                total_papers_with_issues += 1
+
     
         journal_totals = {}
         for j in Journal.objects.all():
@@ -559,10 +621,19 @@ class ReportsPCQCCounts(View):
         for c in journal_totals.itervalues():
             journal_total += c
 
+        # Use Decimal library to create average issues per paper
+        average_issues_per_paper = round((Decimal(total_issues) / Decimal(journal_total)), 2)
+
+        totes = {'total_papers': journal_total,
+                 'total_papers_with_issues': total_papers_with_issues,
+                 'total_no_of_issues': total_issues,
+                 'average_issues_per_paper': average_issues_per_paper}
+
         return {'users': users,
                 'journal_totals': journal_totals,
                 'journal_total': journal_total,
-                'journals': journals}
+                'journals': journals,
+                'totes': totes}
 
     def get_context_data(self,request, *args, **kwargs):
         context = {}
@@ -719,13 +790,9 @@ class WebCxnsReport(View):
                                                     "cxn_state": a.state.name, 
                                                     "cxn_state_created": a.created, 
                                                     "user": art.from_transition_user, 
-                                                    "issues": str(len(a.article.issues.all()))}
-                    # Create pretty variable for total time from cxn to ready to pub state
-                    t = art.created - a.created
-                    days, remainder = divmod(t.seconds, 86400)
-                    hours, min_rem = divmod(remainder, 3600)
-                    minutes, seconds = divmod(min_rem, 60)
-                    ready_to_pub_dict[art.article]['total_time'] = str(days)+" days, "+str(hours)+' hrs, '+str(minutes)+' mins, '+str(seconds)+' secs'
+                                                    "issues": str(a.article.issues.count())}
+                    
+                    ready_to_pub_dict[art.article]['total_time'] = time_between_states(a.created, art.created)
 
         if len(ready_to_pub_dict) == 0:
             return {}
